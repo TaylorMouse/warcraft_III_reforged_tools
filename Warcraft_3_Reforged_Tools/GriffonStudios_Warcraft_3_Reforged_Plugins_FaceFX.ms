@@ -1,15 +1,22 @@
 /*
-    Written by Taylor Mouse © 2020
-    for
-    Warcraft 3 Reforged
-
+    .DESCRIPTION
+    | Plugins for Warcraft III Reforged
+    | Written by Taylor Mouse
+    
+    .DATE
+    | 17.12.2021
+    
+    .RELEASENOTES
+    | 0.2 - Revisit
+    | 0.1 - INIT
+    
 */
 
 
 plugin simpleManipulator WC3RefFaceFX
     name: "Face FX"
     classID:#(0x1f1f6643, 0x153d2ca1)
-    category:"Warcraft 3 Reforged"
+    category:"Warcraft III Reforged"
 (
     parameters main rollout:params
     (
@@ -43,7 +50,7 @@ plugin simpleManipulator WC3RefFaceFX
             case click of
                  (
                     1:(
-                        nodeTM.translation = gridPoint
+                        nodeTM.translation = [0,0,0]
                          #stop
                       )
                   )

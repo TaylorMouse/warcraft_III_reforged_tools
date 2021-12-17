@@ -1,14 +1,21 @@
 /*
-    Written by Taylor Mouse © 2020
-    for
-    Warcraft 3 Reforged
-
+    .DESCRIPTION
+    | Plugins for Warcraft III Reforged
+    | Written by Taylor Mouse
+    
+    .DATE
+    | 17.12.2021
+    
+    .RELEASENOTES
+    | 0.2 - Revisit
+    | 0.1 - INIT
+    
 */
 
 plugin simpleManipulator WC3RefEvent
     name: "Event"
     classID:#(0x332e6a9a, 0x23f39a9d)
-    category:"Warcraft 3 Reforged"
+    category:"Warcraft III Reforged"
 (
     local myNoteTrack
     local listOfKeys = #()

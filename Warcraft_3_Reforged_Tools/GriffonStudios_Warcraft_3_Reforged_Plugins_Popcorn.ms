@@ -1,14 +1,22 @@
 /*
-    Written by Taylor Mouse © 2020
-    for
-    Warcraft 3 Reforged
-
+    .DESCRIPTION
+    | Plugins for Warcraft III Reforged
+    | Written by Taylor Mouse
+    
+    .DATE
+    | 17.12.2021
+    
+    .RELEASENOTES
+    | 0.2 - Revisit
+    | 0.1 - INIT
+    
 */
+
 
 plugin simpleManipulator WC3RefPopCorn
     name: "Popcorn"
     classID:#(0x3617a48c, 0x391672fe)
-    category:"Warcraft 3 Reforged"
+    category:"Warcraft III Reforged"
 (
     parameters main rollout:params
     (
@@ -61,10 +69,10 @@ plugin simpleManipulator WC3RefPopCorn
     function BuildGizmoCircle radius center=
     (
         
-        local unselectedColor = [0.878,0.337,0.337] 
+        local unselectedColor = [0.8,0.8,0.8] 
         local selectedColor = [1,0,0]
 
-        local giz = manip.makeCircle center radius 64
+        local giz = manip.makeCircle center radius 32
 
         this.addGizmoShape giz 0 unselectedColor selectedColor
     )
@@ -72,9 +80,9 @@ plugin simpleManipulator WC3RefPopCorn
     (
         this.clearGizmos()
         
-        BuildGizmoCircle 50.0 [0,0,0]
-        BuildGizmoCircle 45.0 [0,0,0]
-        BuildGizmoCircle 30.0 [0,0,0]
+        BuildGizmoCircle 25.0 [0,0,0]
+        BuildGizmoCircle 20.0 [0,0,0]
+        BuildGizmoCircle 10.0 [0,0,0]
 
         
     )

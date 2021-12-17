@@ -11,9 +11,9 @@
 */
 
 plugin Material WC3RefMaterial
-    name: "Warcraft 3 Reforged Standard"
+    name: "Warcraft III Reforged Standard"
     classID:#(0xbc1a66d, 0x64d12aa1)
-    category:"Warcraft 3 Reforged"
+    category:"Warcraft III Reforged"
     extends:Standard
     replaceUI:true 
     version:1

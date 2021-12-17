@@ -2,9 +2,9 @@ global Warcraft3_AssetFolder
 global Warcraft3_ImportAllLOD = false
 global Warcraft3_ConvertToSC2
 
-macroscript Warcaft3Reforged_ImportModel category:"Warcraft 3 Reforged Tools" tooltip:"Import model" 
+macroscript Warcaft3Reforged_ImportModel category:"Warcraft III Reforged Tools" tooltip:"Import model" 
 (
-    rollout ImportWindow "Warcraft 3 Reforged Import (v1.0)"
+    rollout ImportWindow "Warcraft III Reforged Import (v1.0)"
     (
         group "Select mdx file:"
         (
@@ -17,7 +17,7 @@ macroscript Warcaft3Reforged_ImportModel category:"Warcraft 3 Reforged Tools" to
             checkbox chkConvertToSC2 "Convert to SC2 Compatible"
         )
 
-        label lbl1 "©2020" align:#center
+        label lbl1 "©2021" align:#center
         label lbl2 "Taylor Mouse"  align:#center
         button btnClose "Close" height:30 width:80 offset:[115,-35]
         button btnImport "Import" height:30 width:80 offset:[-115,-35]
@@ -42,8 +42,8 @@ macroscript Warcaft3Reforged_ImportModel category:"Warcraft 3 Reforged Tools" to
         on btnBrowse pressed do
         (
             local file = getOpenFileName \
-                        caption:"Warcraft 3 Reforged" \
-                        types:"Supported Files|*.mdx|Warcraft 3 Reforged(*.mdx)|*.mdx|All Files|*.*" \
+                        caption:"Warcraft III Reforged" \
+                        types:"Supported Files|*.mdx|Warcraft III Reforged(*.mdx)|*.mdx|All Files|*.*" \
                         historyCategory:"ReforgedPreset"
             if (file != undefined) then 
                 if (doesfileexist file == true ) then 
@@ -72,7 +72,7 @@ macroscript Warcaft3Reforged_ImportModel category:"Warcraft 3 Reforged Tools" to
     
 )
 
-macroscript Warcraft3Reforged_ResetAnimationTracks category:"Warcraft 3 Reforged Tools" tooltip:"Reset Animation Tracks"
+macroscript Warcraft3Reforged_ResetAnimationTracks category:"Warcraft III Reforged Tools" tooltip:"Reset Animation Tracks"
 (
     local nNoteTracks = numNoteTracks rootNode
         
@@ -83,12 +83,12 @@ macroscript Warcraft3Reforged_ResetAnimationTracks category:"Warcraft 3 Reforged
     )
 )
 
-macroscript Warcaft3Reforged_Settings category:"Warcraft 3 Reforged Tools" tooltip:"Settings" 
+macroscript Warcaft3Reforged_Settings category:"Warcraft III Reforged Tools" tooltip:"Settings" 
 (
     fileIn "GriffonStudios_Warcraft_3_Reforged_Main.ms"
     local workingDir = getdir #temp
     
-    rollout SettingsWindow "Warcraft 3 Reforged Settings"
+    rollout SettingsWindow "Warcraft III Reforged Settings"
     (
         group "Root asset folder"
         (
@@ -134,32 +134,32 @@ macroscript Warcaft3Reforged_Settings category:"Warcraft 3 Reforged Tools" toolt
     
 )
 
-macroscript Warcaft3Reforged_ExportModel category:"Warcraft 3 Reforged Tools" tooltip:"Export model" 
+macroscript Warcaft3Reforged_ExportModel category:"Warcraft III Reforged Tools" tooltip:"Export model" 
 (
     filein "GriffonStudios_Warcraft_3_Reforged_Exporter_Dialog.ms"
     if(GriffonStudios_WC3_ExportDialog != undefined) then destroydialog GriffonStudios_WC3_ExportDialog
         CreateDialog GriffonStudios_WC3_ExportDialog lockwidth: true
 )
 
-macroscript Warcaft3Reforged_Animations category:"Warcraft 3 Reforged Tools" tooltip:"Animation Selector" 
+macroscript Warcaft3Reforged_Animations category:"Warcraft III Reforged Tools" tooltip:"Animation Selector" 
 (
     filein "GriffonStudios_Warcraft_3_Reforged_AnimationProperties.ms"
-    if(GriffonStudios_WC3_AnimationProperties != undefined) then destroydialog GriffonStudios_WC3_AnimationProperties
-        CreateDialog GriffonStudios_WC3_AnimationProperties lockwidth: true     
+    if(GriffonStudios_AnimationWindow != undefined) then destroydialog GriffonStudios_WC3_AnimationProperties
+        CreateDialog GriffonStudios_AnimationWindow lockwidth: true     
 )
 
 macroscript Warcaft3Reforged_About 
-    category:"Warcraft 3 Reforged Tools" 
+    category:"Warcraft III Reforged Tools" 
     tooltip:"About"
 (
     if ( aboutWindow != undefined ) then destroydialog aboutWindow
     
-    rollout aboutWindow "Warcraft 3 Reforged Tools" 
+    rollout aboutWindow "Warcraft III Reforged Tools" 
     (
-        label lbl1 "©2020~2021 Griffon Studios" align:#center
+        label lbl1 "©2020~2022 Griffon Studios" align:#center
         label lbl3 "Created by Taylor Mouse" align:#center
         label lbl2 "Get the latest version from my github:\n" align:#center
-        hyperlink lnk1 "github.com/TaylorMouse/Warcraft 3 Reforged"  address:"https://github.com/TaylorMouse/MaxScripts" align:#center color:(color 255 128 0)
+        hyperlink lnk1 "github.com/TaylorMouse/Warcraft III Reforged"  address:"https://github.com/TaylorMouse/MaxScripts" align:#center color:(color 255 128 0)
         button btn "Close" height:30 width:80 offset:[0,10]
         
         on btn pressed do
@@ -173,7 +173,7 @@ macroscript Warcaft3Reforged_About
 )
 
 macroscript Warcaft3Reforged_Ribbon     
-    category:"Warcraft 3 Reforged Tools" 
+    category:"Warcraft III Reforged Tools" 
     tooltip:"Create Ribbon" 
 (
     fileIn "GriffonStudios_Warcraft_3_Reforged_Plugins_Ribbon.ms"
@@ -181,7 +181,7 @@ macroscript Warcaft3Reforged_Ribbon
 )
 
 macroscript Warcaft3Reforged_Event      
-    category:"Warcraft 3 Reforged Tools" 
+    category:"Warcraft III Reforged Tools" 
     tooltip:"Create Event" 
 (
     fileIn "GriffonStudios_Warcraft_3_Reforged_Plugins_Event.ms"
@@ -189,32 +189,32 @@ macroscript Warcaft3Reforged_Event
 )
 
 macroscript Warcaft3Reforged_FaceFX     
-    category:"Warcraft 3 Reforged Tools" 
+    category:"Warcraft III Reforged Tools" 
     tooltip:"Create Face FX" 
 (
     fileIn "GriffonStudios_Warcraft_3_Reforged_Plugins_FaceFX.ms"
     WC3RefFaceFX()
 )
 
-macroscript Warcaft3Reforged_Attachment category:"Warcraft 3 Reforged Tools" tooltip:"Create Attachment" 
+macroscript Warcaft3Reforged_Attachment category:"Warcraft III Reforged Tools" tooltip:"Create Attachment" 
 (
     fileIn "GriffonStudios_Warcraft_3_Reforged_Plugins_Attachment.ms"
     WC3RefAttachment()
 )
 
-macroscript Warcaft3Reforged_Particles  category:"Warcraft 3 Reforged Tools" tooltip:"Create Particle Emitter" 
+macroscript Warcaft3Reforged_Particles  category:"Warcraft III Reforged Tools" tooltip:"Create Particle Emitter" 
 (
     fileIn "GriffonStudios_Warcraft_3_Reforged_Plugins_Emitter.ms"
     WC3RefEmitter()
 )
 
-macroscript Warcaft3Reforged_PopCorn    category:"Warcraft 3 Reforged Tools" tooltip:"Create Popcorn Emitter" 
+macroscript Warcaft3Reforged_PopCorn    category:"Warcraft III Reforged Tools" tooltip:"Create Popcorn Emitter" 
 (
     fileIn "GriffonStudios_Warcraft_3_Reforged_Plugins_PopCorn.ms"
     WC3RefPopCorn()
 )
 
-macroscript Warcaft3Reforged_SC2AttachmentpointConvertor    category:"Warcraft 3 Reforged Tools" tooltip:"Convert Attachmentpoints" 
+macroscript Warcaft3Reforged_SC2AttachmentpointConvertor    category:"Warcraft III Reforged Tools" tooltip:"Convert Attachmentpoints" 
 (
     if ( STARCRAFT_II_ARTTOOLS_INSTALLED ) then (
         fileIn "GriffonStudios_Warcraft_3_Reforged_Main.ms"
@@ -224,7 +224,7 @@ macroscript Warcaft3Reforged_SC2AttachmentpointConvertor    category:"Warcraft 3
         messagebox "Starcraft II Art Tools not installed or not supported"
 )
 
-macroscript Warcaft3Reforged_SC2MaterialConvertor    category:"Warcraft 3 Reforged Tools" tooltip:"Convert Materials" 
+macroscript Warcaft3Reforged_SC2MaterialConvertor    category:"Warcraft III Reforged Tools" tooltip:"Convert Materials" 
 (
     if ( STARCRAFT_II_ARTTOOLS_INSTALLED ) then (
         fileIn "GriffonStudios_Warcraft_3_Reforged_Main.ms"
@@ -235,7 +235,7 @@ macroscript Warcaft3Reforged_SC2MaterialConvertor    category:"Warcraft 3 Reforg
 )
 
 
-macroscript Warcaft3Reforged_SC2HitTestBoxes    category:"Warcraft 3 Reforged Tools" tooltip:"Convert HitTestBoxes" 
+macroscript Warcaft3Reforged_SC2HitTestBoxes    category:"Warcraft III Reforged Tools" tooltip:"Convert HitTestBoxes" 
 (
     if ( STARCRAFT_II_ARTTOOLS_INSTALLED ) then (
     fileIn "GriffonStudios_Warcraft_3_Reforged_Main.ms"
@@ -246,7 +246,7 @@ macroscript Warcaft3Reforged_SC2HitTestBoxes    category:"Warcraft 3 Reforged To
         messagebox "Starcraft II Art Tools not installed or not supported"
 )
 
-macroscript Warcaft3Reforged_CollapseHitTests category:"Warcraft 3 Reforged Tools" tooltip:"Collapse Hit Tests" 
+macroscript Warcaft3Reforged_CollapseHitTests category:"Warcraft III Reforged Tools" tooltip:"Collapse Hit Tests" 
 (
     for obj in objects do 
     (
@@ -262,7 +262,7 @@ macroscript Warcaft3Reforged_CollapseHitTests category:"Warcraft 3 Reforged Tool
     )    
 )
 
-macroscript Warcaft3Reforged_ExpandHitTests category:"Warcraft 3 Reforged Tools" tooltip:"Expand Hit Tests" 
+macroscript Warcaft3Reforged_ExpandHitTests category:"Warcraft III Reforged Tools" tooltip:"Expand Hit Tests" 
 (
     for obj in objects do 
     (
@@ -274,7 +274,7 @@ macroscript Warcaft3Reforged_ExpandHitTests category:"Warcraft 3 Reforged Tools"
     )    
 )
 
-macroscript Warcaft3Reforged_CollapseAttachments category:"Warcraft 3 Reforged Tools" tooltip:"Collapse Attachments" 
+macroscript Warcaft3Reforged_CollapseAttachments category:"Warcraft III Reforged Tools" tooltip:"Collapse Attachments" 
 (
     for obj in objects do 
     (
@@ -285,7 +285,7 @@ macroscript Warcaft3Reforged_CollapseAttachments category:"Warcraft 3 Reforged T
     )
 )
 
-macroscript Warcaft3Reforged_ExpandAttachments category:"Warcraft 3 Reforged Tools" tooltip:"Expand Attachments" 
+macroscript Warcaft3Reforged_ExpandAttachments category:"Warcraft III Reforged Tools" tooltip:"Expand Attachments" 
 (
     for obj in objects do 
     (

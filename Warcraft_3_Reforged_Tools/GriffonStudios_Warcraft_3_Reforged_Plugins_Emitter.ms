@@ -1,13 +1,21 @@
 /*
-    Written by Taylor Mouse © 2020
-    for
-    Warcraft 3 Reforged
-
+    .DESCRIPTION
+    | Plugins for Warcraft III Reforged
+    | Written by Taylor Mouse
+    
+    .DATE
+    | 17.12.2021
+    
+    .RELEASENOTES
+    | 0.2 - Revisit
+    | 0.1 - INIT
+    
 */
+
 plugin simpleManipulator WC3RefEmitter
     name: "Particles"
     classID:#(0x1eef2461, 0x169c8631)
-    category:"Warcraft 3 Reforged"
+    category:"Warcraft III Reforged"
 (
     
     parameters main rollout:params1

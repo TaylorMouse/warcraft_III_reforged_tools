@@ -4,21 +4,22 @@
     | Compatible with Warcraft III, Warcraft III Reforged and StarCraft II
     
     .COPYRIGHT
-    | ©2020 Griffon Studios
+    | © 2020 Griffon Studios
     
     .AUTHOR
     | Taylor Mouse
 
 */
 
-rollout GriffonStudios_WC3_AnimationProperties "Animation Sequences" 
+rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2" 
     width:250 
-    height:720
+    height:760
 (
 
     dropdownlist ddlTracks "" height:20
     dotNetControl lv "System.Windows.Forms.ListView" width:230 height:300 align:#center
     checkbox cbUpdateTimeLine "Update timeline" checked:true
+    checkbox cbSortByTime "Sort by time" checked:false
     button btn_RefreshList "Refresh" align:#right offset:[0,-20]
     
     local leftPos = - 20
@@ -29,7 +30,7 @@ rollout GriffonStudios_WC3_AnimationProperties "Animation Sequences"
     group "Properties"
     (
         edittext txt_newName "" width:120 
-        button btn_rename "Rename" width:80 height:20 offset:[70,-25]        
+        button btn_rename "Update" width:80 height:20 offset:[70,-25] tooltip:"Update the name or the properties of this animation sequence"
         
         label lblStartFrame "Start "    align:#left
         spinner txt_StartFrame ""       width:50 offset:[leftPos,-20] type:#integer range:[0,100000,0]
@@ -56,6 +57,7 @@ rollout GriffonStudios_WC3_AnimationProperties "Animation Sequences"
     (
         edittext txt_newAnimName "" width:120 
         button btn_add "Add" width:80 height:20 offset:[70,-25]
+        checkbox chk_useTrackBar "Use start and end frame from the track bar"
     )
     
     group "Remove selected Animation"
@@ -68,7 +70,7 @@ rollout GriffonStudios_WC3_AnimationProperties "Animation Sequences"
         button btn_removeNoteTrack "Remove all animations (note track)" width:180 height:30
     )
     
-    label lblTM "©2021 Taylor Mouse"
+    label lblTM "© 2021 Taylor Mouse"
     
     function SetAnimationNoteTrack anim=
     (
@@ -154,7 +156,6 @@ rollout GriffonStudios_WC3_AnimationProperties "Animation Sequences"
     function ResetListView=
     (
         local items = #()
-        
         lv.Items.Clear()
         
         /* Check if there is a note track */
@@ -176,12 +177,22 @@ rollout GriffonStudios_WC3_AnimationProperties "Animation Sequences"
                 if (pos != undefined) then
                 (
                     animationName = substring note 1 pos
+                    
+                    print animationName
+                    
                     item = dotNetObject "System.Windows.Forms.ListViewItem"
                     item.Text = animationName
                     append items item
                 )
             )
-
+            print cbSortByTime.state
+            if ( cbSortByTime.state ) then
+                lv.ListViewItemSorter = undefined
+            else
+            (
+                
+            )
+            print lv.ListViewItemSorter
             lv.Items.AddRange items
         )
 
@@ -189,7 +200,7 @@ rollout GriffonStudios_WC3_AnimationProperties "Animation Sequences"
     
     function InitializeListView =
     (
-
+        format "Initializing listview ... \n"
         lv.View = (dotNetClass "System.Windows.Forms.View").Details
         lv.FullRowSelect = true
         lv.HideSelection = false
@@ -202,6 +213,12 @@ rollout GriffonStudios_WC3_AnimationProperties "Animation Sequences"
     )
     
     on btn_refreshList pressed do
+    (
+        ResetTrackList()
+        ResetListView()
+    )
+    
+    on cbSortByTime changed theState do
     (
         ResetTrackList()
         ResetListView()
@@ -238,9 +255,14 @@ rollout GriffonStudios_WC3_AnimationProperties "Animation Sequences"
         
         local anim = animStruct()
         anim.name = txt_newAnimName.Text
-        
         anim.start_frame    = txt_StartFrame.value
         anim.end_frame      = txt_EndFrame.value
+        
+        if ( chk_useTrackBar.checked ) then 
+        (
+            anim.start_frame    = animationrange.start as integer / ticksperframe
+            anim.end_frame      = animationrange.end as integer / ticksperframe
+        )   
         anim.rarity         = spinRarity.value as string
         anim.movement_speed = spinMovementSpeed.value as string
         anim.priority       = spinPriority.value as string
@@ -256,13 +278,27 @@ rollout GriffonStudios_WC3_AnimationProperties "Animation Sequences"
     on btn_rename pressed do
     (
         
-        if( selectedAnimation == undefined or txt_newName.text == "" or txt_newName.text == selectedAnimation.Text ) then return undefined
+        if( selectedAnimation == undefined or txt_newName.text == "") then return undefined
         if selectedAnimationTrack == undefined or selectedAnimationTrack == 0 then selectedAnimationTrack = 1
         
         local newName = txt_newName.text
         local track = getNoteTrack rootNode selectedAnimationTrack
         local keys = track.Keys
 
+        
+        struct animStruct ( name, start_frame, end_frame, rarity, movement_speed, priority, non_looping )
+        
+        local anim = animStruct()
+        anim.name           = txt_newName.text
+        anim.start_frame    = txt_StartFrame.value
+        anim.end_frame      = txt_EndFrame.value
+        anim.rarity         = spinRarity.value as string
+        anim.movement_speed = spinMovementSpeed.value as string
+        anim.priority       = spinPriority.value as string
+        anim.non_looping    = chkNonLooping.checked as string
+        
+        format "%\n" anim
+        
         for i=1 to keys.count by 2 do
         (
             local note = keys[i].value
@@ -272,11 +308,14 @@ rollout GriffonStudios_WC3_AnimationProperties "Animation Sequences"
             (
                 try 
                 (
-                    note = newName + (substring note (pos+1) -1)
+                    deleteNoteKey keys (i+1)
+                    deleteNoteKey keys i
+--                     note = newName + (substring note (pos+1) -1)
+--                     
+--                     keys[i].value = note
+--                     keys[i+1].value = note
+                    SetAnimationNoteTrack anim
                     
-                    keys[i].value = note
-                    keys[i+1].value = note
-
                     exit
                 )
                 catch 
@@ -328,8 +367,11 @@ rollout GriffonStudios_WC3_AnimationProperties "Animation Sequences"
         )
     )
     
-    on GriffonStudios_WC3_AnimationProperties open do
+    on GriffonStudios_AnimationWindow_v2 open do
     (
+        
+        format "lv.ListViewItemSorter %\n" lv.ListViewItemSorter
+        
         InitializeListView()
 
 
@@ -358,15 +400,20 @@ rollout GriffonStudios_WC3_AnimationProperties "Animation Sequences"
                 startTime = getNoteKeyTime track i
                 endTime = getNoteKeyTime track (i + 1)
 
+                if ( startTime == endTime ) then endTime = startTime + 1
+                
                 if( cbUpdateTimeLine.checked ) then
                 (
                     animationrange = interval startTime endTime
                     slidertime = startTime
                 )
 
+                
                 sStartTime = startTime as string
                 sEndTime = endTime as string
-                txt_StartFrame.value =( substring sStartTime 1 ( sStartTime.count  - 1)) as integer
+                
+                
+                txt_StartFrame.value = ( substring sStartTime 1 ( sStartTime.count  - 1)) as integer
                 txt_EndFrame.value = (substring sEndTime 1 ( sEndTime.count  - 1)) as integer
                 
                 local parts = filterstring propNote "\r\n ,"
@@ -394,3 +441,7 @@ rollout GriffonStudios_WC3_AnimationProperties "Animation Sequences"
     
     )
 )
+
+if(GriffonStudios_AnimationWindow_v2 != undefined) then destroydialog GriffonStudios_AnimationWindow_v2
+createdialog GriffonStudios_AnimationWindow_v2 lockwidth: true 
+clearListener()

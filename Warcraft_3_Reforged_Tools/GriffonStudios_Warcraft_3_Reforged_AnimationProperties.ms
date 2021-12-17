@@ -19,7 +19,7 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
     dropdownlist ddlTracks "" height:20
     dotNetControl lv "System.Windows.Forms.ListView" width:230 height:300 align:#center
     checkbox cbUpdateTimeLine "Update timeline" checked:true
-    checkbox cbSortByTime "Sort by time" checked:false
+    checkbox cbSortByTime "Sort by time" checked:true
     button btn_RefreshList "Refresh" align:#right offset:[0,-20]
     
     local leftPos = - 20
@@ -90,7 +90,7 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
         )
         else
         (
-            starAnimTrack = notetrack "starAnimTrack"
+            starAnimTrack = notetrack "AnimTrack"
             addNoteTrack rootNode starAnimTrack
         )
         
@@ -127,7 +127,7 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
             
         )
 
-        
+        true
     )
 
     function ResetTrackList=
@@ -157,10 +157,14 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
     (
         local items = #()
         lv.Items.Clear()
+        lv.ListViewItemSorter = undefined
+        lv.Sorting = undefined
         
         /* Check if there is a note track */
         local nNoteTracks = numNoteTracks rootNode
-      
+
+        local animationNames = #()
+        
         if(nNoteTracks > 0) then
         (
             if selectedAnimationTrack == undefined or selectedAnimationTrack == 0 then selectedAnimationTrack = 1
@@ -171,28 +175,22 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
             (
                 note = keys[i].value
                 
-                --format "Parsing note: %\n" note
-                
                 pos = (findString note "\n") - 2
                 if (pos != undefined) then
                 (
                     animationName = substring note 1 pos
-                    
-                    print animationName
-                    
-                    item = dotNetObject "System.Windows.Forms.ListViewItem"
-                    item.Text = animationName
-                    append items item
+                    append animationNames animationName
                 )
             )
-            print cbSortByTime.state
-            if ( cbSortByTime.state ) then
-                lv.ListViewItemSorter = undefined
-            else
+            if (cbSortByTime.state == false ) then
+                animationNames = sort animationNames
+            
+            for a in animationNames do
             (
-                
+                item = dotNetObject "System.Windows.Forms.ListViewItem"
+                item.Text = a
+                append items item
             )
-            print lv.ListViewItemSorter
             lv.Items.AddRange items
         )
 
@@ -234,6 +232,8 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
             (
                 local track = getNoteTrack rootNode selectedAnimationTrack
                 deleteNoteTrack rootnode track
+                selectedAnimationTrack = undefined
+                ResetTrackList()
                 ResetListView()
             )
             
@@ -268,11 +268,14 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
         anim.priority       = spinPriority.value as string
         anim.non_looping    = chkNonLooping.checked as string
         
-        SetAnimationNoteTrack anim
-        
+        if ( SetAnimationNoteTrack anim == true ) then (
+            txt_newName.Text = anim.name
+            txt_newAnimName.Text = ""
+        )
+        ResetTrackList()
         ResetListView()
+
         
-        txt_newAnimName.Text = ""
     )
     
     on btn_rename pressed do
@@ -285,7 +288,6 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
         local track = getNoteTrack rootNode selectedAnimationTrack
         local keys = track.Keys
 
-        
         struct animStruct ( name, start_frame, end_frame, rarity, movement_speed, priority, non_looping )
         
         local anim = animStruct()
@@ -310,10 +312,7 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
                 (
                     deleteNoteKey keys (i+1)
                     deleteNoteKey keys i
---                     note = newName + (substring note (pos+1) -1)
---                     
---                     keys[i].value = note
---                     keys[i+1].value = note
+
                     SetAnimationNoteTrack anim
                     
                     exit

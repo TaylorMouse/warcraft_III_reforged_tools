@@ -1,3 +1,16 @@
+/*
+    .DESCRIPTION
+    | Set of helper methods
+    | Written by Taylor Mouse
+    
+    .DATE
+    | (c)2015 - 2022
+    
+    .RELEASENOTES
+    | 0.2 - Revisit
+    | 0.1 - INIT
+    
+*/
 struct GriffonStudios_Helpers
 (
     function CheckFile file=

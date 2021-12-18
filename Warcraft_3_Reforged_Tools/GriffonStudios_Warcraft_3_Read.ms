@@ -1,3 +1,17 @@
+/*
+    .DESCRIPTION
+    | Set of read methods for importing to handle Warcraft III Reforged Tools
+    | Written by Taylor Mouse
+    
+    .DATE
+    | 18.12.2021
+    
+    .RELEASENOTES
+    | 0.2 - Revisit
+    | 0.1 - INIT
+    
+*/
+
 struct Warcraft_3_Read
 (
     function ReadFloatAnim stream=
@@ -90,6 +104,7 @@ struct Warcraft_3_Read
     ),
     function ReadTAGS stream streamLen=
     (
+        struct Warcraft3_Reforged_TAG ( Name, Offset, Size )
         local tags = #() 
         local mainTag = Warcraft3_Reforged_TAG()
 
@@ -112,7 +127,6 @@ struct Warcraft_3_Read
 
             currentStreamPos = ftell stream
             
-            --if ( _debug_read ) then print tag
             append tags tag
         )
         return tags
@@ -186,7 +200,6 @@ struct Warcraft_3_Read
         return gbls
         
     ),
-    
     function ReadMTLS2 stream tag=
     (
         fseek stream tag.offset #seek_set

@@ -1,10 +1,26 @@
+/*
+    .DESCRIPTION
+    | Set of macros to handle Warcraft III Reforged Tools
+    | Written by Taylor Mouse
+    
+    .DATE
+    | 18.12.2021
+    
+    .RELEASENOTES
+    | 0.2 - Revisit
+    | 0.1 - INIT
+    
+*/
+
 global Warcraft3_AssetFolder
 global Warcraft3_ImportAllLOD = false
 global Warcraft3_ConvertToSC2
 
-macroscript Warcaft3Reforged_ImportModel category:"Warcraft III Reforged Tools" tooltip:"Import model" 
+macroscript Warcaft3Reforged_ImportModel 
+    category:"Warcraft III Reforged Tools" 
+    tooltip:"Import model" 
 (
-    rollout ImportWindow "Warcraft III Reforged Import (v1.0)"
+    rollout ImportWindow "Warcraft III Reforged Import (v1.5)"
     (
         group "Select mdx file:"
         (
@@ -72,7 +88,9 @@ macroscript Warcaft3Reforged_ImportModel category:"Warcraft III Reforged Tools" 
     
 )
 
-macroscript Warcraft3Reforged_ResetAnimationTracks category:"Warcraft III Reforged Tools" tooltip:"Reset Animation Tracks"
+macroscript Warcraft3Reforged_ResetAnimationTracks 
+    category:"Warcraft III Reforged Tools" 
+    tooltip:"Reset Animation Tracks"
 (
     local nNoteTracks = numNoteTracks rootNode
         
@@ -83,7 +101,9 @@ macroscript Warcraft3Reforged_ResetAnimationTracks category:"Warcraft III Reforg
     )
 )
 
-macroscript Warcaft3Reforged_Settings category:"Warcraft III Reforged Tools" tooltip:"Settings" 
+macroscript Warcaft3Reforged_Settings 
+    category:"Warcraft III Reforged Tools" 
+    tooltip:"Settings" 
 (
     fileIn "GriffonStudios_Warcraft_3_Reforged_Main.ms"
     local workingDir = getdir #temp
@@ -134,7 +154,9 @@ macroscript Warcaft3Reforged_Settings category:"Warcraft III Reforged Tools" too
     
 )
 
-macroscript Warcaft3Reforged_ExportModel category:"Warcraft III Reforged Tools" tooltip:"Export model" 
+macroscript Warcaft3Reforged_ExportModel 
+    category:"Warcraft III Reforged Tools" 
+    tooltip:"Export model" 
 (
     filein "GriffonStudios_Warcraft_3_Reforged_Exporter_Dialog.ms"
     if(GriffonStudios_WC3_ExportDialog != undefined) then destroydialog GriffonStudios_WC3_ExportDialog

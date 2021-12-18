@@ -103,7 +103,7 @@ struct Warcraft_3_Build
             local p = point name:mdx.clid[i].name pos:mdx.pivt[mdx.clid[i].id].position size:5
 
     ),
-    function BuildATCH=
+    function BuildATCH mdx=
     (
         local atch  = mdx.atch
         local bpos  = mdx.bpos
@@ -1337,6 +1337,7 @@ struct Warcraft_3_Main
         _build.BuildBONE mdx
         _build.BuildPIVT mdx
         _build.BuildATCH mdx
+        
         _build = undefined
         
         
@@ -1346,5 +1347,3 @@ struct Warcraft_3_Main
     )
     
 )
-
---Warcraft_3_Main.Import @"F:\Blizzard\Warcraft - Reforged\Warcraft III\assets\units\creeps\darktroll\darktroll.mdx"

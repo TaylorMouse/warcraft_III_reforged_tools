@@ -16,7 +16,7 @@ struct Warcraft_3_Ref_Read
 (
     function ReadFloatAnim stream=
     (
-        struct WC3Ref_ANIM ( numPts, LineType, ParentId, KG )  
+        struct WC3Ref_ANIM ( numPts, LineType, glbsId, KG )  
         struct WC3Ref_KG   ( Time, Point, inTan, outTan, LineType ) 
         
         local anim = WC3Ref_ANIM()
@@ -24,7 +24,7 @@ struct Warcraft_3_Ref_Read
         
         anim.numPts = readLong stream
         anim.lineType = readLong stream
-        anim.parentId = readLong stream + 1
+        anim.glbsId = readLong stream + 1
         
         for i=1 to anim.numPts do
         (
@@ -45,7 +45,7 @@ struct Warcraft_3_Ref_Read
     ),
     function ReadVector3Anim stream=
     (
-        struct WC3Ref_ANIM ( numPts, LineType, ParentId, KG )  
+        struct WC3Ref_ANIM ( numPts, LineType, glbsId, KG )  
         struct WC3Ref_KG   ( Time, Point, inTan, outTan, LineType ) 
         
         local anim = WC3Ref_ANIM()
@@ -53,7 +53,7 @@ struct Warcraft_3_Ref_Read
         
         anim.numPts = readLong stream
         anim.lineType = readLong stream
-        anim.parentId = readLong stream + 1
+        anim.glbsId = readLong stream + 1
         
         for i=1 to anim.numPts do
         (
@@ -74,7 +74,7 @@ struct Warcraft_3_Ref_Read
     ),
     function ReadQuatAnim stream=
     (
-        struct WC3Ref_ANIM ( numPts, LineType, ParentId, KG )  
+        struct WC3Ref_ANIM ( numPts, LineType, glbsId, KG ) 
         struct WC3Ref_KG   ( Time, Point, inTan, outTan, LineType ) 
         
         local anim = WC3Ref_ANIM()
@@ -82,7 +82,7 @@ struct Warcraft_3_Ref_Read
         
         anim.numPts = readLong stream
         anim.lineType = readLong stream
-        anim.parentId = readLong stream + 1
+        anim.glbsId = readLong stream + 1
         
         for i=1 to anim.numPts do
         (
@@ -312,6 +312,9 @@ struct Warcraft_3_Ref_Read
         struct WC3Ref_MATS
             ( Id, LOD_Id, Name, SectionGroupId, SectionGroupType, Matrices = #(), floats =  #(), bounding = #() )
         
+        struct WC3Ref_SKIN
+            ( BoneIds = #(), Weights = #() )
+        
         fseek stream tag.offset #seek_set
         
         local id = 1
@@ -329,7 +332,7 @@ struct Warcraft_3_Ref_Read
             for h=1 to 11 do
             (
                 local header = _helper.ReadFixedString stream 4
-                
+
                 if header == "VRTX" then 
                     for v=1 to (readLong stream) do append geo.vrtx (_helper.ReadVector3 stream)
 
@@ -376,7 +379,20 @@ struct Warcraft_3_Ref_Read
                 )
                 
                 if header == "TANG" then
-                    for v=1 to (readLong stream) do append geo.vrtx (_helper.ReadVector4 stream)
+                    for v=1 to (readLong stream) do append geo.TANG (_helper.ReadVector4 stream)
+
+                if header == "SKIN" then
+                (
+                    local size = readLong stream 
+                    for v=1 to (size/8) do
+                    (
+                        local boneWeights = WC3Ref_SKIN()
+                        for i=1 to 4 do append boneWeights.boneIds ( (readByte stream #unsigned) + 1 )
+                        for i=1 to 4 do append boneWeights.weights ((readByte stream #unsigned) / 255.0 )
+                        
+                        append geo.skin boneWeights
+                    )
+                )
                 
                 if header == "UVAS" then 
                 (
@@ -385,7 +401,6 @@ struct Warcraft_3_Ref_Read
                         local uvs = #()
                         local uvbs = _helper.ReadFixedString stream 4
                         local nUvbs = readLong stream
-
                         for u=1 to nUvbs do
                             append uvs ( [readFloat stream, 1.0 - readFloat stream, 0.0] )
 
@@ -393,17 +408,7 @@ struct Warcraft_3_Ref_Read
                     )
                 )
                 
-                if header == "SKIN" then
-                (
-                    for v=1 to (readLong stream) do
-                    (
-                        local boneIds = #()
-                        local vertexWeights = #()
-                        for i=1 to 4 do append boneIds (readByte stream)
-                        for i=1 to 4 do append vertexWeights (readByte stream)
-                        append geo.skin #(boneIds, vertexWeights)
-                    )
-                )
+                
                 
                 
             )

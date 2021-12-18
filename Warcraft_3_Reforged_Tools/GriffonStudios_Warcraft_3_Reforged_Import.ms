@@ -13,16 +13,17 @@
 
 */
 
-/* Required Plugins */
 /* Helper methods */
 (
-fileIn "GriffonStudios_Helpers.ms"
-fileIn "GriffonStudios_Warcraft_3_Reforged_Read.ms"
+    fileIn "GriffonStudios_Helpers.ms"
+    fileIn "GriffonStudios_Warcraft_3_Reforged_Read.ms"
+    fileIn "GriffonStudios_Warcraft_3_Reforged_Build.ms"
 
 
-global DEBUG_MODE = true
-global _helper = undefined
-global _reader = undefined
+    global DEBUG_MODE = false
+    global _helper = undefined
+    global _reader = undefined
+    global _build = undefined
 )
 
 STRUCT WC3REF_MDX
@@ -39,14 +40,17 @@ STRUCT WC3REF_MDX
         
         _helper = GriffonStudios_Helpers()
         _reader = Warcraft_3_Ref_Read()
+        _build  = Warcraft_3_Ref_Build()
         
         struct mdx1000 
-            ( TAGS, fileName, VERS, MODL, SEQS, GLBS, MTLS, TEXS, GEOS, 
+            ( TAGS, fileName, VERS, MODL, SEQS, GLBS, MTLS, TEXS, GEOS, CORN, FAFX,
               BONE, HELP, ATCH, CLID, GEOA, EVTS, PIVT, CAMS, LITE, TXAN, RIBB, PRE2, BPOS,
               objs = #()
             )
         local mdx = mdx1000 fileName:file
-        
+            
+        format "Reading '%'\n" ( filenameFromPath  file )
+            
         local stream = fOpen file "rb"        
         local streamLen = _helper.GetStreamLength stream
         
@@ -76,10 +80,15 @@ STRUCT WC3REF_MDX
             if( tag.Name == "RIBB" ) then mdx.ribb = _reader.ReadRIBB stream tag
             if( tag.Name == "PRE2" ) then mdx.pre2 = _reader.ReadPRE2 stream tag
             if( tag.Name == "BPOS" ) then mdx.bpos = _reader.ReadBPOS stream tag
+            --if( tag.Name == "CORN" ) then mdx.bpos = _reader.ReadCORN stream tag
+            --if( tag.Name == "FAFX" ) then mdx.bpos = _reader.ReadFAFX stream tag
             
         )
         
         fClose stream
+        
+        _build.Create mdx
+        
         format "Done!\n"
         gc()
         clearSelection()
@@ -89,7 +98,11 @@ STRUCT WC3REF_MDX
 )
 
 (
+    max unhide all
+    max unfreeze all
+    max select all
+    max delete
+
     local file = @"G:\Blizzard\Warcraft - Reforged\Extracted\Assets\units\critters\frog\frog.mdx"
-    DEBUG_MODE = false
     WC3REF_MDX.Import file
 )

@@ -29,6 +29,11 @@ struct GriffonStudios_Helpers
         local vector3 = [readFloat stream, readFloat stream, readFloat stream]
         return vector3
     ),
+    function ReadVector4 stream=
+    (
+        local vector4 = [readFloat stream, readFloat stream, readFloat stream, readFloat stream]
+        return vector4
+    ),
     function ReadTris stream=
     (
         local tris = [readshort stream + 1, readshort stream + 1, readshort stream + 1]

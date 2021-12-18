@@ -12,14 +12,14 @@
     
 */
 
-struct Warcraft_3_Read
+struct Warcraft_3_Ref_Read
 (
     function ReadFloatAnim stream=
     (
-        struct WC3_ANIM ( numPts, LineType, ParentId, KG )  
-        struct WC3_KG   ( Time, Point, inTan, outTan, LineType ) 
+        struct WC3Ref_ANIM ( numPts, LineType, ParentId, KG )  
+        struct WC3Ref_KG   ( Time, Point, inTan, outTan, LineType ) 
         
-        local anim = WC3_ANIM()
+        local anim = WC3Ref_ANIM()
         local kg = #()
         
         anim.numPts = readLong stream
@@ -28,7 +28,7 @@ struct Warcraft_3_Read
         
         for i=1 to anim.numPts do
         (
-            local k = WC3_KG()
+            local k = WC3Ref_KG()
             
             k.Time = _helper.RoundToFrame ( ReadLong stream )
             k.Point = readFloat stream -- always 1, indicating it starts or ends
@@ -45,10 +45,10 @@ struct Warcraft_3_Read
     ),
     function ReadVector3Anim stream=
     (
-        struct WC3_ANIM ( numPts, LineType, ParentId, KG )  
-        struct WC3_KG   ( Time, Point, inTan, outTan, LineType ) 
+        struct WC3Ref_ANIM ( numPts, LineType, ParentId, KG )  
+        struct WC3Ref_KG   ( Time, Point, inTan, outTan, LineType ) 
         
-        local anim = WC3_ANIM()
+        local anim = WC3Ref_ANIM()
         local kg = #()
         
         anim.numPts = readLong stream
@@ -57,7 +57,7 @@ struct Warcraft_3_Read
         
         for i=1 to anim.numPts do
         (
-            local k = WC3_KG()
+            local k = WC3Ref_KG()
             
             k.Time = _helper.RoundToFrame ( ReadLong stream )
             k.Point = [readFloat stream, readFloat stream, readFloat stream]
@@ -74,10 +74,10 @@ struct Warcraft_3_Read
     ),
     function ReadQuatAnim stream=
     (
-        struct WC3_ANIM ( numPts, LineType, ParentId, KG )  
-        struct WC3_KG   ( Time, Point, inTan, outTan, LineType ) 
+        struct WC3Ref_ANIM ( numPts, LineType, ParentId, KG )  
+        struct WC3Ref_KG   ( Time, Point, inTan, outTan, LineType ) 
         
-        local anim = WC3_ANIM()
+        local anim = WC3Ref_ANIM()
         local kg = #()
         
         anim.numPts = readLong stream
@@ -86,7 +86,7 @@ struct Warcraft_3_Read
         
         for i=1 to anim.numPts do
         (
-            local k = WC3_KG()
+            local k = WC3Ref_KG()
             
             k.Time = _helper.RoundToFrame ( ReadLong stream )
             k.Point = quat (readFloat stream) (readFloat stream) (readFloat stream) (readFloat stream) 
@@ -102,11 +102,11 @@ struct Warcraft_3_Read
         anim.KG = kg
         return anim
     ),
-    function ReadTAGS stream streamLen=
+    function ReadTAGS1000 stream streamLen=
     (
-        struct Warcraft3_Reforged_TAG ( Name, Offset, Size )
+        struct WC3Ref_TAG ( Name, Offset, Size )
         local tags = #() 
-        local mainTag = Warcraft3_Reforged_TAG()
+        local mainTag = WC3Ref_TAG()
 
         mainTag.Name = _helper.ReadFixedString stream 4
         mainTag.Offset = 0
@@ -117,7 +117,7 @@ struct Warcraft_3_Read
         
         while (currentStreamPos < streamLen ) do
         (
-            local tag = Warcraft3_Reforged_TAG()
+            local tag = WC3Ref_TAG()
             
             tag.Offset = ftell stream + 8 -- the +8 indicates where the data starts
             tag.Name = _helper.ReadFixedString stream 4
@@ -126,31 +126,33 @@ struct Warcraft_3_Read
             _helper.SkipBytes stream tag.Size
 
             currentStreamPos = ftell stream
-            
+            if DEBUG_MODE then format "%\n" tag
             append tags tag
         )
-        return tags
+        
+        tags
     ),
     function ReadVERS stream tag=
     (
         fseek stream tag.Offset #seek_set
         local version = readLong stream
-        if _debug_read then Format " - %\n" version
             
-        if version != 800 then throw format "Unsupported version found, % should be 800\n" version
-        return version
+        if (version != 1000) then throw (format "[Error] Incorrect version: %, expected version: 1000\n" version)
         
+        if DEBUG_MODE then format "Version: %\n" version
+        
+        return version
     ),
     function ReadMODL stream tag=
     (
         fseek stream tag.offset #seek_set
         local name = _helper.ReadFixedString stream 80
-        if _debug_read then Format " - %\n" name
+        if DEBUG_MODE then Format "Name: %\n" name
         return name
     ),
     function ReadSEQS stream tag=
     (
-        struct WC3_SEQS
+        struct WC3Ref_SEQS
             ( Name, StartFrame, EndFrame, MovementSpeed, NoLoop, Rarity, Priority, Default, BBox )
         
         fseek stream tag.offset #seek_set
@@ -160,7 +162,7 @@ struct Warcraft_3_Read
         
         for i=1 to nbrSeqs do
         (
-            local seq = WC3_SEQS()
+            local seq = WC3Ref_SEQS()
             seq.Name = _helper.ReadFixedString stream 80
             
             local originalStartFrame = readLong stream
@@ -176,7 +178,7 @@ struct Warcraft_3_Read
             
             seq.BBox = #([readfloat stream,readfloat stream,readfloat stream], [readfloat stream,readfloat stream,readfloat stream] )
 
-            if _debug_read then format " -  %\n" seq
+            if DEBUG_MODE then format "%\n" seq
             append seqs seq
         )
 
@@ -193,38 +195,33 @@ struct Warcraft_3_Read
         for i=1 to nbr do 
         (
             local endFrame = (_helper.RoundToFrame (readLong stream)) + 10
-            
-            if _debug_read then Format " - %\n" endFrame
+
+            if DEBUG_MODE then Format "%\n" endFrame
             append gbls endFrame
         )
         return gbls
         
     ),
-    function ReadMTLS2 stream tag=
+    function ReadMTLS stream tag=
     (
         fseek stream tag.offset #seek_set
-        local totalSize = tag.size
-        local offset = tag.offset
         
-        struct WC3_MTLS ( tag, size, shaders = #() )
+        local mtls = #()
         
-        local mtls = WC3_MTLS()
-        mtls.tag = tag.name
-        mtls.size = tag.size
-        
-        while ( totalSize > 0 ) do
+        while ( ftell stream < ( tag.offset + tag.size ) ) do
         (
-            local shdr = Warcraft_3_Read.ReadShader stream
-            append mtls.shaders shdr
-            
+            local shdr = _reader.ReadShader stream
+            append mtls shdr
+            if DEBUG_MODE then format "%\n" shdr
         )
+        
         return mtls
     ),
     function ReadShader stream=
     (
-        struct WC3_SCHADER ( Size, PriorityPlane, Flags, Name, Lays, NumberOfLayers, Layers = #() )
+        struct WC3Ref_MTLS ( Size, PriorityPlane, Flags, Name, Lays, NumberOfLayers, Layers = #() )
         
-        local shdr = WC3_SCHADER()
+        local shdr = WC3Ref_MTLS()
         shdr.Size = readLong stream
         shdr.PriorityPlane = readLong stream
         shdr.Flags = readLong stream
@@ -232,26 +229,24 @@ struct Warcraft_3_Read
         shdr.Lays = _helper.ReadFixedString stream 4
         shdr.NumberOfLayers = readLong stream
         
-        
         local currentOffset = fTell stream
         
         for i=1 to shdr.NumberOfLayers do
         (
             fSeek stream currentOffset #seek_set
-            local layer = Warcraft_3_Read.ReadLayer stream
+            local layer = _reader.ReadLayer stream
             append shdr.Layers layer
             
             currentOffset = currentOffset + layer.Size
         )
-        
-        
+
         return shdr
     ),
     function ReadLayer stream=
     (
-        struct WC3_LAYER ( Size, FilterMode, ShadingFlags, TextureId, ParentId, CoordId, Alpha, EmissiveMultiplier, FresnelR, FresnelG, FresnelB, FresnelMultiplier, TeamColorMultiplier, KMTA, KMTE ) 
+        struct WC3Ref_LAYR ( Size, FilterMode, ShadingFlags, TextureId, ParentId, CoordId, Alpha, EmissiveMultiplier, FresnelR, FresnelG, FresnelB, FresnelMultiplier, TeamColorMultiplier, KMTA, KMTE ) 
         
-        local lay = WC3_LAYER()
+        local lay = WC3Ref_LAYR()
         
         lay.Size                = readLong stream
         lay.FilterMode          = readLong stream
@@ -272,72 +267,20 @@ struct Warcraft_3_Read
             for x=1 to 2 do
             (
                 local km = _helper.ReadFixedString stream 4
-                if ( km == "KMTA" ) then lay.KMTA = _wc3.ReadFloatAnim stream
-                if ( km == "KMTE" ) then lay.KMTE = _wc3.ReadFloatAnim stream
+                if ( km == "KMTA" ) then lay.KMTA = _reader.ReadFloatAnim stream
+                if ( km == "KMTE" ) then lay.KMTE = _reader.ReadFloatAnim stream
                 
             )
             if ( lay.KMTA == undefined ) then fseek stream -4 #seek_cur
             if ( lay.KMTE == undefined ) then fseek stream -4 #seek_cur
         )
-        if _debug_read then Format " - %\n" lay
-    ),
-    
-    function ReadMTLS stream tag=
-    (
-        fseek stream tag.offset #seek_set
-        local totalSize = tag.size
-        local id = 1
-        local layers = #()
-        
-        struct WC3_MTLS
-            ( Id, ParentId, TextureId, filterMode, shadingFlags,  KMTA, KMTE, CoordId,alpha, emissive_multiplier, fresnelR, fresnelG, fresnelB, fresnel_multiplier, team_color_multiplier )
-
-        
-        while ( totalSize > 0 ) do
-        (
-            local lay = WC3_MTLS()
-            lay.Id = id
-            local lays_size     = readLong stream
-            local priorityPlane = readLong stream
-            local flags         = readLong stream
-            local lays          = _helper.ReadFixedString stream 4
-            local nLays         = readLong stream
-            
-            for i=1 to nLays do
-            (
-                local layerSize   = readLong stream
-                lay.filterMode    = readLong stream
-                lay.shadingFlags  = readLong stream
-                lay.textureId     = readLong stream
-                lay.parentId      = readLong stream
-                lay.CoordId       = readLong stream
-                lay.alpha         = readfloat stream
-             
-                if (layerSize > 28 ) then
-                (
-                    for x=1 to 2 do
-                    (
-                        local km = _helper.ReadFixedString stream 4
-                        if ( km == "KMTA" ) then lay.KMTA = _wc3.ReadFloatAnim stream
-                        if ( km == "KMTE" ) then lay.KMTE = _wc3.ReadFloatAnim stream
-                        
-                    )
-                    if ( lay.KMTA == undefined ) then fseek stream -4 #seek_cur
-                    if ( lay.KMTE == undefined ) then fseek stream -4 #seek_cur
-                )
-            )
-            totalSize -= lays_size
-            
-            id +=1
-            if _debug_read then Format " - %\n" lay
-            append layers lay
-        )
-        
+       
+        return lay
     ),
     function ReadTEXS stream tag=
     (
-        struct WC3_TEXS
-            ( Id, ReplacableId, FileNameOnly, Path, Extension, Flags )
+        struct WC3Ref_TEXS
+            ( Id, ReplacableId, File, FileNameOnly, Path, Extension, Flags )
         
         fseek stream tag.offset #seek_set
         
@@ -346,46 +289,44 @@ struct Warcraft_3_Read
         
         for i=1 to numTexs do
         (
-            local t = WC3_TEXS()
+            local t = WC3Ref_TEXS()
             t.Id = i
             
-            t.replacableId = readLong stream -- 0 or 1 for now ??
-            local name = _helper.ReadFixedString stream 260
-            t.path          = getFilenamePath name
-            t.fileNameOnly  = getFilenameFile name
-            t.extension     = getFilenameType name 
+            t.replacableId  = readLong stream
+            t.file          = _helper.ReadFixedString stream 260
+            t.path          = getFilenamePath t.file
+            t.fileNameOnly  = getFilenameFile t.file
+            t.extension     = getFilenameType t.file 
             t.flags         = readLong stream
             
-            if _debug_read then Format " - %\n" t
-            
+            if DEBUG_MODE then Format "%\n" t
             append texs t
         )
         return texs
-        
     ),
-    function ReadGEOS stream tag modl=
+    function ReadGEOS stream tag=
     (
-        struct WC3_GEO
-            ( UniqueName, VRTX = #(), NRMS = #(), PTYP = #(), PCNT = #(), PVTX = #(), GNDX = #(), MTGC = #(), MATS = #(), TANG = #(), SKIN = #(), UVS = #(), meshRef ) 
+        struct WC3Ref_GEO
+            ( MATS, VRTX = #(), NRMS = #(), PTYP = #(), PCNT = #(), PVTX = #(), GNDX = #(), MTGC = #(), TANG = #(), SKIN = #(), UVS = #(), meshRef ) 
 
-        struct WC3_MATS
-            ( ID, Matrices )
+        struct WC3Ref_MATS
+            ( Id, LOD_Id, Name, SectionGroupId, SectionGroupType, Matrices = #(), floats =  #(), bounding = #() )
         
         fseek stream tag.offset #seek_set
         
         local id = 1
-        local total_size = tag.size
         local geos = #()
-        while ( total_size > 0 ) do
+
+        while ( fTell stream < ( tag.offset + tag.Size ) ) do
         (
-            local geo = WC3_GEO() 
-            
-            geo.UniqueName = modl + "_" + (id as string )
+            local geo = WC3Ref_GEO() 
+
             id +=1
+            local nextOffset = ftell stream
             local chunk_size = readLong stream
-            local offset = ( ftell stream )
+            nextOffset += chunk_size
             
-            for h=1 to 9 do
+            for h=1 to 11 do
             (
                 local header = _helper.ReadFixedString stream 4
                 
@@ -412,20 +353,31 @@ struct Warcraft_3_Read
                 
                 if header == "MATS" then 
                 (
-                    local mats = WC3_MATS()
+                    geo.MATS = WC3Ref_MATS()
                     
-                    mats.matrices = #()
-                    for v=1 to (readLong stream) do append mats.matrices (readLong stream)
+                    for v=1 to (readLong stream) do append geo.MATS.matrices (readLong stream + 1)
                     
-                    mats.Id = readlong stream
-                    _helper.SkipBytes stream 8
-                    for i=1 to 7 do readfloat stream
+                    geo.MATS.Id = readlong stream
+                    /*
+                        0 = main mesh
+                        1 = skeleton mesh
+                        2 = organs mesh
+                    */
+                    geo.MATS.SectionGroupId = readlong stream
+                    geo.MATS.SectionGroupType = readLong stream 
+                    geo.MATS.LOD_Id = readLong stream
+                    geo.MATS.name = _helper.ReadFixedString stream 80
                     
-                    local unk = readLong stream
-                    for i=1 to unk do _helper.SkipBytes stream 28
+                    for i=1 to 7 do  append geo.MATS.Bounding ( readfloat stream )
+                    
+                    local nbrFloats = readLong stream
+                    for i=1 to nbrFloats * 7 do append geo.MATS.floats ( readFloat stream )
                     
                 )
-              
+                
+                if header == "TANG" then
+                    for v=1 to (readLong stream) do append geo.vrtx (_helper.ReadVector4 stream)
+                
                 if header == "UVAS" then 
                 (
                     for i=1 to (readLong stream) do
@@ -440,15 +392,27 @@ struct Warcraft_3_Read
                         append geo.UVS uvs
                     )
                 )
+                
+                if header == "SKIN" then
+                (
+                    for v=1 to (readLong stream) do
+                    (
+                        local boneIds = #()
+                        local vertexWeights = #()
+                        for i=1 to 4 do append boneIds (readByte stream)
+                        for i=1 to 4 do append vertexWeights (readByte stream)
+                        append geo.skin #(boneIds, vertexWeights)
+                    )
+                )
+                
+                
             )
-
-            if _debug_read then Format " - %\n" geo
-            
             append geos geo
-            fseek stream offset #seek_set
-            _helper.SkipBytes stream (chunk_size - 4)
 
-            total_size -= chunk_size
+            if DEBUG_MODE then Format "%\n" geo.MATS
+            
+            fseek stream nextOffset #seek_set
+            
         )
         
         return geos
@@ -456,41 +420,50 @@ struct Warcraft_3_Read
     ),
     function ReadGEOA stream tag=
     (
-        struct WC3_GEOA ( GeoId, KGAO )  
-        
-        fseek stream tag.offset #seek_set
+        struct WC3Ref_GEOA (
+            size, 
+            geoId,   --> referencing mesh object
+            opacity, --> starting opacity
+            color,   --> starting color
+            type,    --> base animation type
+            KGAO,    --> animated opacity
+            KGAC     --> animated color
+        )
         
         local totalSize = tag.Size
+        local currentOffset = tag.Offset
         local geoa = #()
         
         while ( totalSize > 0 ) do
         (
-            local ga = WC3_GEOA()
+            fseek stream currentOffset #seek_set
+            local kgao = undefined --> weird memory leak ...
+            local g = WC3Ref_GEOA()
+            g.size      = readLong stream
+            g.opacity   = readFloat stream
+            g.type      = readLong stream 
+            g.color     = color (readFloat stream * 255.0) (readFloat stream * 255.0) (readFloat stream * 255.0) 1.0
+            g.geoId     = readlong stream + 1
             
-            local miniSize = readLong stream
-            totalSize -= miniSize
-            
-            for i=1 to 5 do readFloat stream
-            
-            ga.GeoId = readLong stream + 1
-            
-            local kgao = _helper.ReadFixedString stream 4
-            
-            if ( kgao == "KGAO" ) then
-                ga.KGAO = _wc3.ReadFloatAnim stream
-            else
-                fseek stream -4 #seek_cur
-            
-            if _debug_read then Format " - %\n" ga
-            
-            append geoa ga
+            if ( g.size > 28 ) then (
+            for a=1 to 2 do
+            (
+                local animBlock = _helper.ReadFixedString stream 4
+                if ( animBlock == "KGAO" ) then g.KGAO = _reader.ReadFloatAnim stream 
+                if ( animBlock == "KGAC" ) then g.KGAC = _reader.ReadColorAnim stream 
+            ))
+
+            append geoa g
+            if DEBUG_MODE then format "%\n" g
+            totalSize -= g.Size
+            currentOffset += g.Size
         )
     
         return geoa
     ),
     function ReadBONE stream tag=
     (
-        struct WC3_BONE ( Id, Name, ParentBoneId, Flags, boneRef, KGTR, KGRT, KGSC, offset, geosetId, geosetAnimationId )
+        struct WC3Ref_BONE ( Id, Name, ParentBoneId, Flags, boneRef, KGTR, KGRT, KGSC, offset, geosetId, geosetAnimationId )
         
         fseek stream tag.offset #seek_set
                 
@@ -499,7 +472,7 @@ struct Warcraft_3_Read
         /* read the bone chunks*/
         while ( (ftell stream) < tag.offset + tag.size ) do
         (
-            local b = WC3_BONE()
+            local b = WC3Ref_BONE()
             
             local size = readLong stream
         
@@ -530,16 +503,16 @@ struct Warcraft_3_Read
             (
                 local kg = _helper.ReadFixedString stream 4
 
-                if ( kg == "KGTR" ) then kgtr = _wc3.ReadVector3Anim stream -- Key Global Transformation
-                if ( kg == "KGRT" ) then kgrt = _wc3.ReadQuatAnim stream -- Key Global Rotation
-                if ( kg == "KGSC" ) then kgsc = _wc3.ReadVector3Anim stream -- Key Global Scale
+                if ( kg == "KGTR" ) then kgtr = _reader.ReadVector3Anim stream -- Key Global Transformation
+                if ( kg == "KGRT" ) then kgrt = _reader.ReadQuatAnim stream -- Key Global Rotation
+                if ( kg == "KGSC" ) then kgsc = _reader.ReadVector3Anim stream -- Key Global Scale
             )
             
             b.KGTR = kgtr
             b.KGRT = kgrt
             b.KGSC = kgsc
             
-            if _debug_read then Format " - %\n" b
+            if DEBUG_MODE then Format "%\n" b
             
         )
         
@@ -547,10 +520,10 @@ struct Warcraft_3_Read
     ),
     function ReadHELP stream tag=
     (
-        struct wc3_help ( Id, Name, ParentId, Flags, kgtr, kgrt, kgsc )
+        struct WC3Ref_HELP ( Id, Name, ParentId, Flags, kgtr, kgrt, kgsc )
         
         local totalSize = tag.Size
-        local wc3_helpers = #()
+        local WC3Ref_HELP = #()
         local offset = tag.offset
         
         while ( totalSize > 0 ) do
@@ -572,9 +545,9 @@ struct Warcraft_3_Read
             (
                 local kg = _helper.ReadFixedString stream 4
 
-                if ( kg == "KGTR" ) then kgtr = _wc3.ReadVector3Anim stream -- Key Global Transformation
-                if ( kg == "KGRT" ) then kgrt = _wc3.ReadQuatAnim stream -- Key Global Rotation
-                if ( kg == "KGSC" ) then kgsc = _wc3.ReadVector3Anim stream -- Key Global Scale
+                if ( kg == "KGTR" ) then kgtr = _reader.ReadVector3Anim stream -- Key Global Transformation
+                if ( kg == "KGRT" ) then kgrt = _reader.ReadQuatAnim stream -- Key Global Rotation
+                if ( kg == "KGSC" ) then kgsc = _reader.ReadVector3Anim stream -- Key Global Scale
             )
 
             h.KGTR = kgtr
@@ -583,7 +556,7 @@ struct Warcraft_3_Read
             
             totalSize -= size
             offset += size
-            if ( _debug_read ) then format " - %\n" h
+            if ( _debug_read ) then format "%\n" h
             append wc3_helpers h
         )
         
@@ -591,30 +564,29 @@ struct Warcraft_3_Read
     ),
     function ReadATCH stream tag=
     (
-        struct WC3_ATCH ( Id, Name, ParentId, Flags, KGTR, KGRT, KGSC, KATV, offset, size )
+        struct WC3Ref_ATCH ( Id, ParentId, Name, Flags, FullPath, Size, Offset, KGTR, KGRT, KGSC, KATV)
         
-        fseek stream tag.Offset #seek_set
-        
-        local totalSize = tag.Size
         local atchs = #()
-
-        while ( (ftell stream) < tag.offset + tag.size ) do
+        local totalSize = tag.Size
+        local offset = tag.Offset
+        
+        while ( totalSize > 0 ) do
         (
-            local att = WC3_ATCH()
+            fseek stream offset #seek_set
             
-            local size       = readLong stream
+            local att = WC3Ref_ATCH()
+            
+            att.size       = readLong stream
             local headerSize = readLong stream --> 96 bytes consisting of name, id, parentId and flagid and headerSize
-
             att.name     = _helper.ReadFixedString stream 80
             att.Id       = readLong stream + 1
             att.ParentId = readLong stream + 1
             att.flags    = readLong stream
-            att.Offset = ftell stream
-            att.Size = size - 4 - 4 - 80 - 8 - 4
-            
-            _helper.SkipBytes stream att.Size
-        
+            att.offset   = ftell stream
             append atchs att
+            
+            totalSize -= att.Size
+            offset += att.Size
         )
         
         for att in atchs do
@@ -628,9 +600,9 @@ struct Warcraft_3_Read
             (
                 local kg = _helper.ReadFixedString stream 4
 
-                if ( kg == "KGTR" ) then kgtr = _wc3.ReadVector3Anim stream -- Key Global Transformation
-                if ( kg == "KGRT" ) then kgrt = _wc3.ReadQuatAnim stream -- Key Global Rotation
-                if ( kg == "KGSC" ) then kgsc = _wc3.ReadVector3Anim stream -- Key Global Scale
+                if ( kg == "KGTR" ) then kgtr = _reader.ReadVector3Anim stream -- Key Global Transformation
+                if ( kg == "KGRT" ) then kgrt = _reader.ReadQuatAnim stream -- Key Global Rotation
+                if ( kg == "KGSC" ) then kgsc = _reader.ReadVector3Anim stream -- Key Global Scale
             )
             
             att.KGTR = kgtr
@@ -645,9 +617,9 @@ struct Warcraft_3_Read
 
             local katv = _helper.ReadFixedString stream 4
             
-            if( katv == "KATV") then att.katv = _wc3.ReadFloatAnim stream -- visibility track ?
+            if( katv == "KATV") then att.katv = _reader.ReadFloatAnim stream -- visibility track
 
-            if ( _debug_read ) then format " - %\n" att
+            if DEBUG_MODE then format "%\n" att
             
         )
         
@@ -656,25 +628,25 @@ struct Warcraft_3_Read
     ),
     function ReadPIVT stream tag=
     (
-        struct WC3_PIVT ( Id, Position )
+        struct WC3Ref_PIVT ( Id, Position )
         fseek stream tag.offset #seek_set
         local nbr = tag.Size / 12.0
         local pivts = #()
         for n=1 to nbr do
         (
-            local p = WC3_PIVT()
+            local p = WC3Ref_PIVT()
             p.Id = n as integer
             p.Position = [readfloat stream, readfloat stream, readfloat stream]
             append pivts p
             
-            if ( _debug_read ) then format " - %\n" p
+            if DEBUG_MODE then format "%\n" p
         )
         return pivts
         
     ),
     function ReadCAMS stream tag=
     (
-        struct WC3_CAMS ( Name, Pos,  FOV, FarClip, NearClip, TargetPos, KCTR, KTTR, KCRL, objRef )
+        struct WC3Ref_CAMS ( Name, Pos,  FOV, FarClip, NearClip, TargetPos, KCTR, KTTR, KCRL, objRef )
         
         fseek stream tag.Offset #seek_set
         
@@ -684,7 +656,7 @@ struct Warcraft_3_Read
         while ( totalSize > 0) do
         (
             local size = readLong stream
-            local cam = WC3_CAMS()
+            local cam = WC3Ref_CAMS()
 
             cam.Name = _helper.ReadFixedString stream 80
             cam.Pos = [readFloat stream,readFloat stream,readFloat stream]
@@ -696,16 +668,16 @@ struct Warcraft_3_Read
             for i=1 to 3 do
             (
                 local anim = _helper.ReadFixedString stream 4
-                if ( anim == "KCTR" ) then cam.KCTR = _wc3.ReadVector3Anim stream
-                if ( anim == "KTTR" ) then cam.KTTR = _wc3.ReadVector3Anim stream
-                if ( anim == "KCRL" ) then cam.KCRL = _wc3.ReadQuatAnim stream
+                if ( anim == "KCTR" ) then cam.KCTR = _reader.ReadVector3Anim stream
+                if ( anim == "KTTR" ) then cam.KTTR = _reader.ReadVector3Anim stream
+                if ( anim == "KCRL" ) then cam.KCRL = _reader.ReadQuatAnim stream
             )
             
             if ( cam.KCTR == undefined ) then fseek stream -4 #seek_cur
             if ( cam.KTTR == undefined ) then fseek stream -4 #seek_cur
             if ( cam.KCRL == undefined ) then fseek stream -4 #seek_cur
             
-            if ( _debug_read ) then format " - %\n" cam
+            if DEBUG_MODE then format " - %\n" cam
             append cams cam
 
             totalSize -= size
@@ -715,14 +687,14 @@ struct Warcraft_3_Read
     ),
     function ReadEVTS stream tag=
     (   
-        struct WC3_EVTS ( Id, Name, ParentId, Flags, KEVT, objRef )
+        struct WC3Ref_EVTS ( Id, Name, ParentId, Flags, KEVT, objRef )
         
         fseek stream tag.Offset #seek_set
         local evts = #()
-        local total_size = tag.size
-        while ( total_size > 0 ) do
+
+        while ( ftell stream < (tag.offset + tag.size)) do
         (
-            local evt = WC3_EVTS()
+            local evt = WC3Ref_EVTS()
             local size = readLong stream
             
             evt.name = _helper.ReadFixedString stream 80
@@ -733,11 +705,9 @@ struct Warcraft_3_Read
             
             if ( kevt == "KEVT" ) then
             (
-                size += 12
                 local keys = #()
                 local nbr       = readLong stream
                 local parentId  = readLong stream + 1
-                size += 4 * nbr
                 for i=1 to nbr do 
                 (
                     local key =  ( _helper.RoundToFrame ( readLong stream ) ) + 10
@@ -748,115 +718,132 @@ struct Warcraft_3_Read
             else
                 fseek stream -4 #seek_cur
             
-            if ( _debug_read ) then format " - %\n" evt
+            if DEBUG_MODE then format "%\n" evt
             append evts evt
             
-           total_size -= size
         )
         
         return evts
     ),
     function ReadCLID stream tag=
     (
-        struct WC3_CLID ( id, Name, ParentId, BoundingType, Flags, Pos, PosAlt,  Radius, objRef )
-        /*
-          0: cube
-          1: plane
-          2: sphere
-          3: cylinder
+        struct WC3Ref_CLID ( id, CollisionType, name, parentid, flags, KGTR, KGRT, KGSC,  StartPosition, EndPosition, Radius, size )
+        /* Collision Types
+            0: cube or box
+            1: plane
+            2: sphere
+            3: cylinder
         */
+        local clidList = #()
+        local totalSize = tag.size
+        local currentOffset = tag.Offset
         
-        fseek stream tag.offset #seek_set
-
-        local clid = #()
-        local total_size = tag.size
-
-        while ( total_size > 0 ) do
+        while ( totalSize > 0 ) do
         (
-            local cl = WC3_CLID()
-            local size = readLong stream
+            fseek stream currentOffset #seek_set
+            local startPos = ftell stream
             
-            cl.name = _helper.ReadFixedString stream 80
-            cl.Id       = readLong stream + 1
-            cl.parentId = readLong stream + 1
-            cl.flags    = readLong stream
+            local clid = WC3Ref_CLID()
             
-            size += 16
-            cl.BoundingType = readLong stream
-            cl.pos = [readFloat stream, readFloat stream, readFloat stream]
-            
-            if ( cl.BoundingType != 2 ) then 
-            (
-                cl.posAlt = [readFloat stream, readFloat stream, readFloat stream]
-                size += 12
-            )
-            
-            if ( cl.BoundingType == 2 or cl.BoundingType == 3 ) then 
-            (
-                cl.radius = readFloat stream
-                size += 4
-            )
+            clid.size = readLong stream
+            clid.name = _helper.ReadFixedString stream 80
+            clid.Id = readLong stream + 1
+            clid.parentId = readLong stream + 1
+            clid.flags = readLong stream
 
-            if ( _debug_read ) then format " - %\n" cl
-            
-            append clid cl
+            for i=1 to 3 do
+            (
+                local kg = _helper.ReadFixedString stream 4
 
-            total_size -= size
+                if ( kg == "KGTR" ) then clid.KGTR = _reader.ReadVector3Anim stream -- Key Global Transformation
+                if ( kg == "KGRT" ) then clid.KGRT = _reader.ReadQuatAnim stream -- Key Global Rotation
+                if ( kg == "KGSC" ) then clid.KGSC = _reader.ReadVector3Anim stream -- Key Global Scale
+            )
+            local currentPos = ftell stream
+            
+            if (clid.KGTR == undefined ) then currentPos -=4
+            if (clid.KGRT == undefined ) then currentPos -=4
+            if (clid.KGSC == undefined ) then currentPos -=4
+            
+            fseek stream currentPos #seek_set
+            
+            clid.CollisionType = readLong stream
+            clid.StartPosition = [readFloat stream, readFloat stream, readFloat stream]
+            
+            if ( clid.CollisionType != 2 ) then clid.EndPosition = [readFloat stream, readFloat stream, readFloat stream]
+            
+            if ( clid.CollisionType == 2 or clid.CollisionType == 3 ) then clid.radius = readFloat stream
+            
+            currentOffset = ftell stream
+            append clidList clid
+            local size = currentOffset - startPos
+            totalSize -= size
+            if DEBUG_MODE then format "%\n" clid
         )
         
-        return clid
+        return clidList
     ),
     function ReadLITE stream tag=
     (
-        fseek stream tag.offset #seek_set
-        
         local totalSize = tag.Size
-        local lites = #()
-        /*
-            0x0: Omni
-            0x1: Directional
-            0x2: Ambient
-            0x3: Default
-        */
-
-        while (totalSize > 0 ) do
+        local lightList = #()
+        
+        struct WC3Ref_LITE (  id, name, parentId, flags, type, farAttenStart, farAttenEnd, rgbColor, rgbIntensity, ambColor, ambIntensity, KGTR, KGRT, KGSC, KLAV,  lightRef, size, headerSize)
+        
+        local currentOffset = tag.Offset
+        while ( totalSize > 0 ) do
         (
-            local size = readLong stream
-            totalSize -= size
+            fseek stream currentOffset #seek_set
+            local l = WC3Ref_LITE()
             
-            local l = Warcraft3_Reforged_LITE()
-            
-            local ninetySix = readLong stream -- usually 96 appears before a name ???
-            l.name = GriffonStudios_Helpers.ReadFixedString stream 80
-            l.Id = readLong stream + 1
-            l.ParentId = readLong stream + 1
-            l.Flags = readLong stream 
+            l.size       = readLong stream
+            l.headerSize = readLong stream
+            l.name       = GriffonStudios_Helpers.ReadFixedString stream 80
+            l.Id         = readLong stream + 1
+            l.parentId   = readLong stream + 1
+            l.flags      = readLong stream
             
             for i=1 to 3 do
             (
-                local kg = GriffonStudios_Helpers.ReadFixedString stream 4
-                if( kg == "KGSC" ) then l.KGSC = Warcraft3_Reforged.ReadVector3Anim stream
-                if( kg == "KGTR" ) then l.KGTR = Warcraft3_Reforged.ReadVector3Anim stream
-                if( kg == "KGRT" ) then l.KGRT = Warcraft3_Reforged.ReadQuatAnim stream
+                local kg = _helper.ReadFixedString stream 4
+                
+                if ( kg != "KGTR" and kg != "KGRT" and kg != "KGSC" ) then  
+                (
+                    fseek stream -4 #seek_cur
+                    exit
+                )
+                
+                if ( kg == "KGTR" ) then l.KGTR = _reader.ReadVector3Anim stream -- Key Global Transformation
+                if ( kg == "KGRT" ) then l.KGRT = _reader.ReadQuatAnim stream -- Key Global Rotation
+                if ( kg == "KGSC" ) then l.KGSC = _reader.ReadVector3Anim stream -- Key Global Scale
             )
-            if( l.KGSC == undefined ) then fseek stream -4 #seek_cur
-            if( l.KGTR == undefined ) then fseek stream -4 #seek_cur
-            if( l.KGRT == undefined ) then fseek stream -4 #seek_cur
             
-            l.Type = readLong stream 
-            l.FarAttenStart = readFloat stream
-            l.FarAttenEnd = readFloat stream
-            l.rgbColor = Warcraft3_Reforged.readColor stream
-            l.rgbIntensity = readFloat stream
-            l.ambColor = Warcraft3_Reforged.readColor stream
-            l.ambIntensity = readFloat stream
-
-            append lites l
+            l.Type          = readLong stream 
+            l.farAttenStart = readFloat stream
+            l.farAttenEnd   = readFloat stream
+            l.rgbColor      = _reader.readColor stream
+            l.rgbIntensity  = readFloat stream
+            l.ambColor      = _reader.readColor stream
+            l.ambIntensity  = readFloat stream
+            
+            local kg = _helper.ReadFixedString stream 4
+            
+            if ( kg == "KLAV" ) then l.KLAV = _reader.ReadFloatAnim stream
+            
+            totalSize -= l.size
+            currentOffset = currentOffset + l.Size
+            
+            if DEBUG_MODE then format "%\n" l
+            
+            append lightList l
+            
         )
-        return lites
+        return lightList
     ),
     function ReadTXAN stream tag=
     (
+        struct WC3Ref_TXAN ( id, KTAT, KTAR, KTAS )
+        
         fseek stream tag.offset #seek_set
         local txans = #()
         local totalSize = tag.Size
@@ -865,14 +852,14 @@ struct Warcraft_3_Read
         (
             local size = readLong stream
             totalSize -= size
-            local txan = Warcraft3_Reforged_TXAN()
+            local txan = WC3Ref_TXAN()
             
             for i=1 to 3 do
             (
-                local kg = GriffonStudios_Helpers.ReadFixedString stream 4
-                if( kg == "KTAT" ) then txan.KTAT = Warcraft3_Reforged.ReadVector3Anim stream
-                if( kg == "KTAR" ) then txan.KTAR = Warcraft3_Reforged.ReadQuatAnim stream
-                if( kg == "KTAS" ) then txan.KTAS = Warcraft3_Reforged.ReadVector3Anim stream
+                local kg = _Helper.ReadFixedString stream 4
+                if( kg == "KTAT" ) then txan.KTAT = _reader.ReadVector3Anim stream
+                if( kg == "KTAR" ) then txan.KTAR = _reader.ReadQuatAnim stream
+                if( kg == "KTAS" ) then txan.KTAS = _reader.ReadVector3Anim stream
             )
             if ( txan.KTAT == undefined ) then fseek stream -4 #seek_cur
             if ( txan.KTAR == undefined ) then fseek stream -4 #seek_cur
@@ -885,6 +872,18 @@ struct Warcraft_3_Read
     ),
     function ReadRIBB stream tag=
     (
+        struct WC3Ref_RIBB 
+            ( id, name,  parentId, flags, above, below, edgesSec, edgesLife, gravity, vAlpha, vColor, flipbookRows, flipbookCols, flipBookSlot, mtlsId,
+              KGTR, KGRT, KGSC, 
+              KRHA, -- height above
+              KRHB, -- height below
+              KRAL, -- alpha
+              KRCO, -- color
+              KRTX, -- textureSlot
+              KRVS, -- visibility
+              size, headerSize
+            )
+        
         fseek stream tag.offset #seek_set
         
         local totalSize = tag.size
@@ -892,49 +891,50 @@ struct Warcraft_3_Read
         
         while (totalSize > 0 ) do
         (
-            local ribb = Warcraft3_Reforged_RIBB()
+            local ribb = WC3Ref_RIBB()
             
-            local size = readLong stream
-            totalSize -=size
-            local unk = readLong stream
-            ribb.name = GriffonStudios_Helpers.ReadFixedString stream 80
-            ribb.id = readLong stream + 1
-            ribb.parentBoneId = readLong stream + 1
-            ribb.flags = readLong stream
+            ribb.size         = readLong stream
+            ribb.headerSize   = readLong stream
+            ribb.name         = _helper.ReadFixedString stream 80
+            ribb.id           = readLong stream + 1
+            ribb.parentId     = readLong stream + 1
+            ribb.flags        = readLong stream
+            
+            totalSize        -= ribb.size
             
             for i=1 to 3 do
             (
-                local kg = GriffonStudios_Helpers.ReadFixedString stream 4
-                if( kg == "KGTR" ) then ribb.KGTR = Warcraft3_Reforged.ReadVector3Anim stream
-                if( kg == "KGRT" ) then ribb.KGRT = Warcraft3_Reforged.ReadQuatAnim stream
-                if( kg == "KGSC" ) then ribb.KGSC = Warcraft3_Reforged.ReadVector3Anim stream
+                local kg = _helper.ReadFixedString stream 4
+                if( kg == "KGTR" ) then ribb.KGTR = _reader.ReadVector3Anim stream
+                if( kg == "KGRT" ) then ribb.KGRT = _reader.ReadQuatAnim stream
+                if( kg == "KGSC" ) then ribb.KGSC = _reader.ReadVector3Anim stream
             )
             
             if( ribb.KGSC == undefined ) then fseek stream -4 #seek_cur
             if( ribb.KGTR == undefined ) then fseek stream -4 #seek_cur
             if( ribb.KGRT == undefined ) then fseek stream -4 #seek_cur
             
-            ribb.staticHeightAbove = readFloat stream
-            ribb.staticHeightBelow = readFloat stream
-            ribb.staticAlpha = readFloat stream
-            ribb.staticColor = Warcraft3_Reforged.ReadColor stream
-            ribb.lifeSpan = readFloat stream
-            ribb.textureId = readLong stream + 1
-            ribb.emissionRate = readLong stream
-            ribb.flipbookRows = readLong stream
-            ribb.flipbookColumns = readLong stream
-            ribb.mtlsId = readLong stream + 1
-            ribb.gravity= readFloat stream
-            
+            ribb.above          = readFloat stream
+            ribb.below          = readFloat stream
+            ribb.valpha         = readFloat stream
+            ribb.vcolor         = _reader.ReadColor stream
+            ribb.edgesLife      = readFloat stream
+            ribb.flipBookSlot   = readLong stream
+            ribb.edgesSec       = readLong stream
+            ribb.flipbookRows   = readLong stream
+            ribb.flipbookCols   = readLong stream
+            ribb.mtlsId         = readLong stream + 1
+            ribb.gravity        = readFloat stream
+      
             for i=1 to 6 do
             (
-                local kg = GriffonStudios_Helpers.ReadFixedString stream 4
-                if( kg == "KRHA" ) then ribb.KRHA = Warcraft3_Reforged.ReadFloatAnim stream -- heightAbove
-                if( kg == "KRHB" ) then ribb.KRHB = Warcraft3_Reforged.ReadFloatAnim stream  -- heightBelow
-                if( kg == "KRAL" ) then ribb.KRAL = Warcraft3_Reforged.ReadFloatAnim stream -- alpha
-                if( kg == "KRCO" ) then ribb.KRCO = Warcraft3_Reforged.ReadColorAnim stream -- color
-                if( kg == "KRTX" ) then ribb.KRTX = Warcraft3_Reforged.ReadLongAnim stream  -- texture
-                if( kg == "KRVS" ) then ribb.KRVS = Warcraft3_Reforged.ReadFloatAnim stream -- visibility
+                local kg = _helper.ReadFixedString stream 4
+                if( kg == "KRHA" ) then ribb.KRHA = _reader.ReadFloatAnim stream -- heightAbove
+                if( kg == "KRHB" ) then ribb.KRHB = _reader.ReadFloatAnim stream  -- heightBelow
+                if( kg == "KRAL" ) then ribb.KRAL = _reader.ReadFloatAnim stream -- alpha
+                if( kg == "KRCO" ) then ribb.KRCO = _reader.ReadColorAnim stream -- color
+                if( kg == "KRTX" ) then ribb.KRTX = _reader.ReadLongAnim stream  -- texture
+                if( kg == "KRVS" ) then ribb.KRVS = _reader.ReadFloatAnim stream -- visibility
             )
             if( ribb.KRHA == undefined ) then fseek stream -4 #seek_cur
             if( ribb.KRHB == undefined ) then fseek stream -4 #seek_cur
@@ -944,11 +944,92 @@ struct Warcraft_3_Read
             if( ribb.KRVS == undefined ) then fseek stream -4 #seek_cur
             
             append ribbs ribb
+            if DEBUG_MODE then format "%\n" ribb
         )
+
         return ribbs
     ),
     function ReadPRE2 stream tag=
     (
+        
+        struct WC3Ref_PRE2 (
+            Id, Name, ParentId, Flags, FlagSettings, 
+            KGTR, KGRT, KGSC, KP2V, KP2E,
+            speed,
+            variation,
+            coneAngle,
+            gravity,    
+            lifespan,
+            emissionrate,
+            length, 
+            width,
+            emitterType,
+            rowCount,
+            colCount,
+            particleType,
+            tailLength,
+            midTime,
+            startColor,
+            midColor,
+            endColor,
+            startAlpha,
+            midAlpha,
+            endAlpha,
+            startSize,
+            midSize,
+            endSize,
+            startLifespanUVAnim,
+            midLifespanUVAnim,
+            endLifespanUVAnim,
+            startDecayUVAnim,
+            midDecayUVAnim,
+            endDecayUVAnim,
+            startTailUVAnim,
+            midTailUVAnim,
+            endTailUVAnim,
+            startTailDecayUVAnim,
+            midTailDecayUVAnim,
+            endTailDecayUVAnim,
+            blendMode,
+            textureId,
+            replacableTextureId,
+            priorityPlane,
+            size, headersize
+        )
+        
+        struct WC3Ref_PRE2_FlagSettings(
+            DONT_INHERIT_TRANSLATION,
+            DONT_INHERIT_SCALING,
+            DONT_INHERIT_ROTATION,
+            BILLBOARDED,
+            BILLBOARD_LOCK_X,
+            BILLBOARD_LOCK_Y,
+            BILLBOARD_LOCK_Z,
+            GENOBJECT_MDLBONESECTION,
+            GENOBJECT_MDLLIGHTSECTION,
+            GENOBJECT_MDLEVENTSECTION,
+            GENOBJECT_MDLATTACHMENTSECTION,
+            GENOBJECT_MDLPARTICLEEMITTER2,
+            GENOBJECT_MDLHITTESTSHAPE,
+            GENOBJECT_MDLRIBBONEMITTER,
+            PROJECT,
+            UNSHADED,
+            SORT_PRIMITIVES_FAR_Z,
+            LINE_EMITTER,
+            PARTICLE_UNFOGGED,
+            PARTICLE_USE_MODEL_SPACE,
+            PARTICLE_INHERIT_SCALE,
+            PARTICLE_INSTANT_VELOCITY_LIN,
+            PARTICLE_0XKILL,
+            PARTICLE_Z_VELOCITY_ONLY,
+            PARTICLE_TUMBLER,
+            PARTICLE_TAIL_GROWS,
+            PARTICLE_EXTRUDE,
+            PARTICLE_XYQUADS,
+            PARTICLE_PROJECT,
+            PARTICLE_FOLLOW
+        )
+        
         fseek stream tag.offset #seek_set
        
         local pre2s = #()
@@ -956,23 +1037,21 @@ struct Warcraft_3_Read
         
         try (
                    
-            while (totalSize > 0 ) do
+            while (ftell stream < (tag.offset + tag.size ) ) do
             (
-                local size = readLong stream
-                local testPos = ftell stream
+                local pe = WC3Ref_PRE2()
+                pe.size = readLong stream
                 
                 totalSize -= size
-                
                 size -=4
                 
-                local pe = Warcraft3_Reforged_PRE2()
-                local headerSize    = readLong stream -- always 96
+                pe.headerSize    = readLong stream -- always 96
                 pe.name      = GriffonStudios_Helpers.ReadFixedString stream 80
                 pe.id        = readLong stream + 1
                 pe.parentId  = readLong stream + 1
-                local flags     = readLong stream
+                pe.flags     = readLong stream
                 
-                local flagSettings = Warcraft3_Reforged_PRE2_FLAGS()
+                local flagSettings = WC3Ref_PRE2_FlagSettings()
                 if (flags > 0) then 
                 (
                     if ( (bit.and flags 0x00000001) > 0 ) then flagSettings.DONT_INHERIT_TRANSLATION = true
@@ -1006,14 +1085,14 @@ struct Warcraft_3_Read
                     if ( (bit.and flags 0x10000000) > 0 ) then flagSettings.PARTICLE_PROJECT = true
                     if ( (bit.and flags 0x20000000) > 0 ) then flagSettings.PARTICLE_FOLLOW = true
                 )
-                pe.flags = flagSettings
+                pe.FlagSettings = flagSettings
                 
                 for i=1 to 3 do
                 (
-                    local kg = GriffonStudios_Helpers.ReadFixedString stream 4
-                    if( kg == "KGTR" ) then pe.KGTR = Warcraft3_Reforged.ReadVector3Anim stream
-                    if( kg == "KGRT" ) then pe.KGRT = Warcraft3_Reforged.ReadQuatAnim stream
-                    if( kg == "KGSC" ) then pe.KGSC = Warcraft3_Reforged.ReadVector3Anim stream
+                    local kg = _helper.ReadFixedString stream 4
+                    if( kg == "KGTR" ) then pe.KGTR = _reader.ReadVector3Anim stream
+                    if( kg == "KGRT" ) then pe.KGRT = _reader.ReadQuatAnim stream
+                    if( kg == "KGSC" ) then pe.KGSC = _reader.ReadVector3Anim stream
                 )
                 
                 if( pe.KGSC == undefined ) then fseek stream -4 #seek_cur
@@ -1091,19 +1170,13 @@ struct Warcraft_3_Read
 
                 for i=1 to 2 do
                 (
-                    local anim = GriffonStudios_Helpers.ReadFixedString stream 4
+                    local anim = _helper.ReadFixedString stream 4
                     
-                    if (anim == "KP2V" ) then pe.kp2v = Warcraft3_Reforged.ReadFloatAnim stream -- visibility
-                    if (anim == "KP2E" ) then pe.kp2e = Warcraft3_Reforged.ReadFloatAnim stream -- emission
+                    if (anim == "KP2V" ) then pe.kp2v = _reader.ReadFloatAnim stream -- visibility
+                    if (anim == "KP2E" ) then pe.kp2e = _reader.ReadFloatAnim stream -- emission
                     
                 )
-                if( pe.kp2v == undefined ) then fseek stream -4 #seek_cur
-                if( pe.kp2e == undefined ) then fseek stream -4 #seek_cur
-                
-                local skip = size - ( (ftell stream )- testPos )
-                
-                Warcraft3_Reforged.SkipBytes stream skip
-                
+
                 append pre2s pe
             )
         )
@@ -1112,5 +1185,30 @@ struct Warcraft_3_Read
             /* old models fail on this... I don't care */
         )
         return pre2s
+    ),
+    function ReadBPOS stream tag=
+    (
+        struct WC3Ref_BPOS ( Id, Position )
+        
+        local bposList = #()
+        
+        fSeek stream tag.offset #seek_set
+        
+        local nbr = readLong stream
+        
+        for i=1 to nbr do
+        (
+            local m = matrix3 1
+            m.row1 = [readfloat stream, readfloat stream, readfloat stream]
+            m.row2 = [readfloat stream, readfloat stream, readfloat stream]
+            m.row3 = [readfloat stream, readfloat stream, readfloat stream]
+            m.row4 = [readfloat stream, readfloat stream, readfloat stream]
+            append bposList m
+            
+            if DEBUG_MODE then format "%\n" m
+            
+        )
+        bposList
+
     )
 )

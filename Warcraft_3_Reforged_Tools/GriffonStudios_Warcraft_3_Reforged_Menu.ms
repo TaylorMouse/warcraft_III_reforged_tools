@@ -1,3 +1,18 @@
+/*
+    .SYNOPSIS
+    | Install for Warcraft III Reforged Tools Menu in Max
+    
+    .COPYRIGHT
+    | (c)2021 Griffon Studios
+    
+    .AUTHOR
+    | Taylor Mouse
+
+    .CHANGELOG
+    | 0.1 - Initial setup
+
+*/
+
 struct Warcraft3_Reforged_Menu
 (
     function RemoveMenu menuName=

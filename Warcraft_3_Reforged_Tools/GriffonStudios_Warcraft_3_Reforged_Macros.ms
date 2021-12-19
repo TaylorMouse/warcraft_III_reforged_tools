@@ -14,78 +14,15 @@
 
 global Warcraft3_AssetFolder
 global Warcraft3_ImportAllLOD = false
-global Warcraft3_ConvertToSC2
+
 
 macroscript Warcaft3Reforged_ImportModel 
     category:"Warcraft III Reforged Tools" 
     tooltip:"Import model" 
 (
-    rollout ImportWindow "Warcraft III Reforged Import (v1.5)"
-    (
-        group "Select mdx file:"
-        (
-            edittext txtSelectedFile width:270 align:#left offset:[-5,0]
-            button btnBrowse "..." align:#right offset:[3,-25]
-        )
-        group "Options"
-        (
-            checkbox chkImportAllLOD "Import all Level of Details (LOD's)"
-            checkbox chkConvertToSC2 "Convert to SC2 Compatible"
-        )
-
-        label lbl1 "©2021" align:#center
-        label lbl2 "Taylor Mouse"  align:#center
-        button btnClose "Close" height:30 width:80 offset:[115,-35]
-        button btnImport "Import" height:30 width:80 offset:[-115,-35]
-        
-        on btnClose pressed do destroydialog ImportWindow
-        on chkImportAllLOD changed theState do (
-            Warcraft3_ImportAllLOD = theState
-            format "Import all LOD's: %\n" Warcraft3_ImportAllLOD
-        )
-        on chkConvertToSC2 changed theState do (
-            Warcraft3_ConvertToSC2 = theState
-            format "Import SC2 Conversion: %\n" Warcraft3_ConvertToSC2
-        )
-        
-        on ImportWindow open do
-        (
-            Warcraft3_ImportAllLOD = false
-            Warcraft3_ConvertToSC2 = false
-            
-        )    
-        
-        on btnBrowse pressed do
-        (
-            local file = getOpenFileName \
-                        caption:"Warcraft III Reforged" \
-                        types:"Supported Files|*.mdx|Warcraft III Reforged(*.mdx)|*.mdx|All Files|*.*" \
-                        historyCategory:"ReforgedPreset"
-            if (file != undefined) then 
-                if (doesfileexist file == true ) then 
-                    txtSelectedFile.Text = file
-        )
-        on btnImport pressed do
-        (
-            fileIn "GriffonStudios_Warcraft_3_Reforged_Main.ms"
-            local file = txtSelectedFile.Text
-            if (doesfileexist file == true ) then 
-                Warcraft3_Reforged.Import file
-            else
-                MessageBox "Please select a correct or existing file!" 
-            
-        )
-        
-        on ImportWindow open do
-        (
-            if ( STARCRAFT_II_ARTTOOLS_INSTALLED == false ) then 
-                chkConvertToSC2.enabled = false
-
-        )
-    )
-    if(ImportWindow != undefined) then destroydialog ImportWindow
-        CreateDialog ImportWindow width:320 lockwidth: true 
-    
+    filein "GriffonStudios_Warcraft_3_Reforged_Import_Dialog.ms"
+    if(GriffonStudios_WC3Ref_ImportWindow != undefined) then destroydialog GriffonStudios_WC3Ref_ImportWindow
+        CreateDialog GriffonStudios_WC3Ref_ImportWindow width:320 lockwidth: true 
 )
 
 macroscript Warcraft3Reforged_ResetAnimationTracks 

@@ -145,10 +145,20 @@ struct Warcraft_3_Ref_Read
     ),
     function ReadMODL stream tag=
     (
+        struct WC3Ref_MODL ( name, path, radius, bBox = #(), Always150 )
         fseek stream tag.offset #seek_set
-        local name = _helper.ReadFixedString stream 80
+        
+        local modl = WC3Ref_MODL()
+        modl.name = _helper.ReadFixedString stream 80
+        modl.path = _helper.ReadFixedString stream 260
+        modl.radius = readFloat stream
+        append modl.bbox [readFloat stream, readFloat stream, readFloat stream]
+        append modl.bbox [readFloat stream, readFloat stream, readFloat stream]
+        modl.Always150 = readLong stream
+        
         if DEBUG_MODE then Format "Name: %\n" name
-        return name
+            
+        return modl
     ),
     function ReadSEQS stream tag=
     (
@@ -219,7 +229,7 @@ struct Warcraft_3_Ref_Read
     ),
     function ReadShader stream=
     (
-        struct WC3Ref_MTLS ( Size, PriorityPlane, Flags, Name, Lays, NumberOfLayers, Layers = #() )
+        struct WC3Ref_MTLS ( Size, PriorityPlane, Flags, Name, Lays, NumberOfLayers, Layers = #(), MaterialRef )
         
         local shdr = WC3Ref_MTLS()
         shdr.Size = readLong stream
@@ -244,14 +254,15 @@ struct Warcraft_3_Ref_Read
     ),
     function ReadLayer stream=
     (
-        struct WC3Ref_LAYR ( Size, FilterMode, ShadingFlags, TextureId, ParentId, CoordId, Alpha, EmissiveMultiplier, FresnelR, FresnelG, FresnelB, FresnelMultiplier, TeamColorMultiplier, KMTA, KMTE ) 
+        struct WC3Ref_LAYR 
+            ( Size, FilterMode, ShadingFlags, TextureId, ParentId, CoordId, Alpha, EmissiveMultiplier, FresnelR, FresnelG, FresnelB, FresnelMultiplier, TeamColorMultiplier, KMTA, KMTE ) 
         
         local lay = WC3Ref_LAYR()
         
         lay.Size                = readLong stream
-        lay.FilterMode          = readLong stream
+        lay.FilterMode          = readLong stream + 1
         lay.ShadingFlags        = readLong stream
-        lay.TextureId           = readLong stream
+        lay.TextureId           = readLong stream + 1
         lay.ParentId            = readLong stream
         lay.CoordId             = readLong stream
         lay.Alpha               = readfloat stream
@@ -310,7 +321,7 @@ struct Warcraft_3_Ref_Read
             ( MATS, VRTX = #(), NRMS = #(), PTYP = #(), PCNT = #(), PVTX = #(), GNDX = #(), MTGC = #(), TANG = #(), SKIN = #(), UVS = #(), meshRef ) 
 
         struct WC3Ref_MATS
-            ( Id, LOD_Id, Name, SectionGroupId, SectionGroupType, Matrices = #(), floats =  #(), bounding = #() )
+            ( MTLS_Id, LOD_Id, Name, SectionGroupId, SectionGroupType, Matrices = #(), floats =  #(), bounding = #() )
         
         struct WC3Ref_SKIN
             ( BoneIds = #(), Weights = #() )
@@ -360,7 +371,7 @@ struct Warcraft_3_Ref_Read
                     
                     for v=1 to (readLong stream) do append geo.MATS.matrices (readLong stream + 1)
                     
-                    geo.MATS.Id = readlong stream
+                    geo.MATS.MTLS_Id = readlong stream + 1
                     /*
                         0 = main mesh
                         1 = skeleton mesh
@@ -1035,7 +1046,8 @@ struct Warcraft_3_Ref_Read
             PARTICLE_FOLLOW
         )
         
-        fseek stream tag.offset #seek_set
+        local offset = tag.offset
+        
        
         local pre2s = #()
         local totalSize = tag.Size
@@ -1044,13 +1056,14 @@ struct Warcraft_3_Ref_Read
                    
             while (ftell stream < (tag.offset + tag.size ) ) do
             (
+                fseek stream offset #seek_set
+                
                 local pe = WC3Ref_PRE2()
                 pe.size = readLong stream
                 
-                totalSize -= size
-                size -=4
+                offset += pe.size
                 
-                pe.headerSize    = readLong stream -- always 96
+                pe.headerSize = readLong stream -- always 96
                 pe.name      = GriffonStudios_Helpers.ReadFixedString stream 80
                 pe.id        = readLong stream + 1
                 pe.parentId  = readLong stream + 1
@@ -1215,5 +1228,86 @@ struct Warcraft_3_Ref_Read
         )
         bposList
 
+    ),
+    function ReadCORN stream tag=
+    (
+        fseek stream tag.offset #seek_set
+        
+        struct WC3Ref_CORN
+            ( Id, Name, FileName, Properties, ParentId, Flags, KPPA, KPPV,KPPE, KGSC, KGTR, KGRT )
+        local totalSize = tag.Size
+        local corn = #()
+        
+        while (totalSize > 0 ) do
+        (
+            local cor = WC3Ref_CORN()
+            
+            local chunkSize = readLong stream
+            totalSize -= chunkSize
+            
+            local miniSize = readLong stream
+            cor.name = _Helper.ReadFixedString stream 80
+            cor.id = readLong stream + 1
+            cor.parentId = readLong stream + 1
+            cor.flags = readLong stream
+
+            for i=1 to 3 do
+            (
+                local kg = _Helper.ReadFixedString stream 4
+                if( kg == "KGSC" ) then cor.KGSC = _reader.ReadVector3Anim stream
+                if( kg == "KGTR" ) then cor.KGTR = _reader.ReadVector3Anim stream
+                if( kg == "KGRT" ) then cor.KGRT = _reader.ReadQuatAnim stream
+            )
+            if( cor.KGSC == undefined ) then fseek stream -4 #seek_cur
+            if( cor.KGTR == undefined ) then fseek stream -4 #seek_cur
+            if( cor.KGRT == undefined ) then fseek stream -4 #seek_cur
+            
+            for i=1 to 8 do 
+                local f = readFloat stream
+            
+            cor.filename = _Helper.ReadFixedString stream 260
+            local props = _Helper.ReadFixedString stream 260
+            
+            cor.properties = filterString props ", "
+            
+            for i=1 to 3 do
+            (
+                local anim = GriffonStudios_Helpers.ReadFixedString stream 4
+                if (anim == "KPPE") then cor.kppe = _reader.ReadFloatAnim stream
+                if (anim == "KPPA") then cor.kppa = _reader.ReadFloatAnim stream -- alpha
+                if (anim == "KPPV") then cor.kppv = _reader.ReadFloatAnim stream -- visibility
+            )
+            if( cor.kppe == undefined ) then fseek stream -4 #seek_cur
+            if( cor.kppa == undefined ) then fseek stream -4 #seek_cur
+            if( cor.kppv == undefined ) then fseek stream -4 #seek_cur
+
+            append corn cor
+        )
+
+        return corn
+    ),
+    function ReadFAFX stream tag=
+    (
+        fseek stream tag.offset #seek_set
+        
+        struct WC3Ref_FAFX
+            ( Id, Name, ExternalFileName, objRef )
+        
+        local nbr = tag.size / 340
+        
+        local fafx = #()
+        
+        for i=1 to nbr do
+        (
+            local f = WC3Ref_FAFX()
+            f.Id = i
+            f.Name = _helper.ReadFixedString stream 80
+            f.ExternalFileName = _helper.ReadFixedString stream 260
+            
+            append fafx f
+        )
+        
+        return fafx
+        
     )
 )

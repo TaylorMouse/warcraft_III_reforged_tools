@@ -40,8 +40,8 @@ plugin Material WC3RefMaterial
         orm_map         type:#texturemap animatable:false ui:mb_orm  --> R = occlusion, G = Roughness, B = Metal
         teamcolor_map   type:#texturemap animatable:false ui:mb_teamcolor --> usually Alpha layer of the orm map
         emissive_map    type:#texturemap animatable:false ui:mb_emissive
-        emissive_alpha  type:#float      animatable:true  ui:spn_emissive
-        emissive_multiplier type:#float  animatable:false  ui:spn_emissive_multiplier
+        emissive_alpha  type:#float      animatable:false  ui:spn_emissive
+        emissive_multiplier type:#float  animatable:true  ui:spn_emissive_multiplier
         alphamask_map   type:#texturemap animatable:false ui:mb_alphamask
         reflection_map  type:#texturemap animatable:false ui:mb_reflection
         replacable_map  type:#texturemap animatable:false --ui:mb_replacable
@@ -97,33 +97,33 @@ plugin Material WC3RefMaterial
         checkbox cbx_nodepthtest "No depth test" offset:[200,0]
         checkbox cbx_nodepthset "No depth set" offset:[200,0]
         
-        groupbox grpCommon "Common parameters" height:150 pos:[5,5] width:315
+        groupbox grpCommon "Common parameters" height:160 pos:[5,5] width:315
         
         label lbl1 "Diffuse . . . . ." align:#left offset:[0,30]
-            mapbutton mb_diffuse "(drag & drop texture here)" height:22 offset:[20,-25] width:200
+            mapbutton mb_diffuse "(drag & drop texture here)" height:22 offset:[20,-25] width:220
         
         label lbl2 "Normal . . . . ." align:#left offset:[0,10]
-            mapbutton mb_normal  "(drag & drop texture here)" height:22 width:200  offset:[20,-25]
+            mapbutton mb_normal  "(drag & drop texture here)" height:22 width:220  offset:[20,-25]
         
         label lbl3 "ORM . . . . . . ." align:#left offset:[0,10]
-            mapbutton mb_orm     "(drag & drop texture here)" height:22 width:200  offset:[20,-25]
+            mapbutton mb_orm     "(drag & drop texture here)" height:22 width:220  offset:[20,-25]
         
         label lbl4 "Team Color . . ."   align:#left offset:[0,10]
-            mapbutton mb_teamcolor "(drag & drop texture here)" height:22 width:200  offset:[20,-25]
+            mapbutton mb_teamcolor "(drag & drop texture here)" height:22 width:220  offset:[20,-25]
         
         label lbl5 "Emissive . . . ." align:#left offset:[0,10]
-            mapbutton mb_emissive  "(drag & drop texture here)" height:22 width:200 offset:[20,-25] 
+            mapbutton mb_emissive  "(drag & drop texture here)" height:22 width:220 offset:[20,-25] 
             spinner spn_emissive "Alpha:"   range:[0,100.0,100.0] align:#left width:70 offset:[165,0]
             spinner spn_emissive_multiplier "Multiplier:"   range:[0,100,0] align:#left width:80 offset:[150,0]
         
         label lbl6 "Alpha mask . . " align:#left offset:[0,5] 
-            mapbutton mb_alphamask "(drag & drop texture here)" height:22 width:200 offset:[20,-25] 
+            mapbutton mb_alphamask "(drag & drop texture here)" height:22 width:220 offset:[20,-25] 
     
         label lbl7 "Environment . . ."   align:#left offset:[0,10]
-            mapbutton mb_reflection "(drag & drop texture here)" height:22 width:200  offset:[20,-25] tooltip:"Select spherical reflection map"
+            mapbutton mb_reflection "(drag & drop texture here)" height:22 width:220  offset:[20,-25] tooltip:"Select spherical reflection map"
     
    
-        groupbox grpMaps "Texture Maps" height:300 pos:[5,160] width:315 
+        groupbox grpMaps "Texture Maps" height:300 pos:[5,180] width:315 
     
         
     )

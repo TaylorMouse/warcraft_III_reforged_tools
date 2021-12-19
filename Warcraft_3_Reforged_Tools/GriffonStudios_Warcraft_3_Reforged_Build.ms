@@ -17,6 +17,7 @@ fileIn "GriffonStudios_Warcraft_3_Reforged_Plugins_Popcorn.ms"
 fileIn "GriffonStudios_Warcraft_3_Reforged_Plugins_FaceFX.ms"
 fileIn "GriffonStudios_Warcraft_3_Reforged_Plugins_Ribbon.ms"
 fileIn "GriffonStudios_Warcraft_3_Reforged_Plugins_Emitter.ms"
+fileIn "GriffonStudios_Warcraft_3_Reforged_Plugins_Material.ms"
 
 struct Warcraft_3_Ref_Build
 (
@@ -44,6 +45,113 @@ struct Warcraft_3_Ref_Build
         )
         return dummy_track
     ),
+    function CreateMTLS mdx=
+    (
+        if ( mdx.mtls == undefined ) then return undefined
+        
+        format "Building Materials\n"
+        
+        local mtls = mdx.mtls
+        local texs = mdx.texs
+        local modlName = mdx.modl.name
+        local geos = mdx.geos
+        
+        local fullPath = getFilenamePath mdx.fileName
+        local pos = ( findString fullPath @"\Assets\" ) + (@"\Assets\").count - 1
+        local assetFolder = (substring fullPath 1 pos )
+        
+        if DEBUG_MODE then format "Asset folder: %\n" assetFolder
+        
+        for m=1 to mtls.count do
+        (
+            local mtl = mtls[m]
+            local possibleName = modlName 
+            
+            for geo in geos where geo.MATS.LOD_Id == 0 and geo.MATS.MTLS_Id == m and (findstring geo.MATS.name ":") > 1 do
+            (
+                local colonparts = filterString geo.MATS.name ":"
+                local parts = filterString colonparts[colonParts.count] "_"
+                possibleName = modlName + "_" + parts[1]
+            )
+            local mat = WC3RefMaterial()
+            
+            mat.Name = possibleName + "_MAT_" + (m as string )
+            format "Building: %\n" mat.Name
+            
+            if (mtl.Layers.count > 0) then mat.filtermode = mtl.Layers[1].filterMode
+            
+            for l=1 to mtl.layers.count do
+            (
+                local layer = mtl.layers[l]
+                if DEBUG_MODE then format "Building layer %\n" layer
+                    
+                local textureId = layer.TextureId
+                local textureFile = assetFolder + texs[textureId].path + texs[textureId].fileNameOnly + ".dds"
+                
+                case of
+                (
+                    ( bit.and layer.ShadingFlags 0x1 > 0 ): ( mat.unlit = true )
+                    ( bit.and layer.ShadingFlags 0x2 > 0 ): ( mat.envmap = true )
+                    ( bit.and layer.ShadingFlags 0x4 > 0 ): ( mat.wrapwidth = true )
+                    ( bit.and layer.ShadingFlags 0x8 > 0 ): ( mat.wrapheight = true )
+                    ( bit.and layer.ShadingFlags 0x10 > 0 ): ( mat.twosided = true )
+                    ( bit.and layer.ShadingFlags 0x20 > 0 ): ( mat.nofog = true )
+                    ( bit.and layer.ShadingFlags 0x40 > 0 ): ( mat.nodepthtest = true )
+                    ( bit.and layer.ShadingFlags 0x80 > 0 ): ( mat.nodepthset = true )
+                )
+                
+                case of 
+                (
+                    (l == 1): ( 
+                        mat.diffuse_map = Bitmaptexture fileName:textureFile
+                        if layer.FilterMode == 2 then 
+                        (
+                            mat.alphamask_map = Bitmaptexture fileName:textureFile
+                            mat.alphamask_map.monooutput = 1
+                        )
+                    )
+                    (l == 2): ( 
+                        mat.normal_map = Bitmaptexture fileName:textureFile
+                    )
+                    (l == 3): ( 
+                        mat.orm_map = Bitmaptexture fileName:textureFile
+                        mat.teamcolor_map = Bitmaptexture fileName:textureFile
+                    )
+                    (l == 4): ( -- black ?? maybe emission ?
+                        mat.emissive_map = Bitmaptexture fileName:textureFile
+                        mat.emissive_alpha = layer.alpha * 100.0
+                    )
+                    (l == 5): 
+                    (
+                        mat.replacable_map = Bitmaptexture fileName:textureFile
+                    )
+                    (l == 6): ( -- refelection
+                        if mat.envmap then mat.reflection_map = Bitmaptexture fileName:textureFile
+                    )
+                )
+
+                showTextureMap mat true
+                
+                /* animated alpha */
+                if ( layer.KMTA != undefined ) then
+                    for anim in layer.KMTA.KG do
+                        with animate on 
+                            at time ( anim.Time + 10 ) mat.material_alpha = anim.Point * 100.0
+
+                /* animated emissive */
+                if ( layer.KMTE != undefined ) then
+                    for anim in layer.KMTE.KG do
+                        with animate on 
+                            at time ( anim.Time + 10 ) mat.emissive_multiplier = anim.Point * 100.0
+
+                   
+            )
+            if( m < 25 ) then meditMaterials[m] = mat
+            
+            mtl.materialRef = mat
+        )
+
+    ),
     function CreateGEOS mdx=
     (
         local geos = mdx.geos
@@ -54,6 +162,8 @@ struct Warcraft_3_Ref_Build
         for geo in geos do
         (
             if DEBUG_MODE then format "Building % \n" geo.MATS.name
+            
+            if WC3Ref_IMPORT_ALL_LOD == false and geo.MATS.LOD_Id > 0 then continue
             
             local layer = _helper.CreateLayer ( "LOD - " + (geo.MATS.LOD_Id as string ))
             
@@ -75,7 +185,7 @@ struct Warcraft_3_Ref_Build
             
             if ( geo.MATS.LOD_Id != 0 ) then layer.on = false
             
-            if ( geo.MATS.LOD_Id == 0 and geo.MATS.id != 0 ) then hide theMesh
+            if ( geo.MATS.LOD_Id == 0 and geo.MATS.MTLS_id != 1 ) then hide theMesh
 
         ) 
         
@@ -933,6 +1043,10 @@ struct Warcraft_3_Ref_Build
         try(
             for geo in geos do
             (
+                local obj = geo.meshRef
+                if ( obj == undefined ) then continue
+
+                format "Applying Skin modifier to %\n" obj.name
 
                 -- clean up the bonesIds and vertex weights
                 for v=1 to geo.VRTX.count do
@@ -946,14 +1060,8 @@ struct Warcraft_3_Ref_Build
                     geo.SKIN[v].BoneIds = boneIds
                     geo.SKIN[v].Weights = weights
                 )
-                
-                
-                local msh = geo
-                local obj = geo.meshRef
 
-                format "Applying Skin modifier to %\n" obj.name
                 
-                if ( obj == undefined ) then continue
                 
                 local mshSkin = skin name:"Skin"
                 mshSkin.bone_Limit = 4
@@ -982,9 +1090,177 @@ struct Warcraft_3_Ref_Build
         redrawViews()
 
     ),
+    function AssignMTLS mdx=
+    (
+        format "Assigning material to the meshes\n"
+        for geo in mdx.GEOS do
+            if geo.meshRef != undefined then (
+                try (
+                    geo.meshRef.Material = mdx.MTLS[geo.MATS.MTLS_Id].materialRef
+                ) 
+                catch (
+                    format "[ERROR] Unable assign the material to %!\n" geo.MATS.name
+                )
+            )
+    ),
+    function CreateTXAN mdx=
+    (
+        
+    ),
+    function CreatePRE2 mdx=
+    (
+        if( mdx.PRE2 == undefined ) then return undefined
+
+        local particleEmitters = mdx.PRE2
+        local boneList = mdx.BONE
+        local textures = mdx.TEXS
+
+        format "Building Particle Emitters \n"
+        
+        local layer = GriffonStudios_Helpers.CreateLayer "Emitters"
+        
+        for pe in particleEmitters do
+        (
+            local emitter = WC3RefEmitter()
+            layer.addNode emitter
+            
+            emitter.name =  pe.name
+            
+            if ( boneList != undefined ) then 
+            (
+                if pe.ParentId > 0 then 
+                (
+                    emitter.transform = boneList[pe.ParentId].boneRef.transform
+                    emitter.parent = boneList[pe.ParentId].boneRef
+                )
+            )
+            if (pe.Flags != undefined ) then
+            (
+                emitter.DONT_INHERIT_TRANSLATION = _helper.IsUndefinedBoolean pe.Flags.DONT_INHERIT_TRANSLATION
+                emitter.DONT_INHERIT_SCALING = _helper.IsUndefinedBoolean pe.Flags.DONT_INHERIT_SCALING
+                emitter.DONT_INHERIT_ROTATION = _helper.IsUndefinedBoolean pe.Flags.DONT_INHERIT_ROTATION
+                emitter.BILLBOARDED = _helper.IsUndefinedBoolean pe.Flags.BILLBOARDED
+                emitter.BILLBOARD_LOCK_X = _helper.IsUndefinedBoolean pe.Flags.BILLBOARD_LOCK_X
+                emitter.BILLBOARD_LOCK_Y = _helper.IsUndefinedBoolean pe.Flags.BILLBOARD_LOCK_Y
+                emitter.BILLBOARD_LOCK_Z = _helper.IsUndefinedBoolean pe.Flags.BILLBOARD_LOCK_Z
+                emitter.GENOBJECT_MDLBONESECTION = _helper.IsUndefinedBoolean pe.Flags.GENOBJECT_MDLBONESECTION
+                emitter.GENOBJECT_MDLLIGHTSECTION = _helper.IsUndefinedBoolean pe.Flags.GENOBJECT_MDLLIGHTSECTION
+                emitter.GENOBJECT_MDLEVENTSECTION = _helper.IsUndefinedBoolean pe.Flags.GENOBJECT_MDLEVENTSECTION
+                emitter.GENOBJECT_MDLATTACHMENTSECTION = _helper.IsUndefinedBoolean pe.Flags.GENOBJECT_MDLATTACHMENTSECTION
+                emitter.GENOBJECT_MDLPARTICLEEMITTER2 = _helper.IsUndefinedBoolean pe.Flags.GENOBJECT_MDLPARTICLEEMITTER2
+                emitter.GENOBJECT_MDLHITTESTSHAPE = _helper.IsUndefinedBoolean pe.Flags.GENOBJECT_MDLHITTESTSHAPE
+                emitter.GENOBJECT_MDLRIBBONEMITTER = _helper.IsUndefinedBoolean pe.Flags.GENOBJECT_MDLRIBBONEMITTER
+                emitter.PROJECT = _helper.IsUndefinedBoolean pe.Flags.PROJECT
+                emitter.UNSHADED = _helper.IsUndefinedBoolean pe.Flags.UNSHADED
+                emitter.SORT_PRIMITIVES_FAR_Z = _helper.IsUndefinedBoolean pe.Flags.SORT_PRIMITIVES_FAR_Z
+                emitter.LINE_EMITTER = _helper.IsUndefinedBoolean pe.Flags.LINE_EMITTER
+                emitter.PARTICLE_UNFOGGED = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_UNFOGGED
+                emitter.PARTICLE_USE_MODEL_SPACE = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_USE_MODEL_SPACE
+                emitter.PARTICLE_INHERIT_SCALE = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_INHERIT_SCALE
+                emitter.PARTICLE_INSTANT_VELOCITY_LIN = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_INSTANT_VELOCITY_LIN
+                emitter.PARTICLE_0XKILL = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_0XKILL
+                emitter.PARTICLE_Z_VELOCITY_ONLY = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_Z_VELOCITY_ONLY
+                emitter.PARTICLE_TUMBLER = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_TUMBLER
+                emitter.PARTICLE_TAIL_GROWS = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_TAIL_GROWS
+                emitter.PARTICLE_EXTRUDE = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_EXTRUDE
+                emitter.PARTICLE_XYQUADS = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_XYQUADS
+                emitter.PARTICLE_PROJECT = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_PROJECT
+                emitter.PARTICLE_FOLLOW = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_FOLLOW
+
+            )
+            emitter.speed = pe.speed  
+            emitter.variation = pe.variation 
+            emitter.coneAngle = pe.coneAngle / 2.0 
+            emitter.gravity = pe.gravity 
+            emitter.lifespan = pe.lifespan 
+            emitter.emissionRate = pe.emissionrate 
+            emitter.length = pe.length 
+            emitter.width = pe.width  
+            emitter.emitterType = pe.emitterType 
+            emitter.rowCount = pe.rowCount 
+            emitter.colCount = pe.colCount 
+            emitter.particleType = pe.particleType + 1
+            emitter.tailLength = pe.tailLength 
+            emitter.midTime = pe.midTime 
+            emitter.startColor  = pe.startColor 
+            emitter.midColor  = pe.midColor 
+            emitter.endColor  = pe.endColor 
+            emitter.startAlpha  = pe.startAlpha 
+            emitter.midAlpha  = pe.midAlpha 
+            emitter.endAlpha  = pe.endAlpha 
+            emitter.startSize  = pe.startSize 
+            emitter.midSize  = pe.midSize 
+            emitter.endSize  = pe.endSize 
+            emitter.startLifespanUVAnim  = pe.startLifespanUVAnim 
+            emitter.midLifespanUVAnim  = pe.midLifespanUVAnim 
+            emitter.endLifespanUVAnim  = pe.endLifespanUVAnim 
+            emitter.startDecayUVAnim  = pe.startDecayUVAnim 
+            emitter.midDecayUVAnim  = pe.midDecayUVAnim 
+            emitter.endDecayUVAnim  = pe.endDecayUVAnim 
+            emitter.startTailUVAnim  = pe.startTailUVAnim 
+            emitter.midTailUVAnim  = pe.midTailUVAnim 
+            emitter.endTailUVAnim  = pe.endTailUVAnim 
+            emitter.startTailDecayUVAnim = pe.startTailDecayUVAnim 
+            emitter.midTailDecayUVAnim  = pe.midTailDecayUVAnim 
+            emitter.endTailDecayUVAnim  = pe.endTailDecayUVAnim 
+            emitter.blendMode  = pe.blendMode 
+            emitter.priorityPlane  = pe.priorityPlane 
+            emitter.replacableTextureId  = pe.replacableTextureId  + 1
+            emitter.texture = textures[pe.TextureId + 1].path  + textures[pe.TextureId + 1].fileNameOnly + ".dds"
+
+
+            if( pe.KP2E != undefined) then
+                for anim in pe.KP2E do
+                    with animate on at time ( anim.Time + 10 ) 
+                        emitter.emissionRate = anim.Point
+
+            if( pe.KGRT != undefined) then 
+                for anim in pe.KGRT.KG do
+                    with animate on at time ( anim.Time + 10 )  in coordsys parent 
+                        emitter.rotation = anim.Point
+
+            local prevPos = [0,0,0]
+            if(emitter.parent != undefined ) then prevPos = emitter.parent.pos
+            if( pe.KGTR != undefined) then 
+                for anim in c.KGTR.KG do
+                    with animate on at time ( anim.Time + 10 ) 
+                        emitter.pos = prevPos + anim.Point
+            
+            if( pe.KGSC != undefined) then 
+                for anim in pe.KGSC.KG do
+                    with animate on at time ( anim.Time + 10 ) 
+                        emitter.scale = anim.Point
+            
+            if( pe.KP2V != undefined) then
+            (
+                local isVisibilityTrackRequired = false -- by default evertythng is 1
+                
+                for anim in pe.KP2V.KG do
+                    if ( anim.point == 0) then isVisibilityTrackRequired = true
+
+                if ( isVisibilityTrackRequired == true ) then
+                (
+                    emitter.Visibility = on
+                    emitter.Visibility.controller = on_off()
+
+                    for anim in pe.KP2V.KG do 
+                        with animate on at time ( anim.Time + 10 )
+                            if (anim.point == 1) then 
+                                emitter.Visibility = on
+                            else
+                                emitter.Visibility = off
+                ) 
+            )
+
+
+
+        )
+    ),
     function Create mdx=
     (
         format "\n"
+        --DEBUG_MODE = true
+        CreateMTLS mdx
         CreateGEOS mdx
         CreateSEQS mdx
         CreateBoneAndHelpers mdx
@@ -1000,6 +1276,9 @@ struct Warcraft_3_Ref_Build
         CreateCORN mdx
         CreateFAFX mdx
         CreateRIBB mdx
+        CreateTXAN mdx
+        CreatePRE2 mdx
+        AssignMTLS mdx
     )
     
 )

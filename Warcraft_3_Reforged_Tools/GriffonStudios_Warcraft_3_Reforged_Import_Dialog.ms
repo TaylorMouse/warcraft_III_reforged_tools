@@ -36,7 +36,7 @@ rollout GriffonStudios_WC3Ref_ImportWindow "Warcraft III Reforged Import"
     (
         button btnImport "Import mdx (WC3 Reforged)" height:30 width:270 
     )
-    label lbl1 "?2021 Warcraft III Reforged Tools by Taylor Mouse" align:#center
+    label lbl1 "©2021 Warcraft III Reforged Tools by Taylor Mouse" align:#center
     
     
     on chkDebugMode changed theState do DEBUG_MODE = theState

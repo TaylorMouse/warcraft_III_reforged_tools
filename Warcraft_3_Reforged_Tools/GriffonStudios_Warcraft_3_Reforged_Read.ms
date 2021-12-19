@@ -168,6 +168,7 @@ struct Warcraft_3_Ref_Read
         fseek stream tag.offset #seek_set
         
         local nbrSeqs = tag.size / 132
+        local tmpSeqs = #()
         local seqs = #()
         
         for i=1 to nbrSeqs do
@@ -189,9 +190,24 @@ struct Warcraft_3_Ref_Read
             seq.BBox = #([readfloat stream,readfloat stream,readfloat stream], [readfloat stream,readfloat stream,readfloat stream] )
 
             if DEBUG_MODE then format "%\n" seq
-            append seqs seq
+            append tmpSeqs seq
         )
 
+        -- validate the sequences and clean up
+        for s=1 to tmpSeqs.count do
+        (
+            local addSeq = true
+            for w=s+1 to tmpSeqs.count do
+                if ( tmpSeqs[s].startFrame == tmpSeqs[w].startFrame ) then (
+                    addSeq = false
+                    exit
+                )
+
+            if addSeq then append seqs tmpSeqs[s]
+
+        )
+        if DEBUG_MODE then for s in seqs do format "%\n" s
+            
         return seqs
         
     ),

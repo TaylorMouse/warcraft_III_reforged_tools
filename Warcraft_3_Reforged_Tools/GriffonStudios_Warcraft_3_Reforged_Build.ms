@@ -184,8 +184,6 @@ struct Warcraft_3_Ref_Build
             geo.meshRef = theMesh
             
             if ( geo.MATS.LOD_Id != 0 ) then layer.on = false
-            
-            if ( geo.MATS.LOD_Id == 0 and geo.MATS.MTLS_id != 1 ) then hide theMesh
 
         ) 
         

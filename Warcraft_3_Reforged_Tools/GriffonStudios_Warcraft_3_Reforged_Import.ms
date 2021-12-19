@@ -121,7 +121,7 @@ STRUCT WC3REF_MDX
         setArrowCursor() 
     )
 )
-
+/*
 (
     max unhide all
     max unfreeze all
@@ -131,3 +131,4 @@ STRUCT WC3REF_MDX
     local file = @"G:\Blizzard\Warcraft - Reforged\Extracted\Assets\units\critters\frog\frog.mdx"
     WC3REF_MDX.Import file
 )
+*/

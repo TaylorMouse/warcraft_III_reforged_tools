@@ -9,8 +9,8 @@
     | Taylor Mouse
 
 */
-global DEBUG_MODE = false
-global WC3Ref_IMPORT_ALL_LOD = true
+global DEBUG_MODE
+global WC3Ref_IMPORT_ALL_LOD
 
 rollout GriffonStudios_WC3Ref_ImportWindow "Warcraft III Reforged Import"
     width:320 
@@ -36,17 +36,16 @@ rollout GriffonStudios_WC3Ref_ImportWindow "Warcraft III Reforged Import"
     (
         button btnImport "Import mdx (WC3 Reforged)" height:30 width:270 
     )
-    label lbl1 "©2021 Warcraft III Reforged Tools by Taylor Mouse" align:#center
+    label lbl1 "?2021 Warcraft III Reforged Tools by Taylor Mouse" align:#center
     
     
-    on chkImportAllLOD changed theState do (
-        WC3Ref_IMPORT_ALL_LOD = theState
-        format "Import all LOD's: %\n" WC3Ref_IMPORT_ALL_LOD
-    )
+    on chkDebugMode changed theState do DEBUG_MODE = theState
+    on chkImportAllLOD changed theState do WC3Ref_IMPORT_ALL_LOD = theState
             
     on GriffonStudios_WC3Ref_ImportWindow open do
     (
         WC3Ref_IMPORT_ALL_LOD = true
+        DEBUG_MODE = false
         local sharedFolder = getinisetting configFile "WarcraftIIIReforged" "SharedTextureFolder"
         if sharedFolder == undefined then 
             txtSharedTextureFolder.text = "" 
@@ -80,6 +79,8 @@ rollout GriffonStudios_WC3Ref_ImportWindow "Warcraft III Reforged Import"
     on btnImport pressed do
     (
         fileIn "GriffonStudios_Warcraft_3_Reforged_Import.ms"
+        format "Import all LOD's: %\n" WC3Ref_IMPORT_ALL_LOD
+        format "Run in Debug mode: %\n" DEBUG_MODE
         local file = txtSelectedFile.Text
         if (doesfileexist file == true ) then 
             WC3REF_MDX.Import file

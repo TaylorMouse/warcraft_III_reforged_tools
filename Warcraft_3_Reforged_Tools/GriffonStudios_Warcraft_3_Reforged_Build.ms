@@ -565,18 +565,18 @@ struct Warcraft_3_Ref_Build
             -- CUBE
             if(cl.CollisionType == 0 ) then 
             (
-                local diameter = distance cl.startPosition cl.EndPosition
-                local radius = diameter / 2.0 * 0.8
-                clObj = Sphere radius:radius name:cl.name pos:cl.startPosition
+                local w = distance [cl.StartPosition.X,0,0] [cl.EndPosition.X,0,0] 
+                local l = distance [0,cl.StartPosition.Y,0] [0,cl.EndPosition.Y,0] 
+                local h = distance [0,0, cl.StartPosition.Z] [0,0,cl.EndPosition.Z]
+                clObj = Box pos:[0,0,0] width:w length:l height:h name:cl.name
             )
             
             -- PLANE
             if(cl.CollisionType == 1 ) then 
             (
-                local x = distance [cl.startPosition.x,0,0] [cl.EndPosition.x,0,0]
-                local y = distance [0,cl.startPosition.y,0] [0,cl.EndPosition.y,0]
-                
-                clObj = Plane length:x width:y name:cl.name pos:cl.startPosition
+                local w = distance [cl.startPosition.x,0,0] [cl.EndPosition.x,0,0] * -1
+                local l = distance [0,cl.startPosition.y,0] [0,cl.EndPosition.y,0] * -1
+                clObj = Plane length:l width:w name:cl.name pos:cl.startPosition
             )
             
             -- SPHERE
@@ -594,11 +594,11 @@ struct Warcraft_3_Ref_Build
 
             if clObj == undefined then return undefined
 
-            clObj.pos = mdx.BPOS[cl.id].translationpart
-
+            clObj.Transform = mdx.BPOS[cl.id]
+            
             if cl.parentId > 0 then cl.parent = mdx.bone[cl.parentId].boneRef
             
-            local mtrx = bpos[cl.id]    
+            local mtrx = bpos[cl.id]
             
             if ( cl.KGRT != undefined ) then 
             (
@@ -610,7 +610,6 @@ struct Warcraft_3_Ref_Build
                     
                     with animate on at time t in coordsys mtrx clObj.rotation = q
                 )
-                    
             )
             
             if ( cl.KGTR != undefined ) then 
@@ -629,7 +628,9 @@ struct Warcraft_3_Ref_Build
                     
             )
             
-            clObj.boxmode = true
+            rotate clObj (angleaxis 180 [1,0,0])
+            
+            clObj.boxmode = on
             clObj.wirecolor = color 64 128 255
             clObj.renderable = off
             clObj.castShadows = off

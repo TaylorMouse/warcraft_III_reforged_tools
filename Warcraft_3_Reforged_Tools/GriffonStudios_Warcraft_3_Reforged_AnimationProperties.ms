@@ -198,7 +198,7 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
     
     function InitializeListView =
     (
-        format "Initializing listview ... \n"
+        --format "Initializing listview ... \n"
         lv.View = (dotNetClass "System.Windows.Forms.View").Details
         lv.FullRowSelect = true
         lv.HideSelection = false
@@ -299,7 +299,7 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
         anim.priority       = spinPriority.value as string
         anim.non_looping    = chkNonLooping.checked as string
         
-        format "%\n" anim
+        --format "%\n" anim
         
         for i=1 to keys.count by 2 do
         (
@@ -369,7 +369,7 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
     on GriffonStudios_AnimationWindow_v2 open do
     (
         
-        format "lv.ListViewItemSorter %\n" lv.ListViewItemSorter
+        --format "lv.ListViewItemSorter %\n" lv.ListViewItemSorter
         
         InitializeListView()
 
@@ -440,7 +440,3 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
     
     )
 )
-
-if(GriffonStudios_AnimationWindow_v2 != undefined) then destroydialog GriffonStudios_AnimationWindow_v2
-createdialog GriffonStudios_AnimationWindow_v2 lockwidth: true 
-clearListener()

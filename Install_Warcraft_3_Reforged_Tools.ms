@@ -18,8 +18,7 @@ fileIn "Warcraft_3_Reforged_Tools\\GriffonStudios_Warcraft_3_Reforged_Plugins_Ma
 fileIn "Warcraft_3_Reforged_Tools\\GriffonStudios_Warcraft_3_Reforged_Menu.ms"
 
 try (
-    wc3ref = Warcraft3_Reforged_Menu()
-    wc3ref.CreateMenu()
+    Warcraft3_Reforged_Menu.CreateMenu()
 )
 catch (    
     messagebox "Unable to install Warcraft III Reforged Art Tools"

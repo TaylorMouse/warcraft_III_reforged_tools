@@ -105,8 +105,8 @@ STRUCT WC3REF_MDX
             if( tag.Name == "RIBB" ) then mdx.ribb = _reader.ReadRIBB stream tag
             if( tag.Name == "PRE2" ) then mdx.pre2 = _reader.ReadPRE2 stream tag
             if( tag.Name == "BPOS" ) then mdx.bpos = _reader.ReadBPOS stream tag
-            if( tag.Name == "CORN" ) then mdx.bpos = _reader.ReadCORN stream tag
-            if( tag.Name == "FAFX" ) then mdx.bpos = _reader.ReadFAFX stream tag
+            if( tag.Name == "CORN" ) then mdx.corn = _reader.ReadCORN stream tag
+            if( tag.Name == "FAFX" ) then mdx.fafx = _reader.ReadFAFX stream tag
             
         )
         
@@ -121,14 +121,3 @@ STRUCT WC3REF_MDX
         setArrowCursor() 
     )
 )
-/*
-(
-    max unhide all
-    max unfreeze all
-    max select all
-    max delete
-
-    local file = @"G:\Blizzard\Warcraft - Reforged\Extracted\Assets\units\critters\frog\frog.mdx"
-    WC3REF_MDX.Import file
-)
-*/

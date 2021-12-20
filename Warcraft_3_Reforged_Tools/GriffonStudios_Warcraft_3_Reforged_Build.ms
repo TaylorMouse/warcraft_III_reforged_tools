@@ -21,6 +21,13 @@ fileIn "GriffonStudios_Warcraft_3_Reforged_Plugins_Material.ms"
 
 struct Warcraft_3_Ref_Build
 (
+    function GetAssetFolder mdx=
+    (
+        local fullPath = getFilenamePath mdx.fileName
+        local pos = ( findString fullPath @"\Assets\" ) + (@"\Assets\").count - 1
+        local assetFolder = (substring fullPath 1 pos )  
+        assetFolder
+    ),
     function ApplyUserProperties flags obj=
     (
         if ( bit.and flags 0x0008 > 0 ) then setUserProp obj "BILLBOARD" true
@@ -55,10 +62,7 @@ struct Warcraft_3_Ref_Build
         local texs = mdx.texs
         local modlName = mdx.modl.name
         local geos = mdx.geos
-        
-        local fullPath = getFilenamePath mdx.fileName
-        local pos = ( findString fullPath @"\Assets\" ) + (@"\Assets\").count - 1
-        local assetFolder = (substring fullPath 1 pos )
+        local assetFolder = _build.GetAssetFolder mdx
         
         if DEBUG_MODE then format "Asset folder: %\n" assetFolder
         
@@ -838,7 +842,7 @@ struct Warcraft_3_Ref_Build
     (
         local corn = mdx.corn
         local boneList = mdx.bone
-        
+        local assetFolder = _build.GetAssetFolder mdx
         format "Building PopCorn FX \n"
         if( corn == undefined ) then return undefined
         
@@ -854,7 +858,7 @@ struct Warcraft_3_Ref_Build
             local path = getFilenamePath c.FileName
             local fileNameOnly = getfilenamefile c.fileName
             
-            cObj.FileName = path + fileNameOnly + ".pkb"
+            cObj.FileName = assetFolder + path + fileNameOnly + ".pkb"
             
             for prop in c.Properties do
             (
@@ -915,13 +919,13 @@ struct Warcraft_3_Ref_Build
         format "Building Facial Effects\n"
         if ( fafx == undefined ) then return undefined
         local layer = _helper.CreateLayer "Facial Effects"
- 
+        local assetFolder = _build.GetAssetFolder mdx
         for f=1 to fafx.Count do
         (
             local fafxObj = WC3RefFaceFX()   
             
             fafxObj.Name = fafx[f].Name
-            fafxObj.fileName = fafx[f].ExternalFileName
+            fafxObj.fileName = assetFolder + fafx[f].ExternalFileName
             
             layer.AddNode fafxObj
         )

@@ -388,11 +388,6 @@ struct Warcraft_3_Ref_Read
                     for v=1 to (readLong stream) do append geo.MATS.matrices (readLong stream + 1)
                     
                     geo.MATS.MTLS_Id = readlong stream + 1
-                    /*
-                        0 = main mesh
-                        1 = skeleton mesh
-                        2 = organs mesh
-                    */
                     geo.MATS.SectionGroupId = readlong stream
                     geo.MATS.SectionGroupType = readLong stream 
                     geo.MATS.LOD_Id = readLong stream

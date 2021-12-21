@@ -32,8 +32,8 @@ plugin simpleManipulator WC3RefFaceFX
         (
              local file = getOpenFileName \
                         caption:"Warcraft 3 Reforged" \
-                        types:"Supported Files|*.facefx|Facial Effects(*.facefx)|*.facefx|All Files|*.*" \
-                        historyCategory:"ReforgedDDSPreset"
+                        types:"Supported Files|*.facefx_ingame|Facial Effects(*.facefx_ingame)|*.facefx_ingame|All Files|*.*" \
+                        historyCategory:"ReforgedFaceFxPreset"
                 
                 if ( file != undefined ) then 
                     this.fileName = file
@@ -41,8 +41,6 @@ plugin simpleManipulator WC3RefFaceFX
         )
     )
 
-   
-    
     tool create
     (
         on mousePoint click do
@@ -51,10 +49,11 @@ plugin simpleManipulator WC3RefFaceFX
                  (
                     1:(
                         nodeTM.translation = [0,0,0]
-                         #stop
+                        #stop
                       )
                   )
         )
+
     )
     
     function BuildGizmo points=
@@ -80,7 +79,7 @@ plugin simpleManipulator WC3RefFaceFX
     (
         this.clearGizmos()
         
-        BuildGizmoCircle 20.0 [0,0,0]
+        BuildGizmoCircle 19.0 [0,0,0]
         BuildGizmoCircle 3.0 [8,3.5,0]
         BuildGizmoCircle 3.0 [-8,3.5,0]
         BuildGizmo #([-11,-5.6,0], [-7.1,-8.9,0], [-2.4,-10.6,0], [2.4,-10.6,0], [7.1,-8.9,0],[11,-5.6,0] )
@@ -88,4 +87,3 @@ plugin simpleManipulator WC3RefFaceFX
     )
     
 )
-

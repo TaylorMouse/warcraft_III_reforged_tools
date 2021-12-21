@@ -9,18 +9,17 @@
     | Taylor Mouse
 
 */
-
+GLOBAL WC3REF_INVERT_UVW
+GLOBAL DEBUG_MODE
 
 rollout GriffonStudios_WC3_ExportDialog "Warcraft 3 Reforged Export" width:250
 (
     
     group "Export"
     (
-        label    lbl01              "Texture Path:" align:#left
-        edittext txt_texturePath    "" width:230 height:20 align:#left offset:[-5,0]
-        checkBox chkUseBlack32      "Map to standard black32.dds"
-        checkBox chkUseEnvMap       "Map to standard EnvironmentMap.dds"
+        label    lbl01              "! No path for the textures will be used !"
         checkBox chkDebugmode       "Debug mode"
+        checkBox chkInvertUVW       "Invert UVW"
         button   btn_export         "Export" height:30 width:150
     )
     
@@ -28,13 +27,12 @@ rollout GriffonStudios_WC3_ExportDialog "Warcraft 3 Reforged Export" width:250
     
     on GriffonStudios_WC3_ExportDialog open do
     (
-        txt_texturePath.text = TEXTURE_PATH
+        WC3REF_INVERT_UVW = false
+        DEBUG_MODE = false
     )
 
     on btn_export pressed do
     (
-        struct _config ( debug_mode, useBlack32, useEnvMap, base_texture_path )
-
         filein "GriffonStudios_Warcraft_3_Reforged_Exporter.ms"
         local saveFile = getSaveFileName caption:"Export file location" \
                                          types:"Warcraft III Reforged Model (.mdx)|*.mdx|All Files|*.*"\
@@ -43,12 +41,10 @@ rollout GriffonStudios_WC3_ExportDialog "Warcraft 3 Reforged Export" width:250
         local startedAt = timestamp()
         local exporter = GriffonStudios_Warcraft_3_Reforged_Exporter()
 
-        local cfg = _config debug_mode:chkDebugmode.checked \
-                            useBlack32:chkUseBlack32.checked \
-                            useEnvMap:chkUseEnvMap.checked \
-                            base_texture_path:txt_texturePath.text
+        DEBUG_MODE = chkDebugmode.checked
+        WC3REF_INVERT_UVW = chkInvertUVW.checked
         
-        exporter.Export saveFile cfg
+        exporter.Export saveFile
         
         local endedAt = timestamp()
         

@@ -1596,7 +1596,6 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         -- set the position back to orignal animation interval
         animationrange = interval animationInterval.start animationInterval.end
         gc() 
-        enableSceneRedraw() 
-        setArrowCursor()        
+             
     )
 )

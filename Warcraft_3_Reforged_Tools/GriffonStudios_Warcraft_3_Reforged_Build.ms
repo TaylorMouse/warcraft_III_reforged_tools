@@ -935,6 +935,7 @@ struct Warcraft_3_Ref_Build
     ),
     function CreateRIBB mdx=
     (
+        
         local ribb = mdx.ribb
         local boneList = mdx.bone
         local mtls = mdx.mtls
@@ -948,8 +949,7 @@ struct Warcraft_3_Ref_Build
         for r in ribb do
         (
             if DEBUG_MODE then format "Building %\n" r.name
-            local ribbon = undefined
-            ribbon = WC3RefRibbon()
+            local ribbon = WC3RefRibbon()
             
             layer.addNode ribbon
             
@@ -961,14 +961,15 @@ struct Warcraft_3_Ref_Build
                     ribbon.parent = boneList[r.parentId].boneref
                 )
             )
-            ribbon.staticHeightAbove = r.staticHeightAbove
-            ribbon.staticHeightBelow = r.staticHeightBelow
-            ribbon.staticAlpha = r.staticAlpha
-            ribbon.staticColor = r.staticColor
-            ribbon.lifeSpan = r.lifeSpan
-            ribbon.emissionRate = r.emissionRate
+            ribbon.staticHeightAbove = r.above
+            ribbon.staticHeightBelow = r.below
+            ribbon.staticAlpha = r.vAlpha
+            ribbon.staticColor = r.vColor
+            ribbon.lifeSpan = r.edgesLife
+            ribbon.emissionRate = r.edgesSec
             ribbon.flipbookRows = r.flipbookRows
-            ribbon.flipbookColumns = r.flipbookColumns
+            ribbon.flipbookColumns = r.flipbookCols
+            ribbon.flipbookSlot = r.flipBookSlot
             ribbon.gravity = r.gravity
             if ( mtls != undefined) then ribbon.mtlsId = mtls[r.mtlsId].materialRef
             

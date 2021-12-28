@@ -44,7 +44,7 @@ plugin Material WC3RefMaterial
         emissive_multiplier type:#float  animatable:true  ui:spn_emissive_multiplier
         alphamask_map   type:#texturemap animatable:false ui:mb_alphamask
         reflection_map  type:#texturemap animatable:false ui:mb_reflection
-        replacable_map  type:#texturemap animatable:false --ui:mb_replacable
+        replacableTexture  type:#integer animatable:false ui:ddl_replaceableTexture
        
        /* filterMode
          0x0: Opaque
@@ -78,12 +78,17 @@ plugin Material WC3RefMaterial
             
             if (diffuse_map != undefined ) then showTextureMap this delegate.diffusemap true
 		)
-       
+        on twosided set val do 
+        (
+            delegate.TwoSided = val
+        )
         
     )
     rollout params "Material Texture Parameters"
     (
+        
         dropdownlist lb_filterMode "Filter Mode" items:#("Opaque","Mask","Blend", "Add", "BlendAdd", "Mod", "Mod2x") width:150
+        dropdownlist ddl_replaceableTexture      items:#( "Not Replacable","Team Color","Team Glow") width:150 offset:[0,20]
         
         spinner spn_priority "Priority :" range:[0,10,0] type:#integer width:60 offset:[-20,-27] width:100 align:#right
         spinner spn_alpha  "Alpha :"     range:[0,100.0,100.0] offset:[-20,0] width:60 align:#right
@@ -151,4 +156,3 @@ plugin Material WC3RefMaterial
     
     
 )
-

@@ -91,7 +91,7 @@ struct Warcraft_3_Ref_Build
                     
                 local textureId = layer.TextureId
                 local textureFile = assetFolder + texs[textureId].path + texs[textureId].fileNameOnly + ".dds"
-                
+                mat.replacableTexture = texs[textureId].ReplacableId
                 case of
                 (
                     ( bit.and layer.ShadingFlags 0x1 > 0 ): ( mat.unlit = true )
@@ -121,15 +121,16 @@ struct Warcraft_3_Ref_Build
                         mat.orm_map = Bitmaptexture fileName:textureFile
                         mat.teamcolor_map = Bitmaptexture fileName:textureFile
                     )
-                    (l == 4): ( -- black ?? maybe emission ?
+                    (l == 4): (
                         mat.emissive_map = Bitmaptexture fileName:textureFile
                         mat.emissive_alpha = layer.alpha * 100.0
                     )
                     (l == 5): 
                     (
-                        mat.replacable_map = Bitmaptexture fileName:textureFile
+                        -- ??
+                        --mat.replacable_map = Bitmaptexture fileName:textureFile
                     )
-                    (l == 6): ( -- refelection
+                    (l == 6): ( 
                         if mat.envmap then mat.reflection_map = Bitmaptexture fileName:textureFile
                     )
                 )
@@ -955,9 +956,9 @@ struct Warcraft_3_Ref_Build
             ribbon.name = r.name
             if ( boneList != undefined ) then 
             (
-                if ( r.ParentBoneId > 0 ) then (
-                    ribbon.transform = boneList[r.parentBoneId].boneRef.transform
-                    ribbon.parent = boneList[r.parentBoneId].boneref
+                if ( r.parentId > 0 ) then (
+                    ribbon.transform = boneList[r.parentId].boneRef.transform
+                    ribbon.parent = boneList[r.parentId].boneref
                 )
             )
             ribbon.staticHeightAbove = r.staticHeightAbove

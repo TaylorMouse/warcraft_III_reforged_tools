@@ -11,6 +11,13 @@
     .CHANGELOG
     | 0.1 - Initial setup
 
+*/
+
+/* 
+    Helper methods 
+*/
+/*
+
     .FLAGS
         0x0: helper
         0x1: dont inherit translation
@@ -34,18 +41,13 @@
         0x40000: unfogged
         0x80000: model space
         0x100000: xy quad
-
+        
 */
-
-/* Helper methods */
 (
     fileIn "GriffonStudios_Helpers.ms"
     fileIn "GriffonStudios_Warcraft_3_Reforged_Read.ms"
     fileIn "GriffonStudios_Warcraft_3_Reforged_Build.ms"
 
-
-    global DEBUG_MODE = false
-    global WC3Ref_IMPORT_ALL_LOD = false
     global _helper = undefined
     global _reader = undefined
     global _build = undefined
@@ -78,9 +80,8 @@ STRUCT WC3REF_MDX
             
         local stream = fOpen file "rb"        
         local streamLen = _helper.GetStreamLength stream
-        
+
         mdx.TAGS = _reader.ReadTAGS1000 stream streamLen
-            
         for tag in mdx.TAGS do
         (
             format "Processing %\n" tag.name
@@ -98,7 +99,7 @@ STRUCT WC3REF_MDX
             if( tag.Name == "ATCH" ) then mdx.atch = _reader.ReadATCH stream tag 
             if( tag.Name == "PIVT" ) then mdx.pivt = _reader.ReadPIVT stream tag
             if( tag.Name == "CAMS" ) then mdx.cams = _reader.ReadCAMS stream tag
-            if( tag.Name == "EVTS" ) then mdx.evts = _reader.ReadEVTS stream tag            
+            if( tag.Name == "EVTS" ) then mdx.evts = _reader.ReadEVTS stream tag 
             if( tag.Name == "CLID" ) then mdx.clid = _reader.ReadCLID stream tag
             if( tag.Name == "LITE" ) then mdx.lite = _reader.ReadLITE stream tag
             if( tag.Name == "TXAN" ) then mdx.txan = _reader.ReadTXAN stream tag
@@ -111,13 +112,13 @@ STRUCT WC3REF_MDX
         )
         
         fClose stream
-        
+ 
         _build.Create mdx
         
         format "Done!\n"
         gc()
         clearSelection()
-        max tool zoomextents all --> zoom out
+        max tool zoomextents all
         setArrowCursor() 
     )
 )

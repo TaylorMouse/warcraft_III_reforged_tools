@@ -71,7 +71,7 @@ struct Warcraft_3_Ref_Build
             local mtl = mtls[m]
             local possibleName = modlName 
             
-            for geo in geos where geo.MATS.LOD_Id == 0 and geo.MATS.MTLS_Id == m and (findstring geo.MATS.name ":") > 1 do
+            for geo in geos where geo.MATS.LOD_Id == 0 and geo.MATS.MTLS_Id == m and (findstring geo.MATS.name ":") != undefined do
             (
                 local colonparts = filterString geo.MATS.name ":"
                 local parts = filterString colonparts[colonParts.count] "_"

@@ -14,6 +14,41 @@
 
 struct Warcraft_3_Ref_Read
 (
+    function ReadColor stream=
+    (
+        local r = (readFloat stream * 255.0) as integer
+        local g = (readFloat stream * 255.0) as integer
+        local b = (readFloat stream * 255.0) as integer
+        return ( color r g b )
+    ),
+    function ReadColorAnim stream=
+    (
+        struct anim800 ( numPts, LineType, glbsId, KG )
+        struct kg800   ( Time, Point, inTan, outTan, LineType )
+        local anim = anim800()
+        local kg = #()
+        
+        anim.numPts = readLong stream
+        anim.lineType = readLong stream
+        anim.glbsId = readLong stream + 1
+        
+        for i=1 to anim.numPts do
+        (
+            local k = kg800()
+            
+            k.Time = GriffonStudios_Helpers.RoundToFrame ( ReadLong stream )
+            k.Point = Warcraft3_Reforged.ReadColor stream -- always 1, indicating it starts or ends
+            k.LineType = anim.lineType
+            if( anim.lineType > 1)  then
+            (
+                k.inTan = readFloat stream
+                k.outTan = readFloat stream
+            )
+            append kg k
+        )
+        anim.KG = kg
+        return anim
+    ),
     function ReadFloatAnim stream=
     (
         struct WC3Ref_ANIM ( numPts, LineType, glbsId, KG )  
@@ -156,7 +191,7 @@ struct Warcraft_3_Ref_Read
         append modl.bbox [readFloat stream, readFloat stream, readFloat stream]
         modl.Always150 = readLong stream
         
-        if DEBUG_MODE then Format "Name: %\n" name
+        if DEBUG_MODE then Format "Name: % (%)\n" modl.name modl.bbox
             
         return modl
     ),
@@ -189,7 +224,6 @@ struct Warcraft_3_Ref_Read
             
             seq.BBox = #([readfloat stream,readfloat stream,readfloat stream], [readfloat stream,readfloat stream,readfloat stream] )
 
-            if DEBUG_MODE then format "%\n" seq
             append tmpSeqs seq
         )
 
@@ -307,7 +341,7 @@ struct Warcraft_3_Ref_Read
     function ReadTEXS stream tag=
     (
         struct WC3Ref_TEXS
-            ( Id, ReplacableId, File, FileNameOnly, Path, Extension, Flags )
+            ( Id, FileNameOnly, ReplacableId, File,  Path, Extension, Flags )
         
         fseek stream tag.offset #seek_set
         
@@ -1292,6 +1326,7 @@ struct Warcraft_3_Ref_Read
             if( cor.kppa == undefined ) then fseek stream -4 #seek_cur
             if( cor.kppv == undefined ) then fseek stream -4 #seek_cur
 
+            if DEBUG_MODE then format "%\n" cor
             append corn cor
         )
 
@@ -1314,7 +1349,7 @@ struct Warcraft_3_Ref_Read
             f.Id = i
             f.Name = _helper.ReadFixedString stream 80
             f.ExternalFileName = _helper.ReadFixedString stream 260
-            
+            if DEBUG_MODE then format "%\n" f
             append fafx f
         )
         

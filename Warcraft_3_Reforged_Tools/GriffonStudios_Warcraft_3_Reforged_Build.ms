@@ -24,8 +24,12 @@ struct Warcraft_3_Ref_Build
     function GetAssetFolder mdx=
     (
         local fullPath = getFilenamePath mdx.fileName
-        local pos = ( findString fullPath @"\Assets\" ) + (@"\Assets\").count - 1
-        local assetFolder = (substring fullPath 1 pos )  
+        local assetFolder  = fullPath
+        local assetsPos = findString fullPath @"\Assets\"
+        if ( assetsPos != undefined ) then (
+            local pos = assetsPos + (@"\Assets\").count - 1
+            assetFolder = (substring fullPath 1 pos )  
+        )   
         assetFolder
     ),
     function ApplyUserProperties flags obj=
@@ -74,13 +78,13 @@ struct Warcraft_3_Ref_Build
             for geo in geos where geo.MATS.LOD_Id == 0 and geo.MATS.MTLS_Id == m and (findstring geo.MATS.name ":") != undefined do
             (
                 local colonparts = filterString geo.MATS.name ":"
-                local parts = filterString colonparts[colonParts.count] "_"
+                local parts = filterString colonparts[colonparts.count] "_"
                 possibleName = modlName + "_" + parts[1]
             )
             local mat = WC3RefMaterial()
             
-            mat.Name = possibleName + "_MAT_" + (m as string )
-            format "Building: %\n" mat.Name
+            mat.Name = "MAT_" + possibleName + "_" + (m as string )
+            format "Building material: %\n" mat.Name
             
             if (mtl.Layers.count > 0) then mat.filtermode = mtl.Layers[1].filterMode
             
@@ -90,8 +94,11 @@ struct Warcraft_3_Ref_Build
                 if DEBUG_MODE then format "Building layer %\n" layer
                     
                 local textureId = layer.TextureId
-                local textureFile = assetFolder + texs[textureId].path + texs[textureId].fileNameOnly + ".dds"
-                mat.replacableTexture = texs[textureId].ReplacableId
+                local tex = texs[textureId]
+                local textureFile = assetFolder + tex.path + tex.fileNameOnly + ".dds"
+                
+                if DEBUG_MODE then format "Building tex %\n" tex.fileNameOnly
+                
                 case of
                 (
                     ( bit.and layer.ShadingFlags 0x1 > 0 ): ( mat.unlit = true )
@@ -103,36 +110,28 @@ struct Warcraft_3_Ref_Build
                     ( bit.and layer.ShadingFlags 0x40 > 0 ): ( mat.nodepthtest = true )
                     ( bit.and layer.ShadingFlags 0x80 > 0 ): ( mat.nodepthset = true )
                 )
-                
-                case of 
+                case l of 
                 (
-                    (l == 1): ( 
-                        mat.diffuse_map = Bitmaptexture fileName:textureFile
-                        if layer.FilterMode == 2 then 
-                        (
-                            mat.alphamask_map = Bitmaptexture fileName:textureFile
-                            mat.alphamask_map.monooutput = 1
+                    1:  ( 
+                            if tex.fileNameOnly != "" then mat.diffuse_map = Bitmaptexture fileName:textureFile
+                            if layer.FilterMode == 2 then 
+                            (
+                                mat.alphamask_map = Bitmaptexture fileName:textureFile
+                                mat.alphamask_map.monooutput = 1
+                            )
                         )
-                    )
-                    (l == 2): ( 
-                        mat.normal_map = Bitmaptexture fileName:textureFile
-                    )
-                    (l == 3): ( 
-                        mat.orm_map = Bitmaptexture fileName:textureFile
-                        mat.teamcolor_map = Bitmaptexture fileName:textureFile
-                    )
-                    (l == 4): (
-                        mat.emissive_map = Bitmaptexture fileName:textureFile
-                        mat.emissive_alpha = layer.alpha * 100.0
-                    )
-                    (l == 5): 
-                    (
-                        -- ??
-                        --mat.replacable_map = Bitmaptexture fileName:textureFile
-                    )
-                    (l == 6): ( 
-                        if mat.envmap then mat.reflection_map = Bitmaptexture fileName:textureFile
-                    )
+                    2:  ( if tex.fileNameOnly != "" then mat.normal_map = Bitmaptexture fileName:textureFile)
+                    3:  ( if tex.fileNameOnly != "" then mat.orm_map = Bitmaptexture fileName:textureFile )
+                    4:  (
+                            mat.emissive_map = Bitmaptexture fileName:textureFile
+                            mat.emissive_alpha = layer.alpha * 100.0
+                            mat.emissive_multiplier = 1.0
+                        )
+                    5:  (
+                            mat.replacableTexture = tex.ReplacableId
+                            if tex.ReplacableId == 2 and tex.fileNameOnly != "" then mat.teamcolor_map = Bitmaptexture fileName:textureFile
+                        )
+                    6:  ( if tex.fileNameOnly != "" then mat.reflection_map = Bitmaptexture fileName:textureFile )
                 )
 
                 showTextureMap mat true

@@ -137,6 +137,35 @@ struct Warcraft_3_Ref_Read
         anim.KG = kg
         return anim
     ),
+    function ReadLongAnim stream=
+    (
+        struct WC3Ref_anim ( numPts, LineType, glbsId, KG )
+        struct WC3Ref_kg   ( Time, Point, inTan, outTan, LineType )
+        local anim = WC3Ref_anim()
+        local kg = #()
+        
+        anim.numPts = readLong stream
+        anim.lineType = readLong stream
+        anim.glbsId = readLong stream + 1
+        
+        for i=1 to anim.numPts do
+        (
+            local k = WC3Ref_kg()
+            
+            k.Time = _helper.RoundToFrame ( ReadLong stream )
+            k.Point = readLong stream -- always 1, indicating it starts or ends
+            k.LineType = anim.lineType
+            if( anim.lineType > 1)  then
+            (
+                k.inTan = readFloat stream
+                k.outTan = readFloat stream
+            )
+            append kg k
+        )
+        anim.KG = kg
+        return anim
+        
+    ),
     function ReadTAGS1000 stream streamLen=
     (
         struct WC3Ref_TAG ( Name, Offset, Size )
@@ -304,8 +333,11 @@ struct Warcraft_3_Ref_Read
     ),
     function ReadLayer stream=
     (
+        -- FilterMode   (0:none; 1:trans; 2:blend; 3:add)
+        -- ShadingFlags (1:unshaded; +16:two sided; +32:unfogged)
+        
         struct WC3Ref_LAYR 
-            ( Size, FilterMode, ShadingFlags, TextureId, ParentId, CoordId, Alpha, EmissiveMultiplier, FresnelR, FresnelG, FresnelB, FresnelMultiplier, TeamColorMultiplier, KMTA, KMTE ) 
+            ( Size, FilterMode, ShadingFlags, TextureId, ParentId, CoordId, Alpha, EmissiveMultiplier, FresnelR, FresnelG, FresnelB, FresnelMultiplier, TeamColorMultiplier, KMTA, KMTE, KMTF ) 
         
         local lay = WC3Ref_LAYR()
         
@@ -325,15 +357,17 @@ struct Warcraft_3_Ref_Read
      
         if (lay.Size > 52 ) then
         (
-            for x=1 to 2 do
+            for x=1 to 3 do
             (
                 local km = _helper.ReadFixedString stream 4
-                if ( km == "KMTA" ) then lay.KMTA = _reader.ReadFloatAnim stream
-                if ( km == "KMTE" ) then lay.KMTE = _reader.ReadFloatAnim stream
+                if ( km == "KMTA" ) then lay.KMTA = _reader.ReadFloatAnim stream --> Alpha
+                if ( km == "KMTE" ) then lay.KMTE = _reader.ReadFloatAnim stream --> Emissive
+                if ( km == "KMTF" ) then lay.KMTF = _reader.ReadLongAnim stream --> .FLI 
                 
             )
             if ( lay.KMTA == undefined ) then fseek stream -4 #seek_cur
             if ( lay.KMTE == undefined ) then fseek stream -4 #seek_cur
+            if ( lay.KMTF == undefined ) then fseek stream -4 #seek_cur
         )
        
         return lay

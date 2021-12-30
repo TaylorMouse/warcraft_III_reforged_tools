@@ -762,7 +762,10 @@ struct Warcraft_3_Ref_Parser
     
         local seqs_frames = #()
         append seqs_frames 0
-        for s in mdx.SEQS do append seqs_frames ( _parser.RoundToFrame s.startframe )
+        for s in mdx.SEQS do (
+            appendifUnique seqs_frames ( _parser.RoundToFrame s.startframe )
+            appendifUnique seqs_frames ( _parser.RoundToFrame s.endFrame )
+        )
         
         for g=1 to mdx.geos.count do
         (

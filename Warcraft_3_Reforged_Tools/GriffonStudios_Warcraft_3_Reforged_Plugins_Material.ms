@@ -60,12 +60,6 @@ plugin Material WC3RefMaterial
         (
             delegate.opacity = val
         )
-        on diffuse_map set val do 
-		(
-            delegate.diffuseMap = diffuse_map
-            
-            if (diffuse_map != undefined ) then showTextureMap this delegate.diffusemap true
-		)
         on twosided set val do 
         (
             delegate.TwoSided = val
@@ -82,6 +76,12 @@ plugin Material WC3RefMaterial
         emissive_multiplier type:#float  animatable:true  ui:spn_emissive_multiplier
         reflection_map  type:#texturemap animatable:false ui:mb_reflection
         
+        on diffuse_map set val do 
+		(
+            delegate.diffuseMap = diffuse_map
+            
+            if (diffuse_map != undefined ) then showTextureMap this delegate.diffusemap true
+		)
         
     )
     parameters flags rollout:additionalFlags

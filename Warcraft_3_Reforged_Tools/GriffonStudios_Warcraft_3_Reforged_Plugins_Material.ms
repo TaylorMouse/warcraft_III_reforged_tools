@@ -18,7 +18,6 @@ plugin Material WC3RefMaterial
     replaceUI:true 
     version:1
 (
-
     
     parameters main rollout:params
     (
@@ -26,27 +25,25 @@ plugin Material WC3RefMaterial
         material_alpha  type:#float     animatable:true   ui:spn_alpha
         filtermode      type:#integer   animatable:false  ui:lb_filterMode
         
-        unlit       type:#boolean animatable:false
-        envmap      type:#boolean animatable:false
-        wrapwidth   type:#boolean animatable:false
-        wrapheight  type:#boolean animatable:false
-        twosided    type:#boolean animatable:false
-        nofog       type:#boolean animatable:false
-        nodepthtest type:#boolean animatable:false
-        nodepthset  type:#boolean animatable:false
+        unlit       type:#boolean animatable:false ui:cbx_unlit
+        envmap      type:#boolean animatable:false ui:cbx_environment
+        wrapwidth   type:#boolean animatable:false ui:cbx_wrapwidth
+        wrapheight  type:#boolean animatable:false ui:cbx_wrapheight
+        twosided    type:#boolean animatable:false ui:cbx_twosided
+        nofog       type:#boolean animatable:false ui:cbx_nofog
+        nodepthtest type:#boolean animatable:false ui:cbx_nodepthtest
+        nodepthset  type:#boolean animatable:false ui:cbx_nodepthset
         
         diffuse_map     type:#texturemap animatable:false ui:mb_diffuse
         normal_map      type:#texturemap animatable:false ui:mb_normal
         orm_map         type:#texturemap animatable:false ui:mb_orm  --> R = occlusion, G = Roughness, B = Metal
-        teamcolor_map   type:#texturemap animatable:false ui:mb_teamcolor --> usually Alpha layer of the orm map
         emissive_map    type:#texturemap animatable:false ui:mb_emissive
         emissive_alpha  type:#float      animatable:false  ui:spn_emissive
         emissive_multiplier type:#float  animatable:true  ui:spn_emissive_multiplier
-        alphamask_map   type:#texturemap animatable:false ui:mb_alphamask
         reflection_map  type:#texturemap animatable:false ui:mb_reflection
         replacableTexture  type:#integer animatable:false ui:ddl_replaceableTexture
        
-       /* filterMode
+        /* filterMode
          0x0: Opaque
          0x1: Mask
          0x2: Blend
@@ -88,10 +85,10 @@ plugin Material WC3RefMaterial
     (
         
         dropdownlist lb_filterMode "Filter Mode" items:#("Opaque","Mask","Blend", "Add", "BlendAdd", "Mod", "Mod2x") width:150
-        dropdownlist ddl_replaceableTexture      items:#( "Not Replacable","Team Color","Team Glow") width:150 offset:[0,20]
+        dropdownlist ddl_replaceableTexture      items:#( "Not Replacable","Team Color","Team Glow") width:150 offset:[0,0]
         
-        spinner spn_priority "Priority :" range:[0,10,0] type:#integer width:60 offset:[-20,-27] width:100 align:#right
-        spinner spn_alpha  "Alpha :"     range:[0,100.0,100.0] offset:[-20,0] width:60 align:#right
+        spinner spn_priority "Priority :" range:[0,10,0] type:#integer width:60 offset:[-20,-50] width:100 align:#right
+        spinner spn_alpha  "Alpha :"     range:[0,100.0,100.0] offset:[-20,5] width:60 align:#right
         
         checkbox cbx_unlit "Unlit"
         checkbox cbx_environment "Environment" 
@@ -104,7 +101,7 @@ plugin Material WC3RefMaterial
         
         groupbox grpCommon "Common parameters" height:160 pos:[5,5] width:315
         
-        label lbl1 "Diffuse . . . . ." align:#left offset:[0,30]
+        label lbl1 "Diffuse . . . . ." align:#left offset:[0,40]
             mapbutton mb_diffuse "(drag & drop texture here)" height:22 offset:[20,-25] width:220
         
         label lbl2 "Normal . . . . ." align:#left offset:[0,10]
@@ -113,17 +110,11 @@ plugin Material WC3RefMaterial
         label lbl3 "ORM . . . . . . ." align:#left offset:[0,10]
             mapbutton mb_orm     "(drag & drop texture here)" height:22 width:220  offset:[20,-25]
         
-        label lbl4 "Team Color . . ."   align:#left offset:[0,10]
-            mapbutton mb_teamcolor "(drag & drop texture here)" height:22 width:220  offset:[20,-25]
-        
         label lbl5 "Emissive . . . ." align:#left offset:[0,10]
             mapbutton mb_emissive  "(drag & drop texture here)" height:22 width:220 offset:[20,-25] 
-            spinner spn_emissive "Alpha:"   range:[0,100.0,100.0] align:#left width:70 offset:[165,0]
-            spinner spn_emissive_multiplier "Multiplier:"   range:[0,100,0] align:#left width:80 offset:[150,0]
+            spinner spn_emissive "Alpha:"   range:[0,100.0,100.0] align:#right width:70 offset:[-30,0]
+            spinner spn_emissive_multiplier "Multiplier:"   range:[0,100,0] align:#right width:80 offset:[-30,0]
         
-        label lbl6 "Alpha mask . . " align:#left offset:[0,5] 
-            mapbutton mb_alphamask "(drag & drop texture here)" height:22 width:220 offset:[20,-25] 
-    
         label lbl7 "Environment . . ."   align:#left offset:[0,10]
             mapbutton mb_reflection "(drag & drop texture here)" height:22 width:220  offset:[20,-25] tooltip:"Select spherical reflection map"
     
@@ -139,6 +130,7 @@ plugin Material WC3RefMaterial
 
         delegate.shadertype = 1
         filtermode = 1
+        replacableTexture = 1
         material_alpha = 100
         emissive_alpha = 100
         emissive_multiplier = 1
@@ -153,6 +145,4 @@ plugin Material WC3RefMaterial
         replacable_map = Bitmaptexture fileName:""
         
     )
-    
-    
 )

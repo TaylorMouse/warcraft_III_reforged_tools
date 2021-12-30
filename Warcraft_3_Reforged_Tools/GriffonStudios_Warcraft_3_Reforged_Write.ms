@@ -578,13 +578,20 @@ struct Warcraft_3_Ref_Write
         for i=1 to mdx.mtls.count do
         (
             if DEBUG_MODE then format "%\n" mdx.mtls[i]
+            
             writeLong mdx.stream ShaderSizes[i]
-            writeLong mdx.stream 0 --> priority plane
-            writeLong mdx.stream 0 --> flags
+            writeLong mdx.stream mdx.mtls[i].materialRef.priorityPlane
+            
+            local flags = 0x0 
+            if (mdx.mtls[i].materialRef.DONT_INHERIT_TRANSLATION == true) then flags += 0x1
+            if (mdx.mtls[i].materialRef.DONT_INHERIT_SCALING == true) then flags += 0x2
+            if (mdx.mtls[i].materialRef.DONT_INHERIT_ROTATION == true) then flags += 0x4
+            writeLong mdx.stream flags
+
             _writer.WriteFixedString mdx.stream "Shader_HD_DefaultUnit" 80
+
             _writer.WriteFixedString mdx.stream "LAYS" 4 
             writeLong mdx.stream 6 --> nLayers
-            
             for l=1 to 6 do
                 _writer.WriteLAYS mdx i l
             
@@ -592,7 +599,6 @@ struct Warcraft_3_Ref_Write
     ),
     function WriteLAYS mdx mtlsIndex layerIndex=
     (
-
         local mat = mdx.mtls[mtlsIndex].MaterialRef
         local laySize = 52
         
@@ -602,21 +608,26 @@ struct Warcraft_3_Ref_Write
         )
         
         writeLong mdx.stream laySize --> size
-        writeLong mdx.stream (mat.filtermode - 1)
+        
+        local filterMode = 0
+        if layerIndex == 1 then filterMode = mat.filtermode - 1
+        writeLong mdx.stream filtermode
         
         local shadingFlags = 0
-        if mat.unlit        then shadingFlags += 0x01
-        if mat.envmap       then shadingFlags += 0x02
-        if mat.wrapwidth    then shadingFlags += 0x04
-        if mat.wrapheight   then shadingFlags += 0x04
-        if mat.twosided     then shadingFlags += 0x10
-        if mat.nofog        then shadingFlags += 0x20
-        if mat.nodepthset   then shadingFlags += 0x40
-        if mat.nodepthtest  then shadingFlags += 0x80
-        
+        if layerIndex == 1 then (
+            if mat.unlit        then shadingFlags += 0x01
+            if mat.envmap       then shadingFlags += 0x02
+            if mat.wrapwidth    then shadingFlags += 0x04
+            if mat.wrapheight   then shadingFlags += 0x04
+            if mat.twosided     then shadingFlags += 0x10
+            if mat.nofog        then shadingFlags += 0x20
+            if mat.nodepthset   then shadingFlags += 0x40
+            if mat.nodepthtest  then shadingFlags += 0x80
+        )
+
         writeLong mdx.stream shadingFlags
 
-        local texsID = layerIndex - 1
+        local texsID = _parser.GetTextureId mat layerIndex mdx.TEXS
         
         writeLong mdx.stream texsID
         writeLong mdx.stream mdx.mtls[mtlsIndex].txanId #unsigned
@@ -629,23 +640,18 @@ struct Warcraft_3_Ref_Write
         writeFloat mdx.stream 0 -- Fresnel Multiplier
         writeFloat mdx.stream 0 -- Team Color Multiplier
         
+        local glbsId = -1
+        
         if ( layerIndex == 1 ) then (
             -- Write KMTA
             local hasKMTA = false
             local lineType = 0
-            if ( mat.material_alpha.controller != undefined ) then 
-            (
-                hasKMTA = true
-                if (  classof mat.material_alpha.controller == Linear_Float ) then lineType = 1
-                if (  classof mat.material_alpha.controller == TCB_Float ) then lineType = 2
-                if (  classof mat.material_alpha.controller == Bezier_Float ) then lineType = 3
-            )
-            local glbsId = -1
+            if ( mat.material_alpha.controller != undefined ) then hasKMTA = true
             if (hasKMTA) then
             (
                 _writer.WriteFixedString mdx.stream "KMTA" 4
                 writeLong mdx.stream mat.material_alpha.controller.keys.count
-                writeLong mdx.stream linetype
+                writeLong mdx.stream 1
                 writeLong mdx.stream glbsId #unsigned
                 
                 for key in mat.material_alpha.controller.keys do
@@ -658,20 +664,12 @@ struct Warcraft_3_Ref_Write
             )
             -- Write KMTE
             local hasKMTE = false
-            local lineType = 0
-            if ( mat.emissive_multiplier.controller != undefined ) then 
-            (
-                hasKMTE = true
-                if (  classof mat.emissive_multiplier.controller == Linear_Float ) then lineType = 1
-                if (  classof mat.emissive_multiplier.controller == TCB_Float ) then lineType = 2
-                if (  classof mat.emissive_multiplier.controller == Bezier_Float ) then lineType = 3
-            )
-
+            if ( mat.emissive_multiplier.controller != undefined ) then hasKMTE = true
             if (hasKMTE) then
             (
                 _writer.WriteFixedString mdx.stream "KMTE" 4
                 writeLong mdx.stream mat.emissive_multiplier.controller.keys.count
-                writeLong mdx.stream linetype
+                writeLong mdx.stream 1
                 writeLong mdx.stream glbsId #unsigned
                 
                 for key in mat.emissive_multiplier.controller.keys do

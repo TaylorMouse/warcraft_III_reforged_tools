@@ -3,7 +3,7 @@
     | Opens up a popup window for exporting to mdx
     
     .COPYRIGHT
-    | Â©2020 Griffon Studios
+    | ©2020 Griffon Studios
     
     .AUTHOR
     | Taylor Mouse
@@ -17,8 +17,8 @@ rollout GriffonStudios_WC3_ExportDialog "Warcraft 3 Reforged Export" width:250
     
     group "Export"
     (
-        label    lbl01              "! No path for the textures will be used !"
-        checkBox chkDebugmode       "Debug mode"
+        checkBox chkDebugmode       "Debug mode" 
+        label    lblInfo1           "??" tooltip:"This may be time consuming!" offset:[85,-20] align:#left --> U+1F6C8
         checkBox chkInvertUVW       "Invert UVW"
         button   btn_export         "Export" height:30 width:150
     )
@@ -27,7 +27,8 @@ rollout GriffonStudios_WC3_ExportDialog "Warcraft 3 Reforged Export" width:250
     
     on GriffonStudios_WC3_ExportDialog open do
     (
-        WC3REF_INVERT_UVW = false
+        WC3REF_INVERT_UVW = true
+        chkInvertUVW.checked = true
         DEBUG_MODE = false
     )
 

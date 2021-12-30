@@ -7,12 +7,43 @@
     | (c)2015 - 2022
     
     .RELEASENOTES
+    | 0.5 - Rewrite the Tangents calculation after hours of of reading :/
+    | 0.4 - Rewrite of the textures in the scene
+    | 0.3 - Split parser methods to their own file
+    | 0.2 - Revisit
     | 0.1 - INIT
     
 */
 
 struct Warcraft_3_Ref_Parser
 (
+    function GetTextureId mat layerIndex texs=
+    (
+        local textureId = -1
+        local toFind = case layerIndex of
+        (
+            1: getfileNameFile mat.diffuse_map.fileName
+            2: getfileNameFile mat.normal_map.fileName
+            3: getfileNameFile mat.orm_map.fileName
+            4: getfileNameFile mat.emissive_map.fileName
+            5: ""
+            6: getfileNameFile mat.reflection_map.fileName
+        )
+        
+        if DEBUG_MODE then format "Looking for: %\n" toFind
+        for t=1 to texs.count do 
+            if ( toFind == getfileNameFile texs[t].path ) then (
+                textureId = t - 1
+                exit
+            )
+
+        if textureId == -1 then (
+            format "[ERROR] Texture '%' not found in the TEXS list!!\n" toFind
+            textureId = 0
+        )
+        
+        textureId
+    ),
     function RoundToFrame val=
     (
         local a = val * 30 / 1000
@@ -39,52 +70,22 @@ struct Warcraft_3_Ref_Parser
 
             local f = getTvFace theMesh i
 
-            local v1 = getVert theMesh f[1]
-            local v2 = getVert theMesh f[2]
-            local v3 = getVert theMesh f[3]
-
             local w1 = getTVert theMesh f[1]
             local w2 = getTVert theMesh f[2]
             local w3 = getTVert theMesh f[3]
 
-
-            local x1 = v2.x - v1.x
-            local x2 = v3.x - v1.x
-            local y1 = v2.y - v1.y
-            local y2 = v3.y - v1.y
-            local z1 = v2.z - v1.z
-            local z2 = v3.z - v1.z
-
-            local s1 = w2.x - w1.x
-            local s2 = w3.x - w1.x
-            local t1 = w2.y - w1.y
-            local t2 = w3.y - w1.y
-
-            local r = 1.0 / ( s1 * t2 - s2 * t1)
-
-            local sdir = [ ( t2 * x1 - t1 * x2) * r , ( t2 * y1 - t1 * y2 ) * r, ( t2 * z1 - t1 * z2 ) * r ]
-            local tdir = [ ( s1 * x2 - s2 * x1) * r , ( s1 * y2 - s2 * y1 ) * r, ( s1 * z2 - s2 * z1 ) * r ]
-
-            tan1[f[1]] = sdir
-            tan1[f[2]] = sdir
-            tan1[f[3]] = sdir
-
-            tan2[f[1]] = tdir
-            tan2[f[2]] = tdir
-            tan2[f[3]] = tdir
-
-        )
-
-        for i=1 to theMesh.numVerts do
-        (
-            local n = getnormal theMesh i
-            local t = tan1[i]
+            local n1 = getnormal theMesh f[1]
+            local n2 = getnormal theMesh f[2]
+            local n3 = getnormal theMesh f[3]
             
-            local v = normalize ( ( t - n ) * ( dot n t ) )
-            local w = dot ( cross n t ) tan2[i]
-            
-            if ( w < 0.0 ) then w = 1.0 else w = -1.0
-            tangent[i] = [v.x, v.y, v.z, w]
+            local t1 = cross n1 w1
+            local t2 = cross n2 w2
+            local t3 = cross n3 w3
+
+            tangent[f[1]] = [t1.x, t1.y, t1.z, 1]
+            tangent[f[2]] = [t2.x, t2.y, t2.z, 1]
+            tangent[f[3]] = [t3.x, t3.y, t3.z, 1]
+
         )
         return tangent
     ),
@@ -571,13 +572,12 @@ struct Warcraft_3_Ref_Parser
         
         for mat in mdx.MTLS do
         (
-            append texs ( GetFileName mat.MaterialRef.diffuse_map )
-            append texs ( GetFileName mat.MaterialRef.normal_map )
-            append texs ( GetFileName mat.MaterialRef.orm_map )
-            append texs ( GetFileName mat.MaterialRef.emissive_map )
-            append texs ""
-            append texs ( GetFileName mat.MaterialRef.reflection_map )
-
+            appendIfUnique texs ( GetFileName mat.MaterialRef.diffuse_map )
+            appendIfUnique texs ( GetFileName mat.MaterialRef.normal_map )
+            appendIfUnique texs ( GetFileName mat.MaterialRef.orm_map )
+            appendIfUnique texs ( GetFileName mat.MaterialRef.emissive_map )
+            appendIfUnique texs "" -- required for team color --> put it here so it makes more sense
+            appendIfUnique texs ( GetFileName mat.MaterialRef.reflection_map )
         )
         
         mdx.TEXS = #()

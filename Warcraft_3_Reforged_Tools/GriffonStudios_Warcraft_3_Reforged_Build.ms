@@ -70,6 +70,9 @@ struct Warcraft_3_Ref_Build
         
         if DEBUG_MODE then format "Asset folder: %\n" assetFolder
         
+        -- FilterMode   (0:none; 1:trans; 2:blend; 3:add)
+        -- ShadingFlags (1:unshaded; +16:two sided; +32:unfogged)
+        
         for m=1 to mtls.count do
         (
             local mtl = mtls[m]
@@ -99,38 +102,38 @@ struct Warcraft_3_Ref_Build
                 
                 if DEBUG_MODE then format "Building tex %\n" tex.fileNameOnly
                 
-                case of
+                if ( l == 1 ) then
                 (
-                    ( bit.and layer.ShadingFlags 0x1 > 0 ): ( mat.unlit = true )
-                    ( bit.and layer.ShadingFlags 0x2 > 0 ): ( mat.envmap = true )
-                    ( bit.and layer.ShadingFlags 0x4 > 0 ): ( mat.wrapwidth = true )
-                    ( bit.and layer.ShadingFlags 0x8 > 0 ): ( mat.wrapheight = true )
-                    ( bit.and layer.ShadingFlags 0x10 > 0 ): ( mat.twosided = true )
-                    ( bit.and layer.ShadingFlags 0x20 > 0 ): ( mat.nofog = true )
-                    ( bit.and layer.ShadingFlags 0x40 > 0 ): ( mat.nodepthtest = true )
-                    ( bit.and layer.ShadingFlags 0x80 > 0 ): ( mat.nodepthset = true )
+                    case of
+                    (
+                        ( bit.and layer.ShadingFlags 0x1 > 0 ): ( mat.unlit = true )
+                        ( bit.and layer.ShadingFlags 0x2 > 0 ): ( mat.envmap = true )
+                        ( bit.and layer.ShadingFlags 0x4 > 0 ): ( mat.wrapwidth = true )
+                        ( bit.and layer.ShadingFlags 0x8 > 0 ): ( mat.wrapheight = true )
+                        ( bit.and layer.ShadingFlags 0x10 > 0 ): ( mat.twosided = true )
+                        ( bit.and layer.ShadingFlags 0x20 > 0 ): ( mat.nofog = true )
+                        ( bit.and layer.ShadingFlags 0x40 > 0 ): ( mat.nodepthtest = true )
+                        ( bit.and layer.ShadingFlags 0x80 > 0 ): ( mat.nodepthset = true )
+                    )
+                   
                 )
                 case l of 
                 (
-                    1:  ( 
-                            if tex.fileNameOnly != "" then mat.diffuse_map = Bitmaptexture fileName:textureFile
-                            if layer.FilterMode == 2 then 
-                            (
-                                mat.alphamask_map = Bitmaptexture fileName:textureFile
-                                mat.alphamask_map.monooutput = 1
-                            )
-                        )
+                    /* Diffuse */
+                    1:  ( if tex.fileNameOnly != "" then mat.diffuse_map = Bitmaptexture fileName:textureFile )
+                    /* Normal */
                     2:  ( if tex.fileNameOnly != "" then mat.normal_map = Bitmaptexture fileName:textureFile)
+                    /* ORM */
                     3:  ( if tex.fileNameOnly != "" then mat.orm_map = Bitmaptexture fileName:textureFile )
+                    /* Emisive */
                     4:  (
                             mat.emissive_map = Bitmaptexture fileName:textureFile
                             mat.emissive_alpha = layer.alpha * 100.0
                             mat.emissive_multiplier = 1.0
                         )
-                    5:  (
-                            mat.replacableTexture = tex.ReplacableId
-                            if tex.ReplacableId == 2 and tex.fileNameOnly != "" then mat.teamcolor_map = Bitmaptexture fileName:textureFile
-                        )
+                    /* Replaceable indicator */
+                    5:  ( mat.replacableTexture = tex.ReplacableId )
+                    /* Environment */
                     6:  ( if tex.fileNameOnly != "" then mat.reflection_map = Bitmaptexture fileName:textureFile )
                 )
 

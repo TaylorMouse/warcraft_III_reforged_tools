@@ -711,10 +711,7 @@ struct Warcraft_3_Ref_Build
                 for anim in c.KCRL.KG do
                 (
                     with animate on at time ( anim.Time + 10 ) 
-                    (
-                        target.rotation = anim.Point
-                        cam.rotation = anim.point
-                    )
+                        rotate cam (angleaxis anim.point [0,0,1])
                 )
         )
     ),

@@ -55,18 +55,21 @@ struct Warcraft3_Reforged_Menu
         local wc3Action1 = menuMan.createActionItem "Warcaft3Reforged_ImportModel" subset
         local wc3Action2 = menuMan.createActionItem "Warcaft3Reforged_ExportModel" subset
         local wc3Action3 = menuMan.createActionItem "Warcaft3Reforged_Animations" subset
+        local wc3Action30 = menuMan.createActionItem "Warcaft3Reforged_UserPropertyWindow" subset
         local wc3Action4 = menuMan.createActionItem "Warcaft3Reforged_About" subset
         
         
         wc3Action1.SetTitle "Import Model ..."
         wc3Action2.SetTitle "Export Model ..."
         wc3Action3.SetTitle "Animation Selector"
+        wc3Action30.SetTitle "User Properties"
         wc3Action4.SetTitle "About"
         
         
         wc3Action1.setUseCustomTitle true
         wc3Action2.setUseCustomTitle true
         wc3Action3.setUseCustomTitle true
+        wc3Action30.setUseCustomTitle true
         wc3Action4.setUseCustomTitle true
         
         /* UTILITIES MENU*/
@@ -164,6 +167,7 @@ struct Warcraft3_Reforged_Menu
         wc3Menu.addItem wc3Action1 -1
         wc3Menu.addItem wc3Action2 -1
         wc3Menu.addItem wc3Action3 -1
+        wc3Menu.addItem wc3Action30 -1
         
         wc3Menu.addItem wc3Seperator -1
 

@@ -3,7 +3,7 @@
     | Opens up a popup window for exporting to mdx
     
     .COPYRIGHT
-    | �2020 Griffon Studios
+    | ©2020 Griffon Studios
     
     .AUTHOR
     | Taylor Mouse
@@ -18,7 +18,7 @@ rollout GriffonStudios_WC3_ExportDialog "Warcraft 3 Reforged Export" width:250
     group "Export"
     (
         checkBox chkDebugmode       "Debug mode" 
-        label    lblInfo1           "??" tooltip:"This may be time consuming!" offset:[85,-20] align:#left --> U+1F6C8
+        label    lblInfo1           "🛈" tooltip:"This may be time consuming!" offset:[85,-20] align:#left --> U+1F6C8
         checkBox chkInvertUVW       "Invert UVW"
         button   btn_export         "Export" height:30 width:150
     )

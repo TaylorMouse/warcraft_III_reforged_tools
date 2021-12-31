@@ -91,6 +91,11 @@ struct Warcraft_3_Ref_Build
             
             if (mtl.Layers.count > 0) then mat.filtermode = mtl.Layers[1].filterMode
             
+            if ( bit.and mtl.Flags 0x1 > 0 ) then mat.DONT_INHERIT_TRANSLATION = true
+            if ( bit.and mtl.Flags 0x2 > 0 ) then mat.DONT_INHERIT_SCALING = true
+            if ( bit.and mtl.Flags 0x4 > 0 ) then mat.DONT_INHERIT_ROTATION = true
+            
+            
             for l=1 to mtl.layers.count do
             (
                 local layer = mtl.layers[l]

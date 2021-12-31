@@ -13,9 +13,6 @@
 
 */
 
-/* 
-    Helper methods 
-*/
 /*
 
     .FLAGS
@@ -122,3 +119,5 @@ STRUCT WC3REF_MDX
         setArrowCursor() 
     )
 )
+-- DEBUG_MODE = true
+-- WC3REF_MDX.Import @"G:\Blizzard\Warcraft - Reforged\Extracted\Assets\objects\inventoryitems\battlestandard\battlestandard.mdx"

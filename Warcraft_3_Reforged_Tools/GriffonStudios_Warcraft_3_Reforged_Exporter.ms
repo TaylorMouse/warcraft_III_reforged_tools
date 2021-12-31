@@ -59,6 +59,7 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         _parser.GetTEXS mdx
         _parser.GetGEOS mdx
         _parser.GetGEOA mdx
+        _parser.GetCAMS mdx
         _parser.GetFAFX mdx     
 
 
@@ -77,11 +78,17 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         _writer.WriteATCH mdx
         _writer.WritePIVT mdx
         _writer.WriteEVTS mdx
+        _writer.WriteCAMS mdx
         _writer.WriteCLID mdx
         _writer.WriteBPOS mdx
 
+--         _writer.WriteCAMS mdx
+--         _writer.WriteCORN mdx
+--         _writer.WriteLITE mdx
+--         _writer.WritePRE2 mdx
 --         _writer.WriteRIBB mdx
 --         _writer.WriteFAFX mdx
+
 
         fFlush mdx.stream
         fClose mdx.stream

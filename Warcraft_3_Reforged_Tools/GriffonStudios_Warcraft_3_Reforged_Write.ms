@@ -12,413 +12,6 @@
     | 0.1 - INIT
     
 */
-/*
-STRUCT GriffonStudios_Warcraft_3_Writer_Functions_OLD
-(
-    function WriteMatrix stream someBone=
-    (
-        local matrix = someBone.transform
-        
-        if ( someBone.parent != undefined ) then 
-            matrix = someBone.transform * someBone.parent.transform
-        
-        for r=1 to 4 do
-        (
-            for i=1 to 3 do
-                writeFloat stream matrix[r][i]
-        )
-        
-    ),
-    function WriteKGAnimations2 stream wc3Bone=
-    (
-        
-        local animations= wc3Bone.Animations
-        local theBone = wc3Bone.BoneRef
-        local writer = GriffonStudios_Warcraft_3_Writer_Functions()
-        
-        for i=1 to animations.count do
-        (
-            if ( animations[i].AnimBlock.count > 0 ) then
-            (
-                writer.WriteFixedString stream animations[i].Type 4
-                writeLong stream animations[i].AnimBlock.Count
-                writeLong stream animations[i].LineType
-                writeLong stream animations[i].ParentId
-
-                for anim in animations[i].AnimBlock do
-                (
-                    
-                    local wc3key = anim.Key * 1000 / 30
-                    writeLong stream wc3key
-                    
-                    --if ( WC3_DEBUG ) then format " - Frame: % (%)\n" anim.Key wc3key
-                    
-                    if ( animations[i].Type == "KGTR" ) then writer.WriteVector3 stream anim.Val
-                    if ( animations[i].Type == "KGRT" ) then writer.WriteQuat stream anim.Val 
-                    if ( animations[i].Type == "KGSC" ) then writer.WriteVector3 stream anim.Val
-                
-                )
-            )
-        )
-    ),
-    function WriteFixedString stream str len=
-    (
-        if ( WC3_DEBUG ) then  Format " - Writing %\n" str
-        for i=1 to str.count do
-        (
-            local byte = bit.charasint str[i]
-            writeByte stream byte
-        )
-        for i=1 to (len - str.count) do
-            writeByte stream 0
-    ),
-    function WriteTris stream tris=
-    (
-        writeShort stream tris[1]
-        writeShort stream tris[2]
-        writeShort stream tris[3]
-    ),
-    function WriteVector3 stream vector3=
-    (
-         writeFloat stream vector3.X
-         writeFloat stream vector3.Y
-         writeFloat stream vector3.Z
-        
-        
-    ),
-    function WriteQuat stream quaternian=
-    (
-        writeFloat stream quaternian.x
-        writeFloat stream quaternian.y
-        writeFloat stream quaternian.z
-        writeFloat stream quaternian.w
-
-    ),
-    function WriteVector4 stream vector4=
-    (
-        writeFloat stream vector4[1]
-        writeFloat stream vector4[2]
-        writeFloat stream vector4[3]
-        writeFloat stream vector4[4]
-        
-    ),
-    function WriteVertexWeights stream vertexWeights=
-    (
-        for i=1 to 4 do writeByte stream vertexWeights.boneIndices[i]
-        for i=1 to 4 do writeByte stream vertexWeights.weights[i]
-        
-    ),
-    function WriteTextureCoordinates stream uv=
-    (
-        writeFloat stream uv[1]
-        writeFloat stream uv[2]
-    ),
-    function WriteMODLBoundingBox stream=
-    (
-        local bbox = GriffonStudios_Helper_Functions.GetMODLBoundingBox()
-        local writer = GriffonStudios_Warcraft_3_Writer_Functions()
-        
-        if ( WC3_DEBUG ) then  Format "Writing bbox %\n" bbox
-        
-        writer.WriteVector3 stream bbox[1]
-        writer.WriteVector3 stream bbox[2]
-        
-    ),
-    function WriteSEQS stream=
-    (
-        local help = GriffonStudios_Helper_Functions()
-        local writer = GriffonStudios_Warcraft_3_Writer_Functions()
-        
-        local seqs = help.GetSEQS()
-        
-        --if ( WC3_DEBUG ) then for s in seqs do format " - %\n" s
-        
-        writeLong stream ( 132 * seqs.count)
-        
-        for seq in seqs do
-        (
-            writer.WriteFixedString stream seq.Name 80
-            WriteLong  stream seq.StartFrame
-            WriteLong  stream seq.EndFrame
-            WriteFloat stream seq.MovementSpeed
-            WriteLong  stream seq.NoLoop
-            WriteFloat stream seq.Rarity
-            WriteLong  stream seq.Default
-            WriteFloat stream seq.Priority
-            
-            writer.WriteVector3 stream seq.BBox[1]
-            writer.WriteVector3 stream seq.BBox[2]
-            
-            --if ( WC3_DEBUG ) then  Format " - %\n" seq
-        )
-
-        
-    ),
-    function WriteMTLS stream=
-    (
-        local writer = GriffonStudios_Warcraft_3_Writer_Functions()
-        local mtls = GriffonStudios_Helper_Functions.GetMTLS()
-        
-        if (WC3_DEBUG) then 
-        (
-            for i=1 to mtls.TEXSList.Count do
-                format " - %\n" mtls.TEXSList[i].filename
-        )
-        
-        writeLong stream mtls.TotalSize
-        
-        for s in mtls.ShaderList do
-        (
-            writeLong stream s.shaderSizeIncluded
-            writeLong stream s.priorityPlane
-            writeLong stream s.flag
-            writer.WriteFixedString stream s.shaderName 80
-            
-            writer.WriteFixedString stream "LAYS" 4
-            writeLong stream s.Layers.Count --> usually 6
-            
-            for l=1 to s.Layers.Count do
-            (
-                local lay = s.Layers[l]
-                --format "DEBUG: TextureID: %\n" lay.TextureID
-                writeLong stream lay.layerSizeIncluded
-                writeLong stream lay.filterMode
-                writeLong stream lay.shadingFlag
-                writeLong stream ( lay.TextureId - 1 )
-                writeLong stream lay.textureAnimationId
-                
-                writeLong  stream 0 -- UV Mappting Coord map id --> TODO get this from the mesh
-                writeFloat stream 1.0 -- Alpha --> animatable -> if not animated, this value will be taken
-                
-                writeFloat stream lay.emissive_multiplier -- Emissive --> works, kinda, it does multiply
-                
-                --> TODO get this from the material
-                writeFloat stream 1 -- Fresnel Color R --> works 
-                writeFloat stream 1 -- Fresnel Color G --> works 
-                writeFloat stream 1 -- Fresnel Color B --> works 
-                writeFloat stream 0 -- Fresnel Multiplier --> works 
-                writeFloat stream 0 -- Team Color Multiplier --> does not work
-                
-                if ( l==1) then  --> Alpha animation
-                (
-                    if ( lay.KMTA != undefined ) then
-                    (
-                        writer.WriteFixedString stream "KMTA" 4
-                        writeLong stream lay.KMTA.timeList.count
-                        writeLong stream 1 --> line type
-                        writeLong stream -1 --> parentId
-                        
-                        for k=1 to lay.KMTA.timeList.count do
-                        (
-                            writeLong stream lay.KMTA.timeList[k]
-                            writeFloat stream lay.KMTA.valueList[k]
-                        )
-                        
-                    )
-                )
-                if ( l==4) then --> Emissive Animation -> DOES NOT WORK 
-                (
-                    if ( lay.KMTE != undefined ) then
-                    (
-                        writer.WriteFixedString stream "KMTE" 4
-                        writeLong stream lay.KMTE.timeList.count
-                        writeLong stream 1 --> line type
-                        writeLong stream -1 --> parentId
-                        
-                        for k=1 to lay.KMTE.timeList.count do
-                        (
-                            writeLong stream lay.KMTE.timeList[k]
-                            writeFloat stream lay.KMTE.valueList[k]
-                        )
-                        
-                    )
-                )
-                
-            )
-
-        )
-        
-        GriffonStudios_Warcraft_3_Writer_Functions.WriteTEXS stream mtls.TEXSList
-    ),
-    function WriteTEXS stream texsList =
-    (
-        local writer = GriffonStudios_Warcraft_3_Writer_Functions()
-        
-        writer.WriteFixedString stream "TEXS" 4
-        
-        writeLong stream ( texslist.count * 268 )
-        for tex in texsList do
-        (
-            writeLong stream tex.replaceableId
-            writer.WriteFixedString stream tex.fileName 260
-            writeLong stream tex.flag
-        )            
-        
-    ),
-    function WriteMODL stream file=
-    (
-        local writer = GriffonStudios_Warcraft_3_Writer_Functions()
-        writeLong stream 372
-        writer.WriteFixedString stream ( getFileNameFile file ) 80
-        writer.WriteFixedString stream "" 260
-        writeLong stream 0
-        writer.WriteMODLBoundingBox stream
-        writeLong stream 150
-    ),
-    function WriteGEOS stream=
-    (
-        local writer = GriffonStudios_Warcraft_3_Writer_Functions()
-        local geos = GriffonStudios_Helper_Functions.GetGEOS()
-        
-        writeLong stream geos.TotalSize
-        
-        for geo in geos.geos do
-        (
-            writeLong stream geo.size
-
-            writer.WriteFixedString stream "VRTX" 4
-            writeLong stream geo.VRTX.count
-            for v in geo.VRTX do writer.WriteVector3 stream v
-
-            writer.WriteFixedString stream "NRMS" 4
-            writeLong stream geo.NRMS.count
-            for n in geo.NRMS do writer.WriteVector3 stream n
-
-            writer.WriteFixedString stream "PTYP" 4
-            writeLong stream geo.PTYP.count
-            for p in geo.PTYP do writeLong stream p
-                
-            writer.WriteFixedString stream "PCNT" 4
-            writeLong stream geo.PCNT.count
-            for p in geo.PCNT do writeLong stream p
-            
-            writer.WriteFixedString stream "PVTX" 4
-            writeLong stream ( geo.PVTX.count * 3 )
-            for p in geo.PVTX do writer.WriteTris stream p
-            
-            writer.WriteFixedString stream "GNDX" 4 
-            writeLong stream 0
-            
-            writer.WriteFixedString stream "MTGC" 4
-            writeLong stream geo.MTGC.count
-            for m in geo.MTGC do writeLong stream m
-                
-            writer.WriteFixedString stream "MATS" 4
-            writeLong stream geo.MATS.boneIdList.count
-            for b in geo.MATS.boneIdList do writeLong stream b
-            writeLong stream geo.MATS.MaterialReferenceId
-            writeLong stream geo.MATS.sectionGroupId 
-            writeLong stream geo.MATS.sectionGroupType 
-            writeLong stream geo.MATS.LodId
-            writer.WriteFixedString stream geo.MATS.LodName 80 
-            for f in geo.MATS.sevenFloats do writeFloat stream f
-            writeLong stream geo.MATS.oneLong
-            
-            writer.WriteFixedString stream "TANG" 4
-            writeLong stream geo.TANG.count
-            for t in geo.TANG do writer.WriteVector4 stream t
-                
-            writer.WriteFixedString stream "SKIN" 4
-            
-            format "SKIN %\n" geo.SKIN
-            format "SKIN SIZE %\n" ( geo.SKIN.COUNT * 8 ) --> 26280    
-            
-            writeLong stream ( geo.SKIN.count * 8 )
-            for s in geo.SKIN do writer.WriteVertexWeights stream s
-            
-            writer.WriteFixedString stream "UVAS" 4
-            writeLong stream geo.UVAS
-            
-            writer.WriteFixedString stream "UVBS" 4
-            writeLong stream geo.UVBS.count
-            for uvbs in geo.UVBS do
-            (
-                writer.WriteTextureCoordinates stream uvbs
-            )
-
-        )
-    ),
-    function WriteGEOA stream=
-    (
-        local help = GriffonStudios_Helper_Functions()
-        local geoas = help.GetGEOA()
-        
-        local totalSize = 0
-        for geoa in geoas do totalSize += geoa.size
-            
-        writeLong stream totalSize
-        
-        for geoa in geoas do
-        (
-            writeLong stream geoa.size
-            writeFloat stream geoa.alpha
-            writeLong  stream geoa.flag
-            writeFloat stream geoa.color[1]
-            writeFloat stream geoa.color[2]
-            writeFloat stream geoa.color[3]
-            writeLong  stream geoa.id
-        )
-        
-    ),
-    function WriteBONE stream=
-    (
-        local help = GriffonStudios_Helper_Functions()
-        local writer = GriffonStudios_Warcraft_3_Writer_Functions()
-        
-        -- ( Id, Name, ParentBoneId, Flags, boneRef, KGTR, KGRT, KGSC, offset, geosetId, geosetAnimationId )
-        local wc3Bones = help.GetBONE()
-        
-        
-        if (WC3_DEBUG) then 
-        (
-            --format "Total Size: % \n" wc3Bones.totalSize
-            for b in wc3Bones.WC3RefBoneList do format " - %\t%\n" b.id b.name
-        )
-        
-        writeLong stream wc3Bones.totalSize
-        
-        for b in wc3Bones.WC3RefBoneList do
-        (
-            writeLong stream b.Size -- 96 when there is no animation
-            writer.WriteFixedString stream b.name 80
-            writeLong stream b.Id
-            writeLong stream b.ParentId
-            writeLong stream b.Flag --> 0x100 or 256
-            
-            writer.WriteKGAnimations2 stream b
-            
-            writeLong stream b.geosetId
-            writeLong stream b.geosetAnimationId
-        )
-        
-        
-    ),
-    function WritePIVT stream=
-    (
-        local boneList = GriffonStudios_Helper_Functions.GetBones()
-        local writer = GriffonStudios_Warcraft_3_Writer_Functions()
-        
-        WriteLong stream ( boneList.count * 12 )
-        
-        for b in boneList do
-            writer.WriteVector3 stream b.pos
-        
-    ),
-    function WriteBPOS stream=
-    (
-        local boneList = GriffonStudios_Helper_Functions.GetBones()
-        local writer = GriffonStudios_Warcraft_3_Writer_Functions()
-        
-        WriteLong stream ( boneList.count * 48 + 4 )
-        WriteLong stream boneList.count
-        
-            
-        for b in boneList do
-            writer.WriteMatrix stream b
-        
-    )
-)
-*/
 struct Warcraft_3_Ref_Write
 (
     function WriteFixedString stream str len=
@@ -471,7 +64,7 @@ struct Warcraft_3_Ref_Write
         if kgAnim == undefined then return undefined
         if ( kgAnim.nbrKeys > 0 ) then 
         (
-            Warcraft_III_Helpers.WriteFixedString stream kgAnim.Type 4            
+            _writer.WriteFixedString stream kgAnim.Type 4            
             writeLong stream kgAnim.nbrKeys
             writeLong stream kgAnim.lineType
             writeLong stream kgAnim.glbsId #signed
@@ -482,9 +75,9 @@ struct Warcraft_3_Ref_Write
                 local theKey = anim.Key * 1000 / 30
                 writeLong stream theKey
                               
-                if ( kgAnim.Type == "KGTR" ) then Warcraft_III_Helpers.WriteVector3 stream anim.Val
-                if ( kgAnim.Type == "KGRT" ) then Warcraft_III_Helpers.WriteQuat    stream anim.Val 
-                if ( kgAnim.Type == "KGSC" ) then Warcraft_III_Helpers.WriteVector3 stream anim.Val
+                if ( kgAnim.Type == "KGTR" ) then _writer.WriteVector3 stream anim.Val
+                if ( kgAnim.Type == "KGRT" ) then _writer.WriteQuat    stream anim.Val 
+                if ( kgAnim.Type == "KGSC" ) then _writer.WriteVector3 stream anim.Val
                 
             )
             
@@ -1005,7 +598,7 @@ struct Warcraft_3_Ref_Write
             ( 
                 if DEBUG_MODE then format "- %\n" obj.name
                 writeLong mdx.stream obj.headerSize
-                Warcraft_III_Helpers.WriteFixedString mdx.stream obj.name 80
+                _writer.WriteFixedString mdx.stream obj.name 80
                 writeLong mdx.stream obj.id
                 writeLong mdx.stream obj.parentId #signed
                 writeLong mdx.stream obj.flags
@@ -1070,5 +663,75 @@ struct Warcraft_3_Ref_Write
                 for c=1 to 3 do
                     writeFloat mdx.stream obj.objRef.Transform[r][c]
         ) 
+    ),
+    function WriteCAMS mdx=
+    (
+        /*
+            struct WC3RefCam ( cameraObj, KCTR = #(), KCRL = #(), KTTR = #(), size = 120 )
+            struct _anim ( size, lineType = 1, GLBS_ID = -1, nbr, AnimBlock = #() )
+            struct _keyVal ( key, val )
+        */
+        if mdx.CAMS == undefined or mdx.CAMS.count == 0 then return undefined
+        format "Writing CAMS\n"
+        _writer.WriteFixedString mdx.stream "CAMS" 4
+        
+        -- calc totalsize
+        local totalSize = 0
+        for cam in mdx.CAMS do
+            totalSize += cam.size
+        
+        writeLong mdx.stream totalSize
+        
+        if DEBUG_MODE then format " - Nbr: % Size: %\n" mdx.CAMS.count totalSize
+        
+        for cam in mdx.CAMS do
+        (
+            if DEBUG_MODE then format " - %\n" cam.cameraObj.name
+            writeLong mdx.stream cam.size
+            _writer.WriteFixedString mdx.stream cam.cameraObj.name 80
+            _writer.WriteVector3 mdx.stream cam.cameraObj.pos
+            writeFloat mdx.stream ( degToRad cam.cameraObj.FOV )
+            writeFloat mdx.stream cam.cameraObj.FarClip
+            writeFloat mdx.stream cam.cameraObj.NearClip
+            _writer.WriteVector3 mdx.stream cam.cameraObj.Target.Pos
+            
+            -- KCTR
+            if ( cam.KCTR != undefined ) then (
+                _writer.WriteFixedString mdx.stream "KCTR" 4
+                writeLong mdx.stream cam.KCTR.nbr
+                writeLong mdx.stream cam.KCTR.lineType
+                writeLong mdx.stream cam.KCTR.GLBS_ID #unsigned
+                
+                for ab in cam.KCTR.AnimBlock do (
+                    writelong mdx.stream ( ab.key * 1000 / 30 )
+                    _writer.WriteVector3 mdx.stream ab.val
+                )
+            )
+            -- KCRL
+            if ( cam.KCRL != undefined ) then (
+                _writer.WriteFixedString mdx.stream "KCRL" 4
+                writeLong mdx.stream cam.KCRL.nbr
+                writeLong mdx.stream cam.KCRL.lineType
+                writeLong mdx.stream cam.KCRL.GLBS_ID #unsigned
+                
+                for ab in cam.KCRL.AnimBlock do (
+                    writeLong mdx.stream ( ab.key * 1000 / 30 )
+                    writeFloat mdx.stream ab.val
+                )
+            )
+            -- KTTR
+            if ( cam.KTTR != undefined ) then (
+                _writer.WriteFixedString mdx.stream "KTTR" 4
+                writeLong mdx.stream cam.KTTR.nbr
+                writeLong mdx.stream cam.KTTR.lineType
+                writeLong mdx.stream cam.KTTR.GLBS_ID #unsigned
+                
+                for ab in cam.KTTR.AnimBlock do (
+                    writeLong mdx.stream ( ab.key * 1000 / 30 )
+                    _writer.WriteVector3 mdx.stream ab.val
+                )
+            )
+        )
+        
     )
 )

@@ -15,7 +15,6 @@
 global Warcraft3_AssetFolder
 global Warcraft3_ImportAllLOD = false
 
-
 macroscript Warcaft3Reforged_ImportModel category:"Warcraft III Reforged Tools" tooltip:"Import model" 
 (
     filein "GriffonStudios_Warcraft_3_Reforged_Import_Dialog.ms"
@@ -106,71 +105,6 @@ macroscript Warcaft3Reforged_PopCorn    category:"Warcraft III Reforged Tools" t
     WC3RefPopCorn()
 )
 
-macroscript Warcaft3Reforged_SC2AttachmentpointConvertor    category:"Warcraft III Reforged Tools" tooltip:"Convert Attachmentpoints" 
-(
-    if ( STARCRAFT_II_ARTTOOLS_INSTALLED ) then (
-        try
-        (
-            for obj in objects do 
-            (
-                if ( classof obj == WC3RefAttachment ) then
-                (
-                    local pt = SC2AttachPt()
-                    local parts = filterstring obj.name " "
-                    local newName = "Ref_"
-                    for p in parts do 
-                    (
-                        if ( p != "Ref" ) then newName +=p
-                    )
-                    
-                    pt.Name = newName
-                    pt.Pos = obj.pos
-                    pt.Rotation = obj.rotation
-                    pt.parent = obj.parent
-                )
-            )
-            
-            for obj in objects do
-            (
-                if ( classof obj == WC3RefAttachment ) then 
-                    delete obj
-            )
-        )
-        catch ()
-    )
-    else 
-        messagebox "Starcraft II Art Tools not installed or not supported"
-)
-
-macroscript Warcaft3Reforged_SC2HitTestBoxes    category:"Warcraft III Reforged Tools" tooltip:"Convert HitTestBoxes" 
-(
-    if ( STARCRAFT_II_ARTTOOLS_INSTALLED ) then (
-        local index = 1
-        for obj in objects do
-        (
-            
-            if obj.isfrozen then 
-            (    
-                if obj.name == "B_KGS_Root" then 
-                    obj.name = "HitTestTight"
-                else
-                if ( substring obj.name 1 6 ) == "B_KGS_" then
-                (
-                    
-                    obj.name = "HitTestFuzzy" + ( substring ( (1000 + index)  as string ) 2 3  )
-                    
-                    index +=1
-                    
-                )
-            
-            )
-        )
-        
-    )
-    else 
-        messagebox "Starcraft II Art Tools not installed or not supported"
-)
-
 macroscript Warcaft3Reforged_CollapseHitTests category:"Warcraft III Reforged Tools" tooltip:"Collapse Hit Tests" 
 (
     for obj in objects do 
@@ -209,6 +143,30 @@ macroscript Warcaft3Reforged_CollapseAttachments category:"Warcraft III Reforged
         )
     )
 )
+
+macroScript Warcaft3Reforged_UserPropertyWindow
+    category:"Warcraft III Reforged Tools"
+    buttonText:"Show User Property Window"
+    toolTip:"Show User Property Window"
+    icon:#("GriffonStudios",5)
+(
+    on execute do (
+        filein "GriffonStudios_Warcraft_3_Reforged_UserPropertyEditor.ms"
+
+        if ( $ == undefined ) then 
+        (
+            messagebox "Please select an object first"
+            return undefined
+        )
+        if ( $ != undefined ) then 
+        (
+        
+            if(GriffonStudios_WC3Ref_UserPropertyEditor != undefined) then destroydialog GriffonStudios_WC3Ref_UserPropertyEditor
+                CreateDialog GriffonStudios_WC3Ref_UserPropertyEditor lockwidth: true  
+        )
+    )
+)
+
 
 macroscript Warcaft3Reforged_ExpandAttachments category:"Warcraft III Reforged Tools" tooltip:"Expand Attachments" 
 (

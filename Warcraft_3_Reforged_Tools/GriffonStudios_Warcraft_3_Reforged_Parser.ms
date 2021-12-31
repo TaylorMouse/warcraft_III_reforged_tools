@@ -765,6 +765,7 @@ struct Warcraft_3_Ref_Parser
         for s in mdx.SEQS do (
             appendifUnique seqs_frames ( _parser.RoundToFrame s.startframe )
             appendifUnique seqs_frames ( _parser.RoundToFrame s.endFrame )
+                
         )
         
         for g=1 to mdx.geos.count do
@@ -817,5 +818,69 @@ struct Warcraft_3_Ref_Parser
                 mdx.FAFX = WC3Ref_FAFX objRef:obj TotalSize:340 ExternalFileName:obj.fileName
                 exit
             )
+    ),
+    function GetCAMS mdx=
+    (
+        local cams = #()
+        format "Parsing Cameras\n"
+        
+        struct WC3RefCam ( cameraObj, KCTR, KCRL, KTTR, size = 120 )
+        struct _anim ( size, lineType = 1, GLBS_ID = -1, nbr, AnimBlock = #() )
+        struct _keyVal ( key, val )
+        
+        for obj in objects where classof obj == TargetCamera do
+        (
+            if DEBUG_MODE then format "%\n" obj
+            append cams ( WC3RefCam cameraObj:obj )
+        )
+
+        for c in cams do
+        (
+            local cam = c.cameraObj
+            
+            -- KCTR
+            if cam.pos.controller.keys.count > 0 then (
+                local size = 16 + cam.pos.controller.keys.count * 16 --> vector3
+                c.Size += size
+                c.KCTR = _anim size:size nbr:cam.pos.controller.keys.count
+                local pvt = at time 0f in coordsys parent cam.pos
+                for key in cam.pos.controller.keys do (
+                    
+                    local t = key.time as integer / TicksPerFrame
+                    local val = at time t in coordsys parent cam.pos
+                    val = val - pvt
+                    append c.KCTR.AnimBlock ( _keyVal key:t val:val )
+                )
+                if DEBUG_MODE then format "%\n" c.KCTR
+            )
+            
+            -- KCRL
+            if cam.controller.roll_angle.controller.keys.count > 0 then (
+                local size = 16 + cam.controller.roll_angle.controller.keys.count * 8 --> float
+                c.Size += size
+                c.KCRL = _anim size:size nbr:cam.controller.roll_angle.controller.keys.count
+                for key in cam.controller.roll_angle.controller.keys do (
+                    local t = key.time as integer / TicksPerFrame
+                    local val = at time t cam.controller.roll_angle
+                    append c.KCRL.AnimBlock ( _keyVal key:t val:val )
+                )
+                if DEBUG_MODE then format "%\n" c.KCRL
+            )
+
+            -- KTTR
+            if cam.target.pos.controller.keys.count > 0 then (
+                local size = 16 + cam.target.pos.controller.keys.count * 16 --> vector3
+                c.Size += size
+                c.KTTR = _anim size:size nbr:cam.target.pos.controller.keys.count
+                for key in cam.pos.controller.keys do (
+                    local t = key.time as integer / TicksPerFrame
+                    local val = at time t cam.pos
+                    append c.KTTR.AnimBlock ( _keyVal key:t val:val )
+                )
+                if DEBUG_MODE then format "%\n" c.KTTR
+            )
+            
+        )
+        mdx.CAMS = cams
     )
 )

@@ -765,7 +765,7 @@ struct Warcraft_3_Ref_Read
                 local anim = _helper.ReadFixedString stream 4
                 if ( anim == "KCTR" ) then cam.KCTR = _reader.ReadVector3Anim stream
                 if ( anim == "KTTR" ) then cam.KTTR = _reader.ReadVector3Anim stream
-                if ( anim == "KCRL" ) then cam.KCRL = _reader.ReadQuatAnim stream
+                if ( anim == "KCRL" ) then cam.KCRL = _reader.ReadFloatAnim stream
             )
             
             if ( cam.KCTR == undefined ) then fseek stream -4 #seek_cur

@@ -882,5 +882,60 @@ struct Warcraft_3_Ref_Parser
             
         )
         mdx.CAMS = cams
+    ),
+    function GetTXAN mat mdx=
+    (
+        -- get the texture animation for a pecific material
+        struct wc3ref_txan ( size=0, KTAT, KTAR, KTAS )
+        struct wc3ref_kt ( size, nbr, lineType, GLBS_ID, AnimBlock = #() )
+        struct _keyVal ( key, val )
+        
+        local txanExists = false
+        
+        local coords = mat.Diffuse_Map.coords
+        
+        if ( coords.u_offset.controller != undefined or 
+             coords.v_offset.controller != undefined or
+             coords.u_angle.controller != undefined or
+             coords.v_angle.controller != undefined or
+             coords.w_angle.controller != undefined 
+            ) then txanExists = true
+        
+        if ( txanExists ) then (
+            if DEBUG_MODE then format "Parsing TXAN for material %\n" mat.name
+            if mdx.TXAN == undefined then mdx.TXAN = #()
+
+            local txan = wc3ref_txan()
+            local lineType = mat.lineType - 1
+            if lineType == 0 then lineType = 1
+            
+            -- KTAT
+            local frame_list = #()
+            for key in coords.u_offset.controller.keys do appendIfUnique frame_list ( key.time as integer / ticksperframe )
+            for key in coords.v_offset.controller.keys do appendIfUnique frame_list ( key.time as integer / ticksperframe )
+            local kt = undefined 
+            
+            if frame_list.count > 0 then (
+                txan.KTAT = wc3ref_kt lineType:lineType GLBS_ID:-1 nbr:frame_list.count
+            
+                txan.KTAT.size = 20 + frame_list.count * 16
+                
+                for f in frame_list do
+                (
+                    local val =undefined 
+                    at time f 
+                        val = [coords.u_offset, coords.v_offset, 0.0]
+                    
+                    append txan.KTAT.AnimBlock ( _keyVal key:f val:val )
+                    
+                    if DEBUG_MODE then format "%\n" ( _keyVal key:f val:val )
+                )
+                txan.size += txan.KTAT.size
+            )
+            
+            append mdx.TXAN txan
+
+        )
+        
     )
 )

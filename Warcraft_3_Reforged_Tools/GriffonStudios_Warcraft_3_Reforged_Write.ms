@@ -207,6 +207,14 @@ struct Warcraft_3_Ref_Write
         writeLong mdx.stream filtermode
         
         local shadingFlags = 0
+        
+        local fresnel_r = 1.0
+        local fresnel_g = 1.0
+        local fresnel_b = 1.0
+        local fresnel_multi = 0.0
+        local tealcolor_multi = 0.0
+        local alpha_init = 1.0
+        
         if layerIndex == 1 then (
             if mat.unlit        then shadingFlags += 0x01
             if mat.envmap       then shadingFlags += 0x02
@@ -216,6 +224,13 @@ struct Warcraft_3_Ref_Write
             if mat.nofog        then shadingFlags += 0x20
             if mat.nodepthset   then shadingFlags += 0x40
             if mat.nodepthtest  then shadingFlags += 0x80
+                
+            fresnel_r = (mat.fresnel_color.r / 255)
+            fresnel_g = (mat.fresnel_color.g / 255)
+            fresnel_b = (mat.fresnel_color.b / 255)
+            fresnel_multi = mat.fresnel_multiplier
+            tealcolor_multi = mat.teamcolor_multiplier
+            alpha_init = mat.material_alpha
         )
 
         writeLong mdx.stream shadingFlags
@@ -225,13 +240,13 @@ struct Warcraft_3_Ref_Write
         writeLong mdx.stream texsID
         writeLong mdx.stream mdx.mtls[mtlsIndex].txanId #unsigned
         writeLong mdx.stream 0 --> uv mapping layer
-        writeFloat mdx.stream 1.0 --> initial Alpha 
+        writeFloat mdx.stream alpha_init
         writeFloat mdx.stream mat.emissive_multiplier 
-        writeFloat mdx.stream 1 -- Fresnel Color R
-        writeFloat mdx.stream 1 -- Fresnel Color G
-        writeFloat mdx.stream 1 -- Fresnel Color B
-        writeFloat mdx.stream 0 -- Fresnel Multiplier
-        writeFloat mdx.stream 0 -- Team Color Multiplier
+        writeFloat mdx.stream fresnel_r
+        writeFloat mdx.stream fresnel_g
+        writeFloat mdx.stream fresnel_b
+        writeFloat mdx.stream fresnel_multi
+        writeFloat mdx.stream tealcolor_multi
         
         local glbsId = -1
         
@@ -273,6 +288,40 @@ struct Warcraft_3_Ref_Write
                         writeFloat mdx.stream ( mat.emissive_multiplier / 100.0 )
                     )
             )
+            
+            -- Parse TXAN
+            _parser.GetTXAN mat mdx
+            
+        )
+    ),
+    function WriteTXAN mdx=
+    (
+        if mdx.TXAN == undefined then return undefined
+            
+        format "Writing TXAN\n"
+        
+        _writer.WriteFixedString mdx.stream "TXAN" 4
+        
+        local totalSize = 0
+        for t in mdx.TXAN do totalSize += t.size
+        
+        writeLong mdx.stream totalSize
+        
+        for t in mdx.TXAN do (
+        
+            writelong mdx.stream t.size
+            if t.KTAT != undefined then (
+                _writer.WriteFixedString mdx.stream "TXAN" 4
+                writeLong mdx.stream t.KTAT.nbr
+                writeLong mdx.stream t.KTAT.lineType
+                writeLong mdx.stream t.KTAT.GLBS_ID
+                
+                for anim in t.KTAT.AnimBlock do (
+                    writeLong mdx.stream ( anim.Key * 30 / 1000 )
+                    _writer.WriteVector3 mdx.stream anim.val
+                )
+            )
+        
         )
     ),
     function WriteTEXS mdx=

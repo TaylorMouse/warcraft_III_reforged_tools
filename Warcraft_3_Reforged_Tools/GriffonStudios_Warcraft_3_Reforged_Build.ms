@@ -70,8 +70,6 @@ struct Warcraft_3_Ref_Build
         
         if DEBUG_MODE then format "Asset folder: %\n" assetFolder
         
-        -- FilterMode   (0:none; 1:trans; 2:blend; 3:add)
-        -- ShadingFlags (1:unshaded; +16:two sided; +32:unfogged)
         
         for m=1 to mtls.count do
         (
@@ -119,8 +117,13 @@ struct Warcraft_3_Ref_Build
                         ( bit.and layer.ShadingFlags 0x20 > 0 ): ( mat.nofog = true )
                         ( bit.and layer.ShadingFlags 0x40 > 0 ): ( mat.nodepthtest = true )
                         ( bit.and layer.ShadingFlags 0x80 > 0 ): ( mat.nodepthset = true )
+                        ( bit.and layer.ShadingFlags 0x100 > 0 ): ( mat.nofallback = true )
                     )
                    
+                    
+                    mat.teamcolor_multiplier = layer.TeamColorMultiplier
+                    mat.fresnel_color = color ( layer.FresnelR * 255) ( layer.FresnelG * 255) ( layer.FresnelB * 255)
+                    mat.fresnel_multiplier = layer.FresnelMultiplier
                 )
                 case l of 
                 (
@@ -133,7 +136,6 @@ struct Warcraft_3_Ref_Build
                     /* Emisive */
                     4:  (
                             mat.emissive_map = Bitmaptexture fileName:textureFile
-                            mat.emissive_alpha = layer.alpha * 100.0
                             mat.emissive_multiplier = 1.0
                         )
                     /* Replaceable indicator */
@@ -156,8 +158,42 @@ struct Warcraft_3_Ref_Build
                         with animate on 
                             at time ( anim.Time + 10 ) mat.emissive_multiplier = anim.Point * 100.0
 
-                   
+                
+                /* UVW animation  */
+                if ( layer.TXAN_ID > 0 and mdx.TXAN != undefined ) then (
+                    
+                    local txan = mdx.TXAN[layer.TXAN_ID]
+                    
+                    if ( txan.KTAT != undefined ) then (
+                        mat.LineType = txan.KTAT.LineType + 1
+                        
+                        if mat.LineType == 2 then 
+                        ( mat.Diffuse_Map.coords.u_offset.controller = Linear_Float()
+                          mat.Diffuse_Map.coords.v_offset.controller = Linear_Float() )
+                        
+                        if mat.LineType == 3 or mat.LineType == 1 then 
+                        ( mat.Diffuse_Map.coords.u_offset.controller = Bezier_Float()
+                          mat.Diffuse_Map.coords.v_offset.controller = Bezier_Float() )
+                        
+                        if mat.LineType == 4 then 
+                        ( mat.Diffuse_Map.coords.u_offset.controller = TCB_Float()
+                          mat.Diffuse_Map.coords.v_offset.controller = TCB_Float() )
+                        
+                        local isGlobalSequence = false
+                        if (txan.KTAT.glbsId > 0 ) then isGlobalSequence = true
+                        local startFrame = 10
+                        if isGlobalSequence then startFrame = 0
+                          
+                        for kg in txan.KTAT.kg do
+                            with animate on
+                                at time ( kg.time + startFrame ) (
+                                    mat.Diffuse_map.coords.U_Offset = kg.point.X
+                                    mat.Diffuse_map.coords.V_Offset = kg.point.Y
+                                )
+                    )
+                )
             )
+
             if( m < 25 ) then meditMaterials[m] = mat
             
             mtl.materialRef = mat
@@ -1112,10 +1148,6 @@ struct Warcraft_3_Ref_Build
                 )
             )
     ),
-    function CreateTXAN mdx=
-    (
-        
-    ),
     function CreatePRE2 mdx=
     (
         if( mdx.PRE2 == undefined ) then return undefined
@@ -1285,7 +1317,7 @@ struct Warcraft_3_Ref_Build
         CreateCORN mdx
         CreateFAFX mdx
         CreateRIBB mdx
-        CreateTXAN mdx
+        -- CreateTXAN mdx --> TXAN is used during the build of MTLS
         CreatePRE2 mdx
         AssignMTLS mdx
     )

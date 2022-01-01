@@ -18,7 +18,15 @@ plugin Material WC3RefMaterial
     replaceUI:true 
     version:1
 (
-    
+    parameters basic rollout:basicParams
+    (
+        -- base_color type:#color animatable:true ui:colorPicker_baseColor --> GEOA STUFF
+        
+        emissive_multiplier  type:#float  animatable:true  ui:spn_emissive_multiplier
+        teamcolor_multiplier type:#float  animatable:true  ui:spn_teamcolor_multiplier
+        fresnel_color        type:#color  animatable:false ui:colorPicker_fresnel_color
+        fresnel_multiplier   type:#float  animatable:false ui:spn_fresnel_multiplier
+    )
     parameters main rollout:params
     (
         priorityPlane   type:#integer   animatable:false  ui:spn_priority
@@ -73,8 +81,7 @@ plugin Material WC3RefMaterial
         normal_map      type:#texturemap animatable:false ui:mb_normal
         orm_map         type:#texturemap animatable:false ui:mb_orm  --> R = occlusion, G = Roughness, B = Metal
         emissive_map    type:#texturemap animatable:false ui:mb_emissive
-        emissive_alpha  type:#float      animatable:false ui:spn_emissive
-        emissive_multiplier type:#float  animatable:true  ui:spn_emissive_multiplier
+        
         reflection_map  type:#texturemap animatable:false ui:mb_reflection
         
         on diffuse_map set val do 
@@ -116,6 +123,18 @@ plugin Material WC3RefMaterial
         checkbox cbx_nofallback "No fallback" offset:[200,0]
         
     )
+    rollout basicParams "Basic Parameters"
+    (
+        label lblEM "Emissive Multiplier:" align:#Left width:200
+        spinner spn_emissive_multiplier   range:[0,100,0] align:#right width:80 offset:[-100,-20]
+        label lblTCM "TeamColor Multiplier:" align:#Left width:200
+        spinner spn_teamcolor_multiplier  range:[0,100,0] align:#right width:80 offset:[-100,-20]
+        label lblFC "Fresnel Color: " align:#Left width:200
+        colorPicker colorPicker_fresnel_color align:#right offset:[-100,-20]
+        label lblFCM "Fresnel Multiplier:" align:#Left width:200
+        spinner spn_fresnel_multiplier  range:[0,100,0] align:#right width:80 offset:[-100,-20]
+        
+    )
     rollout maps "Texture Maps"
     (
         label lbl1 "Diffuse . . . . ." align:#left 
@@ -129,9 +148,7 @@ plugin Material WC3RefMaterial
         
         label lbl5 "Emissive . . . ." align:#left offset:[0,10]
             mapbutton mb_emissive  "(drag & drop texture here)" height:22 width:250 offset:[0,-25] align:#right
-            spinner spn_emissive "Alpha:"   range:[0,100.0,100.0] align:#right width:70 
-            spinner spn_emissive_multiplier "Multiplier:"   range:[0,100,0] align:#right width:80 
-        
+                    
         label lbl7 "Environment . . ."   align:#left offset:[0,10]
             mapbutton mb_reflection "(drag & drop texture here)" height:22 width:250  offset:[0,-25] align:#right tooltip:"Select spherical reflection map"
     
@@ -179,8 +196,8 @@ plugin Material WC3RefMaterial
         filtermode = 1
         replacableTexture = 1
         material_alpha = 100
-        emissive_alpha = 100
         emissive_multiplier = 1
+        teamcolor_multiplier = 0
         LineType = 1
         diffuse_map = Bitmaptexture fileName:""
         normal_map = Bitmaptexture fileName:""

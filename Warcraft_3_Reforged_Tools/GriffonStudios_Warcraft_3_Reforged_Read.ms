@@ -337,7 +337,7 @@ struct Warcraft_3_Ref_Read
         -- ShadingFlags (1:unshaded; +16:two sided; +32:unfogged)
         
         struct WC3Ref_LAYR 
-            ( Size, FilterMode, ShadingFlags, TextureId, ParentId, CoordId, Alpha, EmissiveMultiplier, FresnelR, FresnelG, FresnelB, FresnelMultiplier, TeamColorMultiplier, KMTA, KMTE, KMTF ) 
+            ( Size, FilterMode, ShadingFlags, TextureId, TXAN_ID, CoordId, Alpha, EmissiveMultiplier, FresnelR, FresnelG, FresnelB, FresnelMultiplier, TeamColorMultiplier, KMTA, KMTE, KMTF ) 
         
         local lay = WC3Ref_LAYR()
         
@@ -345,7 +345,7 @@ struct Warcraft_3_Ref_Read
         lay.FilterMode          = readLong stream + 1
         lay.ShadingFlags        = readLong stream
         lay.TextureId           = readLong stream + 1
-        lay.ParentId            = readLong stream
+        lay.TXAN_ID             = readLong stream + 1
         lay.CoordId             = readLong stream
         lay.Alpha               = readfloat stream
         lay.EmissiveMultiplier  = readfloat stream
@@ -937,16 +937,21 @@ struct Warcraft_3_Ref_Read
     ),
     function ReadTXAN stream tag=
     (
-        struct WC3Ref_TXAN ( id, KTAT, KTAR, KTAS )
+        struct WC3Ref_TXAN ( KTAT, KTAR, KTAS )
         
-        fseek stream tag.offset #seek_set
+        local offset = tag.offset
+        fseek stream offset #seek_set
+        
         local txans = #()
         local totalSize = tag.Size
         
-        while ( totalSize > 0 ) do
+        while ( ftell stream < tag.offset + tag.size ) do
         (
+            fseek stream offset #seek_set
+            
             local size = readLong stream
-            totalSize -= size
+            offset += size
+            
             local txan = WC3Ref_TXAN()
             
             for i=1 to 3 do
@@ -959,8 +964,10 @@ struct Warcraft_3_Ref_Read
             if ( txan.KTAT == undefined ) then fseek stream -4 #seek_cur
             if ( txan.KTAR == undefined ) then fseek stream -4 #seek_cur
             if ( txan.KTAS == undefined ) then fseek stream -4 #seek_cur
-            
             append txans txan
+            
+            if DEBUG_MODE then format "%\n" txan
+            
         )
         
         return txans

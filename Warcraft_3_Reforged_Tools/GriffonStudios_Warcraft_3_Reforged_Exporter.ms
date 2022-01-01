@@ -71,6 +71,7 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         _writer.WriteSEQS mdx
         _writer.WriteMTLS mdx
         _writer.WriteTEXS mdx
+        _writer.WriteTXAN mdx
         _writer.WriteGEOS mdx
         _writer.WriteGEOA mdx
         _writer.WriteBONE mdx
@@ -82,7 +83,6 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         _writer.WriteCLID mdx
         _writer.WriteBPOS mdx
 
---         _writer.WriteCAMS mdx
 --         _writer.WriteCORN mdx
 --         _writer.WriteLITE mdx
 --         _writer.WritePRE2 mdx
@@ -99,3 +99,5 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         setArrowCursor()   
     )
 )
+
+GriffonStudios_Warcraft_3_Reforged_Exporter.Export @"G:\Blizzard\Warcraft - Reforged\Extracted\Assets\objects\inventoryitems\glyph\glyph_export.mdx"

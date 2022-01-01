@@ -33,6 +33,7 @@ plugin Material WC3RefMaterial
         nofog       type:#boolean animatable:false ui:cbx_nofog
         nodepthtest type:#boolean animatable:false ui:cbx_nodepthtest
         nodepthset  type:#boolean animatable:false ui:cbx_nodepthset
+        nofallback type:#boolean animatable:false ui:cbx_nofallback
         replacableTexture  type:#integer animatable:false ui:ddl_replaceableTexture
         /* filterMode
          0x0: Opaque
@@ -91,23 +92,28 @@ plugin Material WC3RefMaterial
         DONT_INHERIT_ROTATION type:#boolean animatable:false ui:cbx_DONT_INHERIT_ROTATION
 
     )
+    parameters animation rollout:animationTypes
+    (
+        LineType  type:#integer  animatable:false   ui:ddl_AnimationType
+    )
     rollout params "Material Texture Parameters"
     (
         
-        dropdownlist lb_filterMode "Filter Mode" items:#("Opaque","Mask","Blend", "Add", "BlendAdd", "Mod", "Mod2x") width:150 
+        dropdownlist lb_filterMode "Filter Mode:" items:#("Opaque","Mask","Blend", "Add", "BlendAdd", "Mod", "Mod2x") width:150 
         dropdownlist ddl_replaceableTexture      items:#( "Not Replacable","Team Color","Team Glow") width:150 
         
         spinner spn_priority "Priority :" range:[0,10,0] type:#integer width:60 offset:[-20,-50] width:100 align:#right
-        spinner spn_alpha  "Alpha :"     range:[0,100.0,100.0] offset:[-20,5] width:60 align:#right
+        spinner spn_alpha  "Alpha :"     range:[0,100.0,100.0] offset:[-20,0] width:60 align:#right
         
-        checkbox cbx_unlit "Unlit"
+        checkbox cbx_unlit "Unlit" offset:[0,20]
         checkbox cbx_environment "Environment" 
         checkbox cbx_wrapwidth "Wrap Width" 
         checkbox cbx_wrapheight "Wrap Height" 
-        checkbox cbx_twosided "2-sided" offset:[200,-80]
+        checkbox cbx_twosided "2-sided" offset:[200,-100]
         checkbox cbx_nofog "No fog" offset:[200,0]
         checkbox cbx_nodepthtest "No depth test" offset:[200,0]
         checkbox cbx_nodepthset "No depth set" offset:[200,0]
+        checkbox cbx_nofallback "No fallback" offset:[200,0]
         
     )
     rollout maps "Texture Maps"
@@ -138,6 +144,28 @@ plugin Material WC3RefMaterial
         checkbox cbx_DONT_INHERIT_ROTATION "Don't inherit rotation"
         
     )
+    rollout animationTypes "UV Interpolation Types"
+    (
+        label lbl_animationType "Type:" align:#left
+        dropdownlist ddl_AnimationType items:#( "None", "Linear", "Hermite", "Bezier" ) align:#left width:100 offset:[50,-20]
+        
+        on ddl_AnimationType selected selectedItem do
+        (
+            if selectedItem == 2 then 
+            ( Diffuse_Map.coords.u_offset.controller = Linear_Float()
+              Diffuse_Map.coords.v_offset.controller = Linear_Float() )
+            
+            if selectedItem == 4 or selectedItem == 1 then 
+            ( Diffuse_Map.coords.u_offset.controller = Bezier_Float()
+              Diffuse_Map.coords.v_offset.controller = Bezier_Float() )
+            
+            if selectedItem == 3 then 
+            ( Diffuse_Map.coords.u_offset.controller = TCB_Float()
+              Diffuse_Map.coords.v_offset.controller = TCB_Float() )
+
+        )
+        
+    )
     rollout info "Info"
     (
         label lbl1 "Warcraft 3 Reforged Material"
@@ -153,7 +181,7 @@ plugin Material WC3RefMaterial
         material_alpha = 100
         emissive_alpha = 100
         emissive_multiplier = 1
-        
+        LineType = 1
         diffuse_map = Bitmaptexture fileName:""
         normal_map = Bitmaptexture fileName:""
         orm_map = Bitmaptexture fileName:""

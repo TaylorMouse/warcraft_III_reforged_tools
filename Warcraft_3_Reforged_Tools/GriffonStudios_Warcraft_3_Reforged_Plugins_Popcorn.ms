@@ -37,8 +37,8 @@ plugin simpleManipulator WC3RefPopCorn
         life_span        type:#float animatable:true ui:spn_life_span
         speed            type:#float animatable:true ui:spn_speed
         
-        base_color       type:#color animatable:false ui:colorPicker_base_color
-        base_color_multi type:#float animatable:true ui:spn_base_color_multi
+        base_color       type:#color animatable:true ui:colorPicker_base_color
+        base_color_multi type:#float animatable:false ui:spn_base_color_multi
         team_color       type:#color animatable:false ui:colorPicker_team_color
         team_color_alpha type:#float animatable:false ui:spn_team_color_alpha
         

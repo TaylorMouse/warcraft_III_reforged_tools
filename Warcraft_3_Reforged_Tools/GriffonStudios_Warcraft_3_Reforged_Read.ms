@@ -36,8 +36,8 @@ struct Warcraft_3_Ref_Read
         (
             local k = kg800()
             
-            k.Time = GriffonStudios_Helpers.RoundToFrame ( ReadLong stream )
-            k.Point = Warcraft3_Reforged.ReadColor stream -- always 1, indicating it starts or ends
+            k.Time = _helper.RoundToFrame ( ReadLong stream )
+            k.Point = _reader.ReadColor stream -- always 1, indicating it starts or ends
             k.LineType = anim.lineType
             if( anim.lineType > 1)  then
             (

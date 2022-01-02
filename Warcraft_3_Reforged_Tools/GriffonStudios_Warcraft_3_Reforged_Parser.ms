@@ -17,6 +17,14 @@
 
 struct Warcraft_3_Ref_Parser
 (
+    function Color2Vector3 c=
+    (
+        local x = c.R / 255.0
+        local y = c.G / 255.0
+        local z = c.B / 255.0
+        
+        return [x, y, z]
+    ),
     function GetTextureId mat layerIndex texs=
     (
         local textureId = -1
@@ -756,9 +764,9 @@ struct Warcraft_3_Ref_Parser
     function GetGEOA mdx=
     (
         mdx.geoa = #()
-        struct geoa1000 ( size, opacity, geoId, color, type, KGAO)
+        struct geoa1000 ( size, opacity, geoId, color, type, KGAO, KGAC )
         struct anim1000 ( numPts, LineType = 0, glbsId = -1, KG = #() )
-        struct kg1000   ( Time, Point = 0.0, inTan, outTan, LineType = 0 )
+        struct kg1000   ( Time, Point, inTan, outTan, LineType = 0 )
     
         local seqs_frames = #()
         append seqs_frames 0
@@ -770,11 +778,17 @@ struct Warcraft_3_Ref_Parser
         
         for g=1 to mdx.geos.count do
         (
-            local geoa = geoa1000 size:28 opacity:1.0 color:[1.0,1.0,1.0] type:0 geoId:(g - 1)
-            append mdx.geoa geoa
             local theMesh = mdx.geos[g].meshRef
+            
+            local geoa = geoa1000 size:28 opacity:1.0 type:0 geoId:(g - 1)
+            geoa.color = _parser.Color2Vector3 theMesh.Material.base_color
+            
+            append mdx.geoa geoa
+            
+            -- KGAO -> Animated Opacity
             local visController = GetVisController theMesh
             local frames = undefined
+            
             if (visController != undefined and classof visController == On_Off ) then 
             (
                 frames = #()
@@ -804,6 +818,26 @@ struct Warcraft_3_Ref_Parser
                 
                 if DEBUG_MODE then format "%\n" geoa
                 
+            )
+            
+            -- KGAC -> Animated Color
+            local controller = theMesh.Material.base_color.controller
+            if ( controller != undefined ) then (
+                if ( controller.keys.count > 1 ) then (
+                    geoa.size += 16
+                    geoa.KGAC = anim1000 numPts:controller.keys.count
+                    geoa.size += geoa.KGAC.numPts * 16
+                    for key in theMesh.Material.base_color.controller.keys do (
+                        local kg = kg1000()
+                        local f = key.time as integer / TicksPerFrame
+                        at time f
+                        (
+                            kg.Time = f * 1000 / 30
+                            kg.Point = _parser.Color2Vector3 theMesh.Material.base_color
+                        )
+                        append geoa.KGAC.KG kg
+                    )
+                )
             )
         )
         

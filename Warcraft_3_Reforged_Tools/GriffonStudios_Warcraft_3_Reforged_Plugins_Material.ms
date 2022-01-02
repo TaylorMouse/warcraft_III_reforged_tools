@@ -190,6 +190,6 @@ plugin Material WC3RefMaterial
         alphamask_map = Bitmaptexture fileName:""
         reflection_map = Bitmaptexture fileName:""
         replacable_map = Bitmaptexture fileName:""
-
+        base_color = color 255 255 255
     )
 )

@@ -18,14 +18,14 @@ plugin Material WC3RefMaterial
     replaceUI:true 
     version:1
 (
+    /* Exposed parameters */
     parameters basic rollout:basicParams
     (
-        -- base_color type:#color animatable:true ui:colorPicker_baseColor --> GEOA STUFF
-        
-        emissive_multiplier  type:#float  animatable:true  ui:spn_emissive_multiplier
-        teamcolor_multiplier type:#float  animatable:true  ui:spn_teamcolor_multiplier
-        fresnel_color        type:#color  animatable:false ui:colorPicker_fresnel_color
-        fresnel_multiplier   type:#float  animatable:false ui:spn_fresnel_multiplier
+        base_color           type:#color animatable:true  ui:colorPicker_baseColor
+        emissive_multiplier  type:#float animatable:true  ui:spn_emissive_multiplier
+        teamcolor_multiplier type:#float animatable:true  ui:spn_teamcolor_multiplier
+        fresnel_color        type:#color animatable:false ui:colorPicker_fresnel_color
+        fresnel_multiplier   type:#float animatable:false ui:spn_fresnel_multiplier
     )
     parameters main rollout:params
     (
@@ -43,27 +43,6 @@ plugin Material WC3RefMaterial
         nodepthset  type:#boolean animatable:false ui:cbx_nodepthset
         nofallback type:#boolean animatable:false ui:cbx_nofallback
         replacableTexture  type:#integer animatable:false ui:ddl_replaceableTexture
-        /* filterMode
-         0x0: Opaque
-         0x1: Mask
-         0x2: Blend
-         0x3: Add
-         0x4: BlendAdd
-         0x5: Mod
-         0x6: Mod 2x
-         0x7: --> 0x0
-        */
-        /* ShadingFlag -- > bit.and seqs.Flags 0x1
-             0x1: Unlit
-             0x2: Environment map
-             0x4: Wrap Width
-             0x8: Wrap Height
-             0x10: 2-sided
-             0x20: No fog
-             0x40: no depth test
-             0x80: no depth set               
-             0x100: Fallback
-        */
 
         on material_alpha set val do 
         (
@@ -103,6 +82,8 @@ plugin Material WC3RefMaterial
     (
         LineType  type:#integer  animatable:false   ui:ddl_AnimationType
     )
+    
+    /* UI */
     rollout params "Material Texture Parameters"
     (
         
@@ -125,6 +106,8 @@ plugin Material WC3RefMaterial
     )
     rollout basicParams "Basic Parameters"
     (
+        label lblBC "Basic Color:" align:#left width:200
+        colorPicker colorPicker_baseColor align:#right offset:[-100,-20]
         label lblEM "Emissive Multiplier:" align:#Left width:200
         spinner spn_emissive_multiplier   range:[0,100,0] align:#right width:80 offset:[-100,-20]
         label lblTCM "TeamColor Multiplier:" align:#Left width:200
@@ -207,6 +190,6 @@ plugin Material WC3RefMaterial
         alphamask_map = Bitmaptexture fileName:""
         reflection_map = Bitmaptexture fileName:""
         replacable_map = Bitmaptexture fileName:""
-        
+
     )
 )

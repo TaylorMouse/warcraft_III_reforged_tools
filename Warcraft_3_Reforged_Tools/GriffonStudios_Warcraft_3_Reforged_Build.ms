@@ -156,7 +156,7 @@ struct Warcraft_3_Ref_Build
                 if ( layer.KMTE != undefined ) then
                     for anim in layer.KMTE.KG do
                         with animate on 
-                            at time ( anim.Time + 10 ) mat.emissive_multiplier = anim.Point * 100.0
+                            at time ( anim.Time + 10 ) mat.emissive_multiplier = anim.Point
 
                 
                 /* UVW animation  */
@@ -770,6 +770,8 @@ struct Warcraft_3_Ref_Build
         (
             local theMesh = geos[a.GeoId].meshRef
             if ( theMesh == undefined ) then continue
+            
+            -- KGAO -> Animated Opacity -> visibility
             local isVisibilityTrackRequired = false -- by default evertythng is 1
             
             if a.KGAO == undefined then continue
@@ -806,6 +808,15 @@ struct Warcraft_3_Ref_Build
                             theMesh.Visibility = off
             )
             
+            
+            -- KGAC -> Animated Color
+            if a.KGAC == undefined or theMesh.Material == undefined then continue
+            
+            for anim in a.KGAC.KG do (
+                with animate on 
+                    at time anim.Time
+                        theMesh.material.base_color = anim.point
+            )
         )  
         
     ),
@@ -1300,7 +1311,6 @@ struct Warcraft_3_Ref_Build
     function Create mdx=
     (
         format "\n"
-        --DEBUG_MODE = true
         CreateMTLS mdx
         CreateGEOS mdx
         CreateSEQS mdx
@@ -1312,7 +1322,6 @@ struct Warcraft_3_Ref_Build
         CreateCLID mdx
         CreateATCH mdx
         CreateCAMS mdx
-        CreateGEOA mdx
         CreateLITE mdx
         CreateCORN mdx
         CreateFAFX mdx
@@ -1320,6 +1329,7 @@ struct Warcraft_3_Ref_Build
         -- CreateTXAN mdx --> TXAN is used during the build of MTLS
         CreatePRE2 mdx
         AssignMTLS mdx
+        CreateGEOA mdx --> color anim is based on the material of a mesh, which must be assigned first
     )
     
 )

@@ -13,6 +13,20 @@
 */
 struct GriffonStudios_Helpers
 (
+    function ReplaceString str oldStr newStr = 
+    (
+        local retStr = ""
+        for i=1 to str.count do (
+            
+            local c = str[i]
+            if c == oldStr then 
+                retStr += newStr
+            else
+                retStr +=c
+            
+        )
+        retStr
+    ),
     function CheckFile file=
     (
         if ( file == undefined ) then  

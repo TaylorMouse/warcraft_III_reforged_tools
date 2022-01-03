@@ -15,17 +15,24 @@ struct GriffonStudios_Helpers
 (
     function ReplaceString str oldStr newStr = 
     (
+        local workingStr = str
         local retStr = ""
-        for i=1 to str.count do (
+        for i=1 to str.count do
+        (
+            local pos = findstring workingStr oldStr
+            if (pos == undefined ) then (
+                
+                retStr += workingStr
+                exit
+                
+            )
+            retStr += substring workingStr 1 (pos-1)
+            retStr += newStr
             
-            local c = str[i]
-            if c == oldStr then 
-                retStr += newStr
-            else
-                retStr +=c
-            
+            workingStr = substring workingStr ( pos + oldStr.count ) -1
         )
         retStr
+        
     ),
     function CheckFile file=
     (

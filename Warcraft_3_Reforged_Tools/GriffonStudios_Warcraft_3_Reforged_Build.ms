@@ -977,12 +977,13 @@ struct Warcraft_3_Ref_Build
             local fafxObj = WC3RefFaceFX()   
             
             fafxObj.Name = fafx[f].Name
-            fafxObj.fileName = assetFolder + fafx[f].ExternalFileName
+            
+            local fafxExternalFile = _helper.ReplaceString fafx[f].ExternalFileName "/" "\\"
+            
+            fafxObj.fileName = assetFolder + fafxExternalFile + "_ingame"
             
             layer.AddNode fafxObj
         )
-        
-        
     ),
     function CreateRIBB mdx=
     (

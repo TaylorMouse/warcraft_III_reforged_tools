@@ -55,15 +55,22 @@ plugin simpleManipulator WC3RefPopCorn
         
         on btn_browse pressed do
         (
-            local file = getOpenFileName \
+            local file = ""
+            
+            if fileName != "" then 
+                file = getOpenFileName \
+                        filename:fileName \
                         caption:"Warcraft 3 Reforged" \
                         types:"Supported Files|*.pkb|Facial Effects(*.pkb)|*.pkb|All Files|*.*" \
-                        historyCategory:"ReforgedDDSPreset"
-                
-            if ( file != undefined ) then ( 
-                fileName = file
-                
-            )
+                        historyCategory:"ReforgedPopcornFXPreset"
+            else
+                file = getOpenFileName \
+                        filename:fileName \
+                        caption:"Warcraft 3 Reforged" \
+                        types:"Supported Files|*.pkb|Facial Effects(*.pkb)|*.pkb|All Files|*.*" \
+                        historyCategory:"ReforgedPopcornFXPreset"
+            
+            if ( file != undefined ) then fileName = file
         )
     )
     

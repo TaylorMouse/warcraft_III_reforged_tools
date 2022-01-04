@@ -82,8 +82,14 @@ rollout GriffonStudios_WC3Ref_ImportWindow "Warcraft III Reforged Import"
         format "Import all LOD's: %\n" WC3Ref_IMPORT_ALL_LOD
         format "Run in Debug mode: %\n" DEBUG_MODE
         local file = txtSelectedFile.Text
-        if (doesfileexist file == true ) then 
+        if (doesfileexist file == true ) then (
+            local startedAt = timestamp()
             WC3REF_MDX.Import file
+            local endedAt = timestamp()
+            txt = "DONE (export took " + (((endedAt - startedAt) / 1000.0 as integer ) as string ) + " seconds )" 
+            messagebox txt
+            destroydialog GriffonStudios_WC3Ref_ImportWindow
+        )
         else
             MessageBox "GriffonStudios_Warcraft_3_Reforged_Import.ms not found!" 
         

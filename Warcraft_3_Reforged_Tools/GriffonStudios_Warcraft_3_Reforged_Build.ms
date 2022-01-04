@@ -916,10 +916,10 @@ struct Warcraft_3_Ref_Build
             (
                 local parts = filterString prop "="
                 
-                if (parts[1] == "Always" and parts[2] == "On" )  then cObj.Always = true
-                if (parts[1] == "Death" and parts[2] == "On" )  then cObj.Death = true
-                if (parts[1] == "Dissipate" and parts[2] == "On" )  then cObj.Dissipate = true
-                if (parts[1] == "Portrait" and parts[2] == "On" )  then cObj.Portrait = true
+                if (parts[1] == "Always"    and parts[2] == "on" )  then cObj.Always = true
+                if (parts[1] == "Death"     and parts[2] == "on" )  then cObj.Death = true
+                if (parts[1] == "Dissipate" and parts[2] == "on" )  then cObj.Dissipate = true
+                if (parts[1] == "Portrait"  and parts[2] == "on" )  then cObj.Portrait = true
             )
     
             if ( c.ParentId > 0 ) then

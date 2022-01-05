@@ -908,6 +908,7 @@ struct Warcraft_3_Ref_Build
         (
             if DEBUG_MODE then format "Building %\n" c.name
             local cObj = WC3RefPopCorn()
+            cObj.transform = mdx.BPOS[c.id]
             layer.addnode cObj
             cObj.Name = c.Name
             

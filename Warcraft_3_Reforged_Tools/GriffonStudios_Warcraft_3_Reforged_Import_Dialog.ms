@@ -3,7 +3,7 @@
     | Opens up a popup window for importing Warcraft III Reforged mdx models
     
     .COPYRIGHT
-    | (c)2021 Griffon Studios
+    | ©2021 Griffon Studios
     
     .AUTHOR
     | Taylor Mouse

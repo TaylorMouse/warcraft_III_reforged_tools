@@ -59,6 +59,13 @@ struct Warcraft_3_Ref_Write
         writeFloat stream vector4[3]
         writeFloat stream vector4[4]
     ),
+    function WriteColor stream theColor=
+    (
+        writeFloat stream ( theColor.R / 255.0 )
+        writeFloat stream ( theColor.G / 255.0 )
+        writeFloat stream ( theColor.B / 255.0 )
+        
+    ),
     function WriteKGAnim stream kgAnim=
     (
         if kgAnim == undefined then return undefined
@@ -78,7 +85,7 @@ struct Warcraft_3_Ref_Write
                 if ( kgAnim.Type == "KGTR" ) then _writer.WriteVector3 stream anim.Val
                 if ( kgAnim.Type == "KGRT" ) then _writer.WriteQuat    stream anim.Val 
                 if ( kgAnim.Type == "KGSC" ) then _writer.WriteVector3 stream anim.Val
-                
+                if ( kgAnim.Type == "KPPV" ) then writeFloat stream anim.Val
             )
             
             
@@ -452,7 +459,7 @@ struct Warcraft_3_Ref_Write
                 for kg in geoa.KGAO.KG do
                 (
                     writeLong  mdx.stream kg.time
-                    writeFloat mdx.stream kg.point
+                    writeFloat mdx.stream kg.Point
                 )
                 
             )
@@ -627,15 +634,17 @@ struct Warcraft_3_Ref_Write
         local totalSize = 0
         for obj in mdx.allobjects do
         (
+            
             if obj.ObjectType == #wc3CLID then
             (
-                totalSize += obj.headerSize
+                totalSize += obj.TotalSize
                 if ( classof obj.objRef == box ) then totalSize += 28
                 if ( classof obj.objRef == plane ) then totalSize += 28
                 if ( classof obj.objRef == sphere ) then totalSize += 20
                 if ( classof obj.objRef == cylinder ) then totalSize += 32
             )
         )
+        
         if totalSize == 0 then return undefined
         _writer.WriteFixedString mdx.stream "CLID" 4 
         writeLong mdx.stream totalSize
@@ -646,31 +655,40 @@ struct Warcraft_3_Ref_Write
             if obj.ObjectType == #wc3CLID then
             ( 
                 if DEBUG_MODE then format "- %\n" obj.name
-                writeLong mdx.stream obj.headerSize
+                writeLong mdx.stream obj.TotalSize
                 _writer.WriteFixedString mdx.stream obj.name 80
                 writeLong mdx.stream obj.id
                 writeLong mdx.stream obj.parentId #signed
                 writeLong mdx.stream obj.flags
                 
+                _writer.WriteKGAnim mdx.stream obj.KGTR
+                _writer.WriteKGAnim mdx.stream obj.KGRT
+                _writer.WriteKGAnim mdx.stream obj.KGSC
+                
+                
                 if ( classof obj.objRef == box ) then 
                 (
                     writeLong mdx.stream 0
-                    writeFloat mdx.stream obj.objRef.min.x
-                    writeFloat mdx.stream obj.objRef.min.y
-                    writeFloat mdx.stream obj.objRef.min.z
-                    writeFloat mdx.stream obj.objRef.max.z
-                    writeFloat mdx.stream obj.objRef.max.z
-                    writeFloat mdx.stream obj.objRef.max.z
+                    in coordsys local (
+                        writeFloat mdx.stream obj.objRef.min.x
+                        writeFloat mdx.stream obj.objRef.min.y
+                        writeFloat mdx.stream obj.objRef.min.z
+                        writeFloat mdx.stream obj.objRef.max.x
+                        writeFloat mdx.stream obj.objRef.max.y
+                        writeFloat mdx.stream obj.objRef.max.z
+                    )
                 )    
                 if ( classof obj.objRef == plane ) then 
                 (
                     writeLong mdx.stream 1
-                    writeFloat mdx.stream obj.objRef.min.x
-                    writeFloat mdx.stream obj.objRef.min.y
-                    writeFloat mdx.stream obj.objRef.min.z
-                    writeFloat mdx.stream obj.objRef.max.z
-                    writeFloat mdx.stream obj.objRef.max.z
-                    writeFloat mdx.stream obj.objRef.max.z
+                    in coordsys local (
+                        writeFloat mdx.stream obj.objRef.min.x
+                        writeFloat mdx.stream obj.objRef.min.y
+                        writeFloat mdx.stream obj.objRef.min.z
+                        writeFloat mdx.stream obj.objRef.max.z
+                        writeFloat mdx.stream obj.objRef.max.z
+                        writeFloat mdx.stream obj.objRef.max.z
+                    )
                 )    
                 if ( classof obj.objRef == sphere ) then 
                 (
@@ -683,13 +701,15 @@ struct Warcraft_3_Ref_Write
                 if ( classof obj.objRef == cylinder ) then 
                 (
                     writeLong mdx.stream 3
-                    writeFloat mdx.stream obj.objRef.pos.x
-                    writeFloat mdx.stream obj.objRef.pos.y
-                    writeFloat mdx.stream obj.objRef.pos.z
-                    writeFloat mdx.stream obj.objRef.pos.x
-                    writeFloat mdx.stream obj.objRef.pos.y
-                    writeFloat mdx.stream ( obj.objRef.pos.z + obj.objRef.height )
-                    writeFloat mdx.stream obj.objRef.radius
+                    in coordsys local (
+                        writeFloat mdx.stream obj.objRef.pos.x
+                        writeFloat mdx.stream obj.objRef.pos.y
+                        writeFloat mdx.stream obj.objRef.pos.z
+                        writeFloat mdx.stream obj.objRef.pos.x
+                        writeFloat mdx.stream obj.objRef.pos.y
+                        writeFloat mdx.stream obj.objRef.pos.z
+                        writeFloat mdx.stream obj.objRef.radius
+                    )
                 ) 
             )
         )
@@ -715,11 +735,7 @@ struct Warcraft_3_Ref_Write
     ),
     function WriteCAMS mdx=
     (
-        /*
-            struct WC3RefCam ( cameraObj, KCTR = #(), KCRL = #(), KTTR = #(), size = 120 )
-            struct _anim ( size, lineType = 1, GLBS_ID = -1, nbr, AnimBlock = #() )
-            struct _keyVal ( key, val )
-        */
+
         if mdx.CAMS == undefined or mdx.CAMS.count == 0 then return undefined
         format "Writing CAMS\n"
         _writer.WriteFixedString mdx.stream "CAMS" 4
@@ -782,5 +798,126 @@ struct Warcraft_3_Ref_Write
             )
         )
         
+    ),
+    function WriteFAFX mdx=
+    (
+        if mdx.FAFX == undefined or mdx.FAFX.Count == 0 then return undefined
+        format "Writing FAFX\n"
+        _writer.WriteFixedString mdx.stream "FAFX" 4
+        
+        writeLong mdx.stream mdx.FAFX.TotalSize
+        _writer.WriteFixedString mdx.stream mdx.FAFX.name 80
+        
+        local externalFileName = _helper.ReplaceString mdx.FAFX.ExternalFileName "_ingame" ""
+        externalFileName = _helper.ReplaceString externalFileName "\\" "/"
+        
+        local posAssets = findString externalFileName "/assets/".count
+        
+        if posAssets != undefined then 
+            externalFileName = substring externalFileName (posAssets + "/assets/".count ) -1
+        
+        _writer.WriteFixedString mdx.stream externalFileName 260
+        
+    ),
+    function WriteCORN mdx=
+    (
+        struct wc3ref_corn ( Object1000, KPPA, /* Alpha */ KPPV, /* Visibility */ KPPE, /* Emission */ KPPS, /* Speed */ KPPL, /* LifeSpan */ KPPC  /* Color */ )
+        struct kgAnim ( type, nbrKeys, LineType = 0, glbsId = -1, AnimBlock = #() )
+        struct kg1000   ( key, val )
+        
+        local popcorns = #()
+        for obj in mdx.allObjects do
+            if ( obj.ObjectType == #wc3CORN ) then append popcorns ( wc3ref_corn Object1000:obj )
+        
+        if popcorns.count == 0 then return undefined
+            
+        format "Writing CORN\n"
+        _writer.WriteFixedString mdx.stream "CORN" 4
+
+        local totalSize = 0
+        for popcorn in popcorns do (
+            
+            local obj = popcorn.object1000
+            
+            -- check additional animation stuff and add it to the struct also calculate the totalsize of each popcorn
+
+            -- KPPV
+            local visController = GetVisController obj.objRef
+            local frames = undefined
+            
+            if (visController != undefined and classof visController == On_Off ) then 
+            (
+                local seqs_frames = #()
+                append seqs_frames 0
+                for s in mdx.SEQS do (
+                    appendifUnique seqs_frames ( _parser.RoundToFrame s.startframe )
+                    appendifUnique seqs_frames ( _parser.RoundToFrame s.endFrame )
+                )
+                
+                frames = #()
+                obj.TotalSize += 16 --> KPPV, nbr of points, linetype, glbsId
+                
+                for key in visController.keys do append frames ( key.time as integer / TicksPerFrame )
+                
+                for f in seqs_frames do appendIfUnique frames f
+                
+                frames = sort frames
+                
+                popcorn.KPPV = kgAnim type:"KPPV" nbrKeys:frames.count
+
+                obj.totalSize += popcorn.KPPV.nbrKeys * 8
+                
+                for f in frames do
+                (
+                    local kg = kg1000()
+                    kg.key = f
+                    kg.val = 0.0
+                    at time f
+                        if obj.objRef.visibility then kg.val = 1.0
+                    append popcorn.KPPV.AnimBlock kg
+                    if DEBUG_MODE then format "%\n" kg
+                )
+                
+                
+                
+            )
+
+            totalSize += obj.totalSize
+        )
+        writeLong mdx.stream totalSize
+
+        --> write it all out
+        for popcorn in popcorns do (
+            
+            local obj = popcorn.Object1000
+            
+            writeLong mdx.stream obj.totalSize
+            writeLong mdx.stream obj.headerSize
+            _writer.WriteFixedString mdx.stream obj.name 80
+            writeLong mdx.stream obj.id
+            writeLong mdx.stream obj.parentId #signed
+            writeLong mdx.stream obj.flags
+            
+            _writer.WriteKGAnim mdx.stream obj.KGTR
+            _writer.WriteKGAnim mdx.stream obj.KGRT
+            _writer.WriteKGAnim mdx.stream obj.KGSC
+            
+            _writer.WriteColor mdx.stream obj.objRef.base_color
+            writeFloat mdx.stream obj.objRef.base_color_multi
+            _writer.WriteColor mdx.stream obj.objRef.team_color
+            writeFloat mdx.stream obj.objRef.team_color_alpha
+            
+            local fileName = obj.objRef.filename
+            fileName = substring fileName ( findString fileName "\\Assets\\"  + 8 ) -1
+            fileName = getFileNamePath fileName + GetFileNameFile fileName + ".pkfx"
+            fileName = _helper.ReplaceString fileName "\\" "/"
+            
+            _writer.WriteFixedString mdx.stream fileName 260       
+            
+            local popcornProperties = _parser.GetPopcornProps obj.objRef
+            _writer.WriteFixedString mdx.stream popcornProperties 260 
+            
+            _writer.WriteKGAnim mdx.stream popcorn.KPPV
+        )
     )
 )

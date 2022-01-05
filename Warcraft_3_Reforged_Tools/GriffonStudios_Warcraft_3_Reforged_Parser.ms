@@ -17,6 +17,21 @@
 
 struct Warcraft_3_Ref_Parser
 (
+    function GetPopcornProps popcornFx=
+    (
+        if ( classOf popcornFx != WC3RefPopCorn ) then return ""
+        
+        local props = ""
+        if ( popcornFx.Always ) then props += "Always=on, " else props += "Always=on, " --> always available
+        if ( popcornFx.Death )  then props += "Death=on, " else props += "Death=off, " --> always available
+        if ( popcornFx.Dissipate )  then props += "Dissipate=on, "
+        if ( popcornFx.Portrait )  then props += "Portrait=on, "
+        
+        if props.count > 2 then props = substring props 1 ( props.count - 2 )
+        
+        props
+        
+    ),
     function Color2Vector3 c=
     (
         local x = c.R / 255.0
@@ -390,7 +405,16 @@ struct Warcraft_3_Ref_Parser
                 id +=1
                 append allObjects o
             )
-        
+            
+        -- CORN
+        for obj in objects do
+            if (classof obj == WC3RefPopCorn ) then
+            (
+                    local o = object1000 Id:id Name:obj.name ObjectType:#wc3CORN Flags:0x1000 objRef:obj TotalSize:652
+                    id +=1
+                    append allObjects o
+            )
+         
         -- EVTS
         for obj in objects do
             if (classof obj == WC3RefEvent ) then
@@ -409,15 +433,14 @@ struct Warcraft_3_Ref_Parser
             (
                 if ( classof obj == box or classof obj == sphere or classof obj == plane or classof obj == cylinder ) then
                 (
-                    local o = object1000 Id:id Name:obj.name ObjectType:#wc3CLID Flags:0x2000 objRef:obj
+                    local o = object1000 Id:id Name:obj.name ObjectType:#wc3CLID Flags:0x2000 objRef:obj TotalSize:96
                     id +=1
                     append allObjects o
                 )
             )
 
-        -- CORN ?
+ 
         -- RIBB ?
-        -- CAMS ?
         -- LITE ?
             
         /* build the hierarchy of objects */
@@ -442,10 +465,6 @@ struct Warcraft_3_Ref_Parser
         (
             local theGlbs = undefined
             local glbsId = -1
-            local type = undefined
-            if ( obj.objectType == #wc3Bone ) then type = "Bone"
-            if ( obj.objectType == #wc3HELP ) then type = "Dummy"
-            
  
             obj.KGTR = _parser.GetKGTR obj.objRef --> translation
             obj.KGRT = _parser.GetKGRT obj.objRef --> rotation
@@ -807,16 +826,15 @@ struct Warcraft_3_Ref_Parser
                 
                 for f in frames do
                 (
-                    local kg = kg1000()
-                    at time f
-                    (
-                        kg.Time = f * 1000 / 30
-                        if theMesh.visibility then kg.Point = 1.0
-                    )
+                    local kg = kg1000 Point:0.0
+                    kg.Time = f * 1000 / 30
+                    at time f 
+                        if theMesh.visibility then kg.point = 1.0
                     append geoa.KGAO.KG kg
+                    if DEBUG_MODE then format "%\n" kg
                 )
                 
-                if DEBUG_MODE then format "%\n" geoa
+                
                 
             )
             

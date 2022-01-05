@@ -80,23 +80,23 @@ struct Warcraft3_Reforged_Menu
         utilitiesMenuItems.setUseCustomTitle true
         
         local wc3Action12 = menuMan.createActionItem "Warcraft3Reforged_ResetAnimationTracks" subset
-        local wc3Action13 = menuMan.createActionItem "Warcaft3Reforged_SC2AttachmentpointConvertor" subset
-        local wc3Action14 = menuMan.createActionItem "Warcaft3Reforged_SC2HittestBoxes" subset
+        -- local wc3Action13 = menuMan.createActionItem "Warcaft3Reforged_SC2AttachmentpointConvertor" subset
+        -- local wc3Action14 = menuMan.createActionItem "Warcaft3Reforged_SC2HittestBoxes" subset
         
         
         wc3Action12.SetTitle "Reset Animation Tracks"
-        wc3Action13.SetTitle "Convert to SC2 Attachment Points"
-        wc3Action14.SetTitle "Convert to SC2 Hit Test Boxes"
+        -- wc3Action13.SetTitle "Convert to SC2 Attachment Points"
+        -- wc3Action14.SetTitle "Convert to SC2 Hit Test Boxes"
         
         
         wc3Action12.setUseCustomTitle true
-        wc3Action13.setUseCustomTitle true
-        wc3Action14.setUseCustomTitle true
+        -- wc3Action13.setUseCustomTitle true
+        -- wc3Action14.setUseCustomTitle true
         
         
         utilitiesMenu.addItem wc3Action12 -1
-        utilitiesMenu.addItem wc3Action13 -1
-        utilitiesMenu.addItem wc3Action14 -1
+        -- utilitiesMenu.addItem wc3Action13 -1
+        -- utilitiesMenu.addItem wc3Action14 -1
 
         /* DISPLAY MENU*/
         

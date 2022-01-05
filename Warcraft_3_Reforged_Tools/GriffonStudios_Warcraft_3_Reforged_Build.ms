@@ -88,6 +88,7 @@ struct Warcraft_3_Ref_Build
             format "Building material: %\n" mat.Name
             
             if (mtl.Layers.count > 0) then mat.filtermode = mtl.Layers[1].filterMode
+            mat.replacableTexture = 1
             
             if ( bit.and mtl.Flags 0x1 > 0 ) then mat.DONT_INHERIT_TRANSLATION = true
             if ( bit.and mtl.Flags 0x2 > 0 ) then mat.DONT_INHERIT_SCALING = true
@@ -610,7 +611,7 @@ struct Warcraft_3_Ref_Build
                 
             local clObj = undefined
             
-            -- CUBE
+            -- BOX
             if(cl.CollisionType == 0 ) then 
             (
                 local w = distance [cl.StartPosition.X,0,0] [cl.EndPosition.X,0,0] 
@@ -633,7 +634,7 @@ struct Warcraft_3_Ref_Build
                 clObj = Sphere radius:cl.Radius name:cl.name pos:cl.startPosition
             )
             
-            -- Cylinder
+            -- CYLINDER
             if(cl.CollisionType == 3 ) then
             (
                 local height = distance [0, 0, cl.startPosition.z] [0, 0, cl.endPosition.z]
@@ -702,13 +703,16 @@ struct Warcraft_3_Ref_Build
         for a in mdx.atch do
         (
             if DEBUG_MODE then format "Building %\n" a.name
+            
             local pnt = WC3RefAttachment name:a.name
             pnt.pos = mdx.BPOS[a.id].translationpart
+            
             layer.AddNode pnt
             
-            if ( a.ParentId > 0 ) then
+            if ( a.ParentId > 0 ) then (
+                pnt.pos = mdx.objs[a.ParentId].pos
                 pnt.parent = mdx.objs[a.ParentId]
-
+            )
         )
         
     ),
@@ -912,6 +916,11 @@ struct Warcraft_3_Ref_Build
             
             cObj.FileName = assetFolder + path + fileNameOnly + ".pkb"
             
+            cObj.base_color = c.baseColor
+            cObj.base_color_multi = c.baseColorAlpha
+            cObj.team_color  = c.teamColor
+            cObj.team_color_alpha = c.teamColorAlpha
+            
             for prop in c.Properties do
             (
                 local parts = filterString prop "="
@@ -941,9 +950,37 @@ struct Warcraft_3_Ref_Build
                     with animate on at time ( anim.Time + 10 ) 
                         cObj.scale = anim.Point
             
-            if( c.KPPV != undefined) then
+            /*
+                KPPA --> Alpha
+                KPPE --> Emission 
+                KPPS --> Speed
+                KPPL --> LifeSpan
+                KPPC --> Color
+                KPPV --> Visibility
+            */
+            if (c.KPPA != undefined ) then
+                for anim in c.KPPA.KG do
+                    with animate on at time ( anim.Time + 10 ) cObj.alpha = anim.point
+                
+            if (c.KPPE != undefined ) then
+                for anim in c.KPPE.KG do
+                    with animate on at time ( anim.Time + 10 ) cObj.emission_rate = anim.point
+            
+            if (c.KPPS != undefined ) then
+                for anim in c.KPPS.KG do
+                    with animate on at time ( anim.Time + 10 ) cObj.speed = anim.point
+            
+            if (c.KPPL != undefined ) then
+                for anim in c.KPPL.KG do
+                    with animate on at time ( anim.Time + 10 ) cObj.life_span = anim.point
+
+            if (c.KPPC != undefined ) then
+                for anim in c.KPPC.KG do
+                    with animate on at time ( anim.Time + 10 ) cObj.base_color = anim.point            
+                
+            if ( c.KPPV != undefined ) then 
             (
-                local isVisibilityTrackRequired = false -- by default evertythng is 1
+                local isVisibilityTrackRequired = false -- by default evertything is 1
                 
                 for anim in c.KPPV.KG do
                     if ( anim.point == 0) then isVisibilityTrackRequired = true

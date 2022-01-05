@@ -17,11 +17,13 @@
 
 GLOBAL _writer
 GLOBAL _parser
+GLOBAL _helper
 GLOBAL DEBUG_MODE = false
 GLOBAL WC3REF_INVERT_UVW = true
 
 fileIn "GriffonStudios_Warcraft_3_Reforged_Parser.ms"
 fileIn "GriffonStudios_Warcraft_3_Reforged_Write.ms"
+fileIn "GriffonStudios_Helpers.ms"
 
 STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
 (
@@ -44,7 +46,8 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
 
         _writer = Warcraft_3_Ref_Write()
         _parser = Warcraft_3_Ref_Parser()
-            
+        _helper = GriffonStudios_Helpers()
+
         local mdx = mdx1000 file:file
         
         -- set the scene for exporting
@@ -62,7 +65,6 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         _parser.GetCAMS mdx
         _parser.GetFAFX mdx     
 
-
         -- write the parts to file
         mdx.stream = fOpen file "wb"
 
@@ -79,15 +81,16 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         _writer.WriteATCH mdx
         _writer.WritePIVT mdx
         _writer.WriteEVTS mdx
+        _writer.WriteCORN mdx
         _writer.WriteCAMS mdx
         _writer.WriteCLID mdx
+        _writer.WriteFAFX mdx
         _writer.WriteBPOS mdx
 
---         _writer.WriteCORN mdx
 --         _writer.WriteLITE mdx
 --         _writer.WritePRE2 mdx
 --         _writer.WriteRIBB mdx
---         _writer.WriteFAFX mdx
+--         
 
 
         fFlush mdx.stream
@@ -100,4 +103,4 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
     )
 )
 
-GriffonStudios_Warcraft_3_Reforged_Exporter.Export @"G:\Blizzard\Warcraft - Reforged\Extracted\Assets\objects\inventoryitems\glyph\glyph_export.mdx"
+--GriffonStudios_Warcraft_3_Reforged_Exporter.Export @"G:\Blizzard\Warcraft - Reforged\Extracted\Assets\objects\inventoryitems\glyph\glyph_export.mdx"

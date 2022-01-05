@@ -873,7 +873,9 @@ struct Warcraft_3_Ref_Read
             append clidList clid
             local size = currentOffset - startPos
             totalSize -= size
+            DEBUG_MODE=true
             if DEBUG_MODE then format "%\n" clid
+            DEBUG_MODE=false
         )
         
         return clidList
@@ -1320,7 +1322,19 @@ struct Warcraft_3_Ref_Read
         fseek stream tag.offset #seek_set
         
         struct WC3Ref_CORN
-            ( Id, Name, FileName, Properties, ParentId, Flags, KPPA, KPPV,KPPE, KGSC, KGTR, KGRT )
+            ( Id, Name, FileName, Properties, ParentId, Flags, 
+                baseColor, baseColorAlpha, 
+                teamColor, teamColorAlpha,
+                KPPA, --> Alpha
+                KPPV, --> Visibility
+                KPPE, --> Emission 
+                KPPS, --> Speed
+                KPPL, --> LifeSpan
+                KPPC, --> Color
+                KGSC, 
+                KGTR, 
+                KGRT )
+        
         local totalSize = tag.Size
         local corn = #()
         
@@ -1348,24 +1362,32 @@ struct Warcraft_3_Ref_Read
             if( cor.KGTR == undefined ) then fseek stream -4 #seek_cur
             if( cor.KGRT == undefined ) then fseek stream -4 #seek_cur
             
-            for i=1 to 8 do 
-                local f = readFloat stream
+            cor.baseColor      = _reader.ReadColor stream
+            cor.baseColorAlpha = readFloat stream
+            cor.teamColor      = _reader.ReadColor stream
+            cor.teamColorAlpha = readFloat stream
             
-            cor.filename = _Helper.ReadFixedString stream 260
+            cor.filename       = _Helper.ReadFixedString stream 260
+
             local props = _Helper.ReadFixedString stream 260
-            
             cor.properties = filterString props ", "
             
-            for i=1 to 3 do
+            for i=1 to 6 do
             (
                 local anim = GriffonStudios_Helpers.ReadFixedString stream 4
-                if (anim == "KPPE") then cor.kppe = _reader.ReadFloatAnim stream
+                if (anim == "KPPE") then cor.kppe = _reader.ReadFloatAnim stream -- emissive
                 if (anim == "KPPA") then cor.kppa = _reader.ReadFloatAnim stream -- alpha
                 if (anim == "KPPV") then cor.kppv = _reader.ReadFloatAnim stream -- visibility
+                if (anim == "KPPL") then cor.kppl = _reader.ReadFloatAnim stream -- lifespan
+                if (anim == "KPPS") then cor.kpps = _reader.ReadFloatAnim stream -- speed
+                if (anim == "KPPC") then cor.kppc = _reader.ReadColorAnim stream -- color
             )
             if( cor.kppe == undefined ) then fseek stream -4 #seek_cur
             if( cor.kppa == undefined ) then fseek stream -4 #seek_cur
             if( cor.kppv == undefined ) then fseek stream -4 #seek_cur
+            if( cor.kppc == undefined ) then fseek stream -4 #seek_cur
+            if( cor.kppl == undefined ) then fseek stream -4 #seek_cur
+            if( cor.kpps == undefined ) then fseek stream -4 #seek_cur
 
             if DEBUG_MODE then format "%\n" cor
             append corn cor

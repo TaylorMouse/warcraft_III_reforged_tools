@@ -644,6 +644,7 @@ struct Warcraft_3_Ref_Build
             if clObj == undefined then return undefined
 
             clObj.Transform = mdx.BPOS[cl.id]
+            in coordsys local rotate clObj (angleaxis 180 [1,0,0])
             
             if cl.parentId > 0 then cl.parent = mdx.bone[cl.parentId].boneRef
             

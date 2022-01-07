@@ -227,7 +227,7 @@ struct Warcraft_3_Ref_Read
     function ReadSEQS stream tag=
     (
         struct WC3Ref_SEQS
-            ( Name, StartFrame, EndFrame, MovementSpeed, NoLoop, Rarity, Priority, Default, BBox )
+            ( Name, StartFrame, EndFrame, MovementSpeed, NoLoop, Rarity, Priority, Radius, BBox )
         
         fseek stream tag.offset #seek_set
         
@@ -248,8 +248,8 @@ struct Warcraft_3_Ref_Read
             seq.MovementSpeed = readFloat stream
             seq.NoLoop        = readLong stream
             seq.Rarity        = readFloat stream
-            seq.Default       = readlong stream
-            seq.Priority      = readFloat stream
+            seq.Priority      = readlong stream
+            seq.Radius      = readFloat stream
             
             seq.BBox = #([readfloat stream,readfloat stream,readfloat stream], [readfloat stream,readfloat stream,readfloat stream] )
 

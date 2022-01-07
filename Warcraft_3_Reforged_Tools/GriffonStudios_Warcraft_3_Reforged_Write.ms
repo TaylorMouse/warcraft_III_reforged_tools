@@ -141,8 +141,8 @@ struct Warcraft_3_Ref_Write
             WriteFloat mdx.stream seq.MovementSpeed
             WriteLong  mdx.stream seq.NoLoop
             WriteFloat mdx.stream seq.Rarity
-            WriteLong  mdx.stream seq.Default
-            WriteFloat mdx.stream seq.Priority
+            WriteLong  mdx.stream seq.Priority
+            WriteFloat mdx.stream seq.Radius
             
             _writer.WriteVector3 mdx.stream seq.BBox[1]
             _writer.WriteVector3 mdx.stream seq.BBox[2]

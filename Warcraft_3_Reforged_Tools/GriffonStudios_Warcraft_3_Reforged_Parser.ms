@@ -85,21 +85,59 @@ struct Warcraft_3_Ref_Parser
     ),
     function CalculateTangents theMesh=
     (
+        local original_normals = #()
+        local tvVertices = #()
+
+        for v=1 to theMesh.numVerts do
+            original_normals[v]  = getNormal theMesh v
+
+
+        for i=1 to theMesh.numFaces do
+        (
+            local f = getFace theMesh i
+            local u = getTvFace theMesh i
+
+            tvVertices[u.x] = f.x
+            tvVertices[u.y] = f.y
+            tvVertices[u.z] = f.z
+        )
+
+        -- if there are isolated vertices, these will show up in the tvVertices as undefined -> fix this
+        for i=1 to tvVertices.count do
+        (
+            if (tvVertices[i] == undefined ) then tvVertices[i] = i as float
+        )
+
+        local normals = #()
+        local uvs = #()
+
+        for i=1 to tvVertices.count do
+        (
+            local uv = getTvert theMesh i
+            
+            if WC3REF_INVERT_UVW then 
+                uvs[i] = [uv.x, 1.0 - uv.y, 0.0]
+            else
+                uvs[i] = [uv.x, uv.y, 0.0]
+
+            normals[i]  = original_normals[tvVertices[i]]
+        )
+        
         local tan1 = #()
         local tan2 = #()
         local tangent = #()
+        
         for i=1 to theMesh.numFaces do
         (
-
             local f = getTvFace theMesh i
 
-            local w1 = getTVert theMesh f[1]
-            local w2 = getTVert theMesh f[2]
-            local w3 = getTVert theMesh f[3]
+            local w1 = uvs[f[1]]
+            local w2 = uvs[f[2]]
+            local w3 = uvs[f[3]]
 
-            local n1 = getnormal theMesh f[1]
-            local n2 = getnormal theMesh f[2]
-            local n3 = getnormal theMesh f[3]
+            local n1 = normals[f[1]]
+            local n2 = normals[f[2]]
+            local n3 = normals[f[3]]
             
             local t1 = cross n1 w1
             local t2 = cross n2 w2
@@ -111,6 +149,7 @@ struct Warcraft_3_Ref_Parser
 
         )
         return tangent
+        
     ),
     function GetWeights theMesh mdx=
     (
@@ -492,7 +531,7 @@ struct Warcraft_3_Ref_Parser
     ),
     function GetSEQS mdx=
     (
-        struct WC3AnimSequence ( Name, StartFrame, EndFrame, MovementSpeed=0.0, NoLoop=0, Rarity=0, Priority=0, Default=0, BBox )
+        struct WC3AnimSequence ( Name, StartFrame, EndFrame, MovementSpeed=0.0, NoLoop=0, Rarity=0, Priority=0, Radius=0, BBox )
         
         local size = 132
         local seqs = #()
@@ -516,6 +555,7 @@ struct Warcraft_3_Ref_Parser
                 local EndFrame = (getnotekeytime track (i+1)) as integer / TicksPerFrame
             
                 s.BBox = _parser.GetMODLBoundingBoxBetweenFrames startFrame endFrame
+                s.Radius = distance BBox[1] BBox[2]  / 2.0
                 s.StartFrame =  startFrame * 1000 / 30 --wc3startFrame
                 s.EndFrame =  EndFrame * 1000 / 30 -- wc3EndFrame
 
@@ -935,59 +975,72 @@ struct Warcraft_3_Ref_Parser
         )
         mdx.CAMS = cams
     ),
-    function GetTXAN mat mdx=
+    function GetTXAN mdx=
     (
-        -- get the texture animation for a pecific material
-        struct wc3ref_txan ( size=0, KTAT, KTAR, KTAS )
-        struct wc3ref_kt ( size, nbr, lineType, GLBS_ID, AnimBlock = #() )
-        struct _keyVal ( key, val )
         
-        local txanExists = false
-        
-        local coords = mat.Diffuse_Map.coords
-        
-        if ( coords.u_offset.controller != undefined or 
-             coords.v_offset.controller != undefined or
-             coords.u_angle.controller != undefined or
-             coords.v_angle.controller != undefined or
-             coords.w_angle.controller != undefined 
-            ) then txanExists = true
-        
-        if ( txanExists ) then (
-            if DEBUG_MODE then format "Parsing TXAN for material %\n" mat.name
-            if mdx.TXAN == undefined then mdx.TXAN = #()
-
-            local txan = wc3ref_txan()
-            local lineType = mat.lineType - 1
-            if lineType == 0 then lineType = 1
+        for mtl in mdx.MTLS do (
+            local txanId = -1
+            local mat = mtl.MaterialRef
+            -- get the texture animation for a pecific material
+            struct wc3ref_txan ( size=0, KTAT, KTAR, KTAS )
+            struct wc3ref_kt ( size, nbr, lineType, GLBS_ID, AnimBlock = #() )
+            struct _keyVal ( key, val )
             
-            -- KTAT
-            local frame_list = #()
-            for key in coords.u_offset.controller.keys do appendIfUnique frame_list ( key.time as integer / ticksperframe )
-            for key in coords.v_offset.controller.keys do appendIfUnique frame_list ( key.time as integer / ticksperframe )
-            local kt = undefined 
+            local txanExists = false
             
-            if frame_list.count > 0 then (
-                txan.KTAT = wc3ref_kt lineType:lineType GLBS_ID:-1 nbr:frame_list.count
+            local coords = mat.Diffuse_Map.coords
             
-                txan.KTAT.size = 20 + frame_list.count * 16
+            if ( coords.u_offset.controller != undefined or 
+                 coords.v_offset.controller != undefined or
+                 coords.u_angle.controller != undefined or
+                 coords.v_angle.controller != undefined or
+                 coords.w_angle.controller != undefined 
+                ) then txanExists = true
+            
+            if ( txanExists ) then (
                 
-                for f in frame_list do
-                (
-                    local val =undefined 
-                    at time f 
-                        val = [coords.u_offset, coords.v_offset, 0.0]
-                    
-                    append txan.KTAT.AnimBlock ( _keyVal key:f val:val )
-                    
-                    if DEBUG_MODE then format "%\n" ( _keyVal key:f val:val )
-                )
-                txan.size += txan.KTAT.size
-            )
-            
-            append mdx.TXAN txan
+                if mdx.GLBS == undefined then mdx.GLBS = #()
+                
+                if DEBUG_MODE then format "Parsing TXAN for material %\n" mat.name
+                if mdx.TXAN == undefined then mdx.TXAN = #()
 
+                
+                
+                local txan = wc3ref_txan()
+                local lineType = mat.lineType - 1
+                if lineType == 0 then lineType = 1
+                
+                -- KTAT
+                local frame_list = #()
+                for key in coords.u_offset.controller.keys do appendIfUnique frame_list ( key.time as integer / ticksperframe )
+                for key in coords.v_offset.controller.keys do appendIfUnique frame_list ( key.time as integer / ticksperframe )
+                local kt = undefined 
+                
+                if frame_list.count > 0 then (
+                    txan.KTAT = wc3ref_kt lineType:lineType nbr:frame_list.count
+                
+                    append mdx.GLBS frame_list[frame_list.count]
+                    txan.KTAT.GLBS_ID = mdx.GLBS.Count - 1
+                    
+                    txan.KTAT.size = 20 + frame_list.count * 16
+                    
+                    for f in frame_list do
+                    (
+                        local val =undefined 
+                        at time f 
+                            val = [coords.u_offset, coords.v_offset, 0.0]
+                        
+                        append txan.KTAT.AnimBlock ( _keyVal key:f val:val )
+                        
+                        if DEBUG_MODE then format "%\n" ( _keyVal key:f val:val )
+                    )
+                    txan.size += txan.KTAT.size
+                )
+                
+                append mdx.TXAN txan
+                txanId = mdx.TXAN.Count - 1 
+            )
+            mtl.txanid = txanId
         )
-        
     )
 )

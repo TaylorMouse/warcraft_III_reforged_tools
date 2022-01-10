@@ -436,7 +436,14 @@ struct Warcraft_3_Ref_Parser
                 append allObjects o
             )
         
-        -- ATCH
+        -- LITE
+        for obj in objects do
+            if ( classOf obj == Omnilight or classOf obj == DirectionalLight ) then (
+                append allObjects ( object1000 Id:id Name:obj.name ObjectType:#wc3LITE Flags:0x200 objRef:obj TotalSize:144 )
+                id +=1
+            )
+
+            -- ATCH
         for obj in objects do
             if (classof obj == WC3RefAttachment ) then 
             (
@@ -477,12 +484,7 @@ struct Warcraft_3_Ref_Parser
                     append allObjects o
                 )
             )
-        -- LITE
-        for obj in objects do
-            if ( classOf obj == Omnilight or classOf obj == DirectionalLight ) then (
-                append allObjects ( object1000 Id:id Name:obj.name ObjectType:#wc3LITE Flags:0x200 objRef:obj TotalSize:144 )
-                id +=1
-            )
+
  
         -- RIBB ?
 
@@ -555,16 +557,16 @@ struct Warcraft_3_Ref_Parser
                 local s = WC3AnimSequence()
                 
                 s.name = parts[1]
-                if ( DEBUG_MODE ) then  format "Animation Sequence name: %\n" s.name
+                
                 local StartFrame = (getnotekeytime track i)  as integer / TicksPerFrame
                 local EndFrame = (getnotekeytime track (i+1)) as integer / TicksPerFrame
             
+                if ( DEBUG_MODE ) then  format "Animation Sequence name: % (%-%) \n" s.name StartFrame EndFrame
+                    
                 s.BBox = _parser.GetMODLBoundingBoxBetweenFrames startFrame endFrame
-                s.Radius = distance BBox[1] BBox[2]  / 2.0
+                s.Radius = distance s.BBox[1] s.BBox[2]  / 2.0
                 s.StartFrame =  startFrame * 1000 / 30 --wc3startFrame
                 s.EndFrame =  EndFrame * 1000 / 30 -- wc3EndFrame
-
-                s.Default = 0
                     
                 for i=2 to parts.count do
                 (
@@ -572,7 +574,7 @@ struct Warcraft_3_Ref_Parser
                     local key = split[1]
                     local value = split[2]
                     
-                    --if ( WC3_DEBUG ) then format " -  %: '%' \n" key value
+                    if ( DEBUG_MODE ) then format " -  %: '%' \n" key value
                     
                     if ( key == "rarity" ) then s.rarity = (value  as float ) / 100.0
                     if ( key == "moveSpeed" ) then s.movementSpeed = value as float
@@ -1060,7 +1062,7 @@ struct Warcraft_3_Ref_Parser
             KGTR, KGRT, KGSC, KLAV, KLAI,
             size, headerSize)
         
-        struct WC3Ref_KG ( nbrKeys, lineType, glbsId, AnimBlock = #() ) 
+        struct WC3Ref_KG ( nbrKeys, lineType, glbsId, AnimBlock = #(), type ) 
         struct KeyValuePair ( Key, Val )
             
         for obj in mdx.allObjects where obj.ObjectType == #wc3LITE do
@@ -1086,7 +1088,7 @@ struct Warcraft_3_Ref_Parser
             if theLight.multiplier.controller != undefined then (
                 
                 lite.size += 16 + theLight.multiplier.controller.keys.count * 8 
-                local anim = WC3Ref_KG nbrKeys:theLight.multiplier.controller.keys.count lineType:0x1 glbsId:-1
+                local anim = WC3Ref_KG nbrKeys:theLight.multiplier.controller.keys.count lineType:0x1 glbsId:-1 type:"KLAI"
                 
                 for key in theLight.multiplier.controller.keys do (
  
@@ -1120,7 +1122,7 @@ struct Warcraft_3_Ref_Parser
                 
                 frames = sort frames
                 
-                lite.KLAV = WC3Ref_KG nbrKeys:frames.count lineType:0x1 glbsId:-1
+                lite.KLAV = WC3Ref_KG nbrKeys:frames.count lineType:0x1 glbsId:-1 type:"KLAV"
 
                 lite.size += lite.KLAV.nbrKeys * 8
                 
@@ -1134,9 +1136,11 @@ struct Warcraft_3_Ref_Parser
                 )
             )
             
+            format "%\n" lite
+            
             append mdx.LITE lite
         )
         
-        
+        mdx.LITE
     )
 )

@@ -86,6 +86,8 @@ struct Warcraft_3_Ref_Write
                 if ( kgAnim.Type == "KGRT" ) then _writer.WriteQuat    stream anim.Val 
                 if ( kgAnim.Type == "KGSC" ) then _writer.WriteVector3 stream anim.Val
                 if ( kgAnim.Type == "KPPV" ) then writeFloat stream anim.Val
+                if ( kgAnim.Type == "KLAI" ) then writeFloat stream anim.Val
+                if ( kgAnim.Type == "KLAV" ) then writeFloat stream anim.Val
             )
             
             
@@ -231,6 +233,7 @@ struct Warcraft_3_Ref_Write
             if mat.nofog        then shadingFlags += 0x20
             if mat.nodepthset   then shadingFlags += 0x40
             if mat.nodepthtest  then shadingFlags += 0x80
+            if mat.nofallback   then shadingFlags += 0x100
                 
             fresnel_r = (mat.fresnel_color.r / 255)
             fresnel_g = (mat.fresnel_color.g / 255)
@@ -296,8 +299,6 @@ struct Warcraft_3_Ref_Write
                     )
             )
             
-            -- Parse TXAN
-            _parser.GetTXAN mat mdx
             
         )
     ),
@@ -318,13 +319,13 @@ struct Warcraft_3_Ref_Write
         
             writelong mdx.stream t.size
             if t.KTAT != undefined then (
-                _writer.WriteFixedString mdx.stream "TXAN" 4
+                _writer.WriteFixedString mdx.stream "KTAT" 4
                 writeLong mdx.stream t.KTAT.nbr
                 writeLong mdx.stream t.KTAT.lineType
                 writeLong mdx.stream t.KTAT.GLBS_ID
                 
                 for anim in t.KTAT.AnimBlock do (
-                    writeLong mdx.stream ( anim.Key * 30 / 1000 )
+                    writeLong mdx.stream ( anim.Key * 1000 / 30  )
                     _writer.WriteVector3 mdx.stream anim.val
                 )
             )
@@ -919,5 +920,58 @@ struct Warcraft_3_Ref_Write
             
             _writer.WriteKGAnim mdx.stream popcorn.KPPV
         )
+    ),
+    function WriteGLBS mdx=
+    (
+        if mdx.GLBS == undefined or mdx.GLBS.count == 0 then return undefined
+            
+        format "Writing GLBS\n"
+        _writer.WriteFixedString mdx.stream "GLBS" 4
+        writeLong mdx.stream ( mdx.GLBS.count * 4 )
+        
+        for glbs in mdx.GLBS do 
+            writeLong mdx.stream ( glbs * 1000 / 30 )
+    ),
+    function WriteLITE mdx=
+    (
+
+        if mdx.LITE == undefined then return undefined
+        
+        format "Writing LITE\n"
+        _writer.WriteFixedString mdx.stream "LITE" 4
+        
+        local totalSize = 0
+        for l in mdx.LITE do totalSize += l.size
+        if DEBUG_MODE then Format "%\n" totalSize
+        writeLong mdx.stream totalSize
+        
+        for l in mdx.LITE do (
+        
+            if DEBUG_MODE then Format "%\n" l
+            
+            writeLong mdx.stream l.Size
+            writeLong mdx.stream l.HeaderSize
+            _writer.WriteFixedString mdx.stream l.name 80
+            writeLong mdx.stream l.id
+            writeLong mdx.stream l.parentId #signed
+            writeLong mdx.stream l.flags
+            
+            _writer.WriteKGAnim mdx.stream l.KGTR
+            _writer.WriteKGAnim mdx.stream l.KGRT
+            _writer.WriteKGAnim mdx.stream l.KGSC
+            
+            writeLong  mdx.stream l.Type
+            writeFloat mdx.stream l.farAttenStart
+            writeFloat mdx.stream l.farAttenEnd
+            _writer.writeColor mdx.stream l.rgbColor
+            writeFloat mdx.stream l.rgbIntensity
+            _writer.writeColor mdx.stream l.ambColor
+            writeFloat mdx.stream l.ambIntensity
+            
+            _writer.WriteKGAnim mdx.stream l.KLAI
+            _writer.WriteKGAnim mdx.stream l.KLAV
+            
+        )
     )
+    
 )

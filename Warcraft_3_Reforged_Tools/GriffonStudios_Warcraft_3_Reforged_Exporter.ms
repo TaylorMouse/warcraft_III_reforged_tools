@@ -59,10 +59,12 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         _parser.GetObjects mdx
         _parser.GetSEQS mdx
         _parser.GetMTLS mdx
+        _parser.GetTXAN mdx
         _parser.GetTEXS mdx
         _parser.GetGEOS mdx
         _parser.GetGEOA mdx
         _parser.GetCAMS mdx
+        _parser.GetLITE mdx
         _parser.GetFAFX mdx     
 
         -- write the parts to file
@@ -71,23 +73,26 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         _writer.WriteMDLX mdx
         _writer.WriteMODL mdx
         _writer.WriteSEQS mdx
+        _writer.WriteGLBS mdx
         _writer.WriteMTLS mdx
         _writer.WriteTEXS mdx
         _writer.WriteTXAN mdx
         _writer.WriteGEOS mdx
         _writer.WriteGEOA mdx
         _writer.WriteBONE mdx
+--      _writer.WriteHELP mdx --> is this still valid ?        
         _writer.WriteHELP mdx
+        _writer.WriteLITE mdx
         _writer.WriteATCH mdx
         _writer.WritePIVT mdx
-        _writer.WriteEVTS mdx
         _writer.WriteCORN mdx
         _writer.WriteCAMS mdx
+        _writer.WriteEVTS mdx
         _writer.WriteCLID mdx
         _writer.WriteFAFX mdx
         _writer.WriteBPOS mdx
 
---         _writer.WriteLITE mdx
+--         
 --         _writer.WritePRE2 mdx
 --         _writer.WriteRIBB mdx
 --         
@@ -102,5 +107,3 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         setArrowCursor()   
     )
 )
-
---GriffonStudios_Warcraft_3_Reforged_Exporter.Export @"G:\Blizzard\Warcraft - Reforged\Extracted\Assets\objects\inventoryitems\glyph\glyph_export.mdx"

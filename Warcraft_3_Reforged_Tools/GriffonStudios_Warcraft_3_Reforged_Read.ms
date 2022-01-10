@@ -930,7 +930,7 @@ struct Warcraft_3_Ref_Read
             l.ambColor      = _reader.readColor stream
             l.ambIntensity  = readFloat stream
             
-            for i=1 to 3 do
+            for i=1 to 2 do
             (
                 local kg = _helper.ReadFixedString stream 4            
                 if ( kg != "KLAV" and kg != "KLAI" ) then  (

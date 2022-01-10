@@ -477,10 +477,15 @@ struct Warcraft_3_Ref_Parser
                     append allObjects o
                 )
             )
-
+        -- LITE
+        for obj in objects do
+            if ( classOf obj == Omnilight or classOf obj == DirectionalLight ) then (
+                append allObjects ( object1000 Id:id Name:obj.name ObjectType:#wc3LITE Flags:0x200 objRef:obj TotalSize:144 )
+                id +=1
+            )
  
         -- RIBB ?
-        -- LITE ?
+
             
         /* build the hierarchy of objects */
         for x=1 to allobjects.count do
@@ -1042,5 +1047,96 @@ struct Warcraft_3_Ref_Parser
             )
             mtl.txanid = txanId
         )
+    ),
+    function GetLITE mdx=
+    (
+        format "Parsing Lights\n"
+        
+        struct WC3Ref_LITE (  
+            id, name, parentId, flags, type, 
+            farAttenStart, farAttenEnd, 
+            rgbColor, rgbIntensity, 
+            ambColor, ambIntensity, 
+            KGTR, KGRT, KGSC, KLAV, KLAI,
+            size, headerSize)
+        
+        struct WC3Ref_KG ( nbrKeys, lineType, glbsId, AnimBlock = #() ) 
+        struct KeyValuePair ( Key, Val )
+            
+        for obj in mdx.allObjects where obj.ObjectType == #wc3LITE do
+        (
+            if mdx.LITE == undefined then mdx.LITE = #()
+            
+            local theLight = obj.objRef
+            if DEBUG_MODE then format "%\n" obj
+            
+            local lite = WC3Ref_LITE id:obj.id name:theLight.name parentId:obj.parentId flags:obj.flags size:obj.totalsize headersize:obj.headersize
+            
+            if ( classof theLight == Omnilight ) then lite.type = 0x0
+            if ( classof theLight == DirectionalLight ) then lite.type = 0x1
+            
+            lite.farAttenStart = theLight.farAttenStart
+            lite.farAttenEnd = theLight.FarAttenEnd
+            lite.rgbColor = theLight.rgb
+            lite.rgbIntensity = theLight.multiplier
+            lite.ambColor = color 255 255 255
+            lite.ambIntensity = 0.0
+            
+            -- KLAI -- Keys for Light Animation Intensity
+            if theLight.multiplier.controller != undefined then (
+                
+                lite.size += 16 + theLight.multiplier.controller.keys.count * 8 
+                local anim = WC3Ref_KG nbrKeys:theLight.multiplier.controller.keys.count lineType:0x1 glbsId:-1
+                
+                for key in theLight.multiplier.controller.keys do (
+ 
+                    local t = key.Time as integer / TicksPerFrame
+                    local val = at time t theLight.multiplier
+                        
+                    append anim.AnimBlock ( KeyValuePair key:t val:val ) 
+                )
+                lite.KLAI = anim
+            )
+            
+            -- KLAV -- Keys for Light Animation Visibility
+            local visController = GetVisController theLight
+            local frames = undefined
+            
+            if (visController != undefined and classof visController == On_Off ) then 
+            (
+                local seqs_frames = #()
+                append seqs_frames 0
+                for s in mdx.SEQS do (
+                    appendifUnique seqs_frames ( _parser.RoundToFrame s.startframe )
+                    appendifUnique seqs_frames ( _parser.RoundToFrame s.endFrame )
+                )
+                
+                frames = #()
+                lite.size += 16
+                
+                for key in visController.keys do append frames ( key.time as integer / TicksPerFrame )
+                
+                for f in seqs_frames do appendIfUnique frames f
+                
+                frames = sort frames
+                
+                lite.KLAV = WC3Ref_KG nbrKeys:frames.count lineType:0x1 glbsId:-1
+
+                lite.size += lite.KLAV.nbrKeys * 8
+                
+                for f in frames do
+                (
+                    local kg = KeyValuePair Val:0.0
+                    kg.Key = f * 1000 / 30
+                    at time f 
+                        if theLight.visibility then kg.Val = 1.0
+                    append lite.KLAV.AnimBlock kg
+                )
+            )
+            
+            append mdx.LITE lite
+        )
+        
+        
     )
 )

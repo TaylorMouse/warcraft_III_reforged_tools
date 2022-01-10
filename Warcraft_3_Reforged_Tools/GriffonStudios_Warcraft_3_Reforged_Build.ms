@@ -643,8 +643,8 @@ struct Warcraft_3_Ref_Build
 
             if clObj == undefined then return undefined
 
-            clObj.Transform = mdx.BPOS[cl.id]
-            in coordsys local rotate clObj (angleaxis 180 [1,0,0])
+            --clObj.Transform = mdx.BPOS[cl.id]
+            --clObj.Pos = mdx.BPOS[cl.id].translationPart
             
             if cl.parentId > 0 then cl.parent = mdx.bone[cl.parentId].boneRef
             
@@ -652,6 +652,7 @@ struct Warcraft_3_Ref_Build
             
             if ( cl.KGRT != undefined ) then 
             (
+                at time 0 in coordsys local clObj.rotation = cl.KGRT.KG[1].point
                 
                 for anim in cl.KGRT.KG do
                 (
@@ -664,6 +665,7 @@ struct Warcraft_3_Ref_Build
             
             if ( cl.KGTR != undefined ) then 
             (
+                --at time 0 in coordsys mtrx clObj.pos = cl.KGTR.KG[1].point
 
                 local prevTime = 0
                 for anim in cl.KGTR.KG do
@@ -678,7 +680,7 @@ struct Warcraft_3_Ref_Build
                     
             )
             
-            rotate clObj (angleaxis 180 [1,0,0])
+            --rotate clObj (angleaxis 180 [1,0,0])
             
             clObj.boxmode = on
             clObj.wirecolor = color 64 128 255
@@ -827,12 +829,11 @@ struct Warcraft_3_Ref_Build
     ),
     function CreateLITE mdx=
     (
-        local lites = mdx.lite
-        local pivots = mdx.pivt
-        format "Building Lights \n"
-        if ( lites == undefined ) then return undefined
         
-        for lite in lites do
+        format "Building Lights \n"
+        if ( mdx.lite == undefined ) then return undefined
+        
+        for lite in mdx.lite do
         (
             /*
                 0x0: Omni
@@ -859,25 +860,25 @@ struct Warcraft_3_Ref_Build
             if ( lite.Type > 2 ) then 
                 l = Omnilight name:lite.name rgb:lite.rgbColor multiplier:lite.rgbIntensity farAttenStart:lite.FarAttenStart farAttenEnd:lite.FarAttenEnd
             
+            if DEBUG_MODE then format "% % \n" lite.name ( classOf l )
+            
             if ( l != undefined ) then 
             (
+                l.showFarAtten = on
+                l.useFarAtten = on
+
+                
                 layer.addnode l
                 
-                if( lite.KGRT != undefined ) then 
+                if ( lite.KGRT != undefined ) then 
                     for anim in lite.KGRT.KG do
                     (
                         with animate on at time ( anim.Time + 10 ) in coordsys world
                             l.rotation = anim.Point
                     )
                 
-                for p in pivots do
-                    if( p.Id == lite.Id ) then 
-                    (
-                        l.pos = p.translationPart
-                        exit
-                    )
-                local prevPos = l.pos  
-                if( lite.KGTR != undefined) then 
+                local prevPos = mdx.BPOS[lite.Id].translationPart
+                if ( lite.KGTR != undefined) then 
                     for anim in lite.KGTR.KG do
                     (
                         with animate on at time ( anim.Time + 10 ) 
@@ -885,13 +886,52 @@ struct Warcraft_3_Ref_Build
 
                     )
 
-                if( lite.KGSC != undefined ) then 
+                if ( lite.KGSC != undefined ) then 
                     for anim in lite.KGSC.KG do
                     (
                         with animate on at time ( anim.Time + 10 ) 
                             l.scale = anim.Point
                     )
 
+                if ( lite.KLAI != undefined ) then
+                    for anim in lite.KLAI.KG do
+                    (
+                        with animate on at time ( anim.Time + 10 ) 
+                            l.multiplier = anim.Point
+                    )
+
+                    
+                if ( lite.KLAV != undefined ) then (
+                    
+                    struct wc3_opacity_track ( time, point )
+                    
+                    l.Visibility = on
+                    l.Visibility.controller = on_off()
+                    
+                    local opacity_tracks = #()
+                
+                    append opacity_tracks (wc3_opacity_track time:0 point:a.opacity)
+                    
+                    --> set the visibility per sequence back to its original state
+                    for seq in mdx.seqs do
+                        append opacity_tracks (wc3_opacity_track time:(seq.StartFrame - 2) point:a.opacity)
+                    
+                    for anim in lite.KLAV.KG do
+                        append opacity_tracks ( wc3_opacity_track time:(anim.Time + 10) point:anim.point )
+                    
+                    -- sort the opacity_tracks by time
+                    opacity_tracks = _build.SortTrack opacity_tracks
+                    
+                    for anim in opacity_tracks do 
+                        with animate on at time anim.Time
+                            if (anim.point == 1) then 
+                                l.Visibility = on
+                            else
+                                l.Visibility = off
+                    
+                )
+                    
+                    
             )
         )
     ),

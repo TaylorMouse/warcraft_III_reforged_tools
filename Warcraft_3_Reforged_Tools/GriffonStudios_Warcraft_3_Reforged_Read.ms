@@ -227,7 +227,7 @@ struct Warcraft_3_Ref_Read
     function ReadSEQS stream tag=
     (
         struct WC3Ref_SEQS
-            ( Name, StartFrame, EndFrame, MovementSpeed, NoLoop, Rarity, Priority, Radius, BBox )
+            ( Name, StartFrame, EndFrame, MovementSpeed, NoLoop, Rarity, Priority, Default, BBox )
         
         fseek stream tag.offset #seek_set
         
@@ -248,8 +248,8 @@ struct Warcraft_3_Ref_Read
             seq.MovementSpeed = readFloat stream
             seq.NoLoop        = readLong stream
             seq.Rarity        = readFloat stream
-            seq.Priority      = readlong stream
-            seq.Radius      = readFloat stream
+            seq.Default       = readlong stream
+            seq.Priority      = readFloat stream
             
             seq.BBox = #([readfloat stream,readfloat stream,readfloat stream], [readfloat stream,readfloat stream,readfloat stream] )
 
@@ -303,7 +303,6 @@ struct Warcraft_3_Ref_Read
             append mtls shdr
             if DEBUG_MODE then format "%\n" shdr
         )
-        
         return mtls
     ),
     function ReadShader stream=
@@ -355,6 +354,8 @@ struct Warcraft_3_Ref_Read
         lay.FresnelMultiplier   = readfloat stream
         lay.TeamColorMultiplier = readfloat stream
      
+        if DEBUG_MODE then format " - %\n" lay
+        
         if (lay.Size > 52 ) then
         (
             for x=1 to 3 do
@@ -885,7 +886,13 @@ struct Warcraft_3_Ref_Read
         local totalSize = tag.Size
         local lightList = #()
         
-        struct WC3Ref_LITE (  id, name, parentId, flags, type, farAttenStart, farAttenEnd, rgbColor, rgbIntensity, ambColor, ambIntensity, KGTR, KGRT, KGSC, KLAV,  lightRef, size, headerSize)
+        struct WC3Ref_LITE (  
+            id, name, parentId, flags, type, 
+            farAttenStart, farAttenEnd, 
+            rgbColor, rgbIntensity, 
+            ambColor, ambIntensity, 
+            KGTR, KGRT, KGSC, KLAV, KLAI,
+            lightRef, size, headerSize)
         
         local currentOffset = tag.Offset
         while ( totalSize > 0 ) do
@@ -923,10 +930,18 @@ struct Warcraft_3_Ref_Read
             l.ambColor      = _reader.readColor stream
             l.ambIntensity  = readFloat stream
             
-            local kg = _helper.ReadFixedString stream 4
+            for i=1 to 3 do
+            (
+                local kg = _helper.ReadFixedString stream 4            
+                if ( kg != "KLAV" and kg != "KLAI" ) then  (
+                    fseek stream -4 #seek_cur
+                    exit
+                )
+                
+                if ( kg == "KLAV" ) then l.KLAV = _reader.ReadFloatAnim stream -- visibility
+                if ( kg == "KLAI" ) then l.KLAI = _reader.ReadFloatAnim stream -- intensity
             
-            if ( kg == "KLAV" ) then l.KLAV = _reader.ReadFloatAnim stream
-            
+            )
             totalSize -= l.size
             currentOffset = currentOffset + l.Size
             
@@ -1311,7 +1326,8 @@ struct Warcraft_3_Ref_Read
             m.row4 = [readfloat stream, readfloat stream, readfloat stream]
             append bposList m
             
-            if DEBUG_MODE then format "%\n" m
+            if DEBUG_MODE then 
+                format "%\n" m.row4
             
         )
         bposList

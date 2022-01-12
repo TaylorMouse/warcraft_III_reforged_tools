@@ -73,12 +73,13 @@ STRUCT WC3REF_MDX
             )
         local mdx = mdx1000 fileName:file
             
-        format "Reading '%'\n" ( filenameFromPath  file )
+        format "\nReading '%'\n\n" ( filenameFromPath  file )
             
         local stream = fOpen file "rb"        
         local streamLen = _helper.GetStreamLength stream
-
+        
         mdx.TAGS = _reader.ReadTAGS1000 stream streamLen
+        
         for tag in mdx.TAGS do
         (
             format "Processing %\n" tag.name
@@ -102,16 +103,14 @@ STRUCT WC3REF_MDX
             if( tag.Name == "TXAN" ) then mdx.txan = _reader.ReadTXAN stream tag
             if( tag.Name == "RIBB" ) then mdx.ribb = _reader.ReadRIBB stream tag
             if( tag.Name == "PRE2" ) then mdx.pre2 = _reader.ReadPRE2 stream tag
-            if( tag.Name == "BPOS" ) then mdx.bpos = _reader.ReadBPOS stream tag
             if( tag.Name == "CORN" ) then mdx.corn = _reader.ReadCORN stream tag
             if( tag.Name == "FAFX" ) then mdx.fafx = _reader.ReadFAFX stream tag
+            if( tag.Name == "BPOS" ) then mdx.bpos = _reader.ReadBPOS stream tag
             
         )
         
         fClose stream
- 
         _build.Create mdx
-        
         format "Done!\n"
         gc()
         clearSelection()
@@ -119,5 +118,3 @@ STRUCT WC3REF_MDX
         setArrowCursor() 
     )
 )
--- DEBUG_MODE = true
--- WC3REF_MDX.Import @"G:\Blizzard\Warcraft - Reforged\Extracted\Assets\objects\inventoryitems\battlestandard\battlestandard.mdx"

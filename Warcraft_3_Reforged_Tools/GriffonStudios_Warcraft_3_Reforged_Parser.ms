@@ -262,7 +262,7 @@ struct Warcraft_3_Ref_Parser
     ),
     function GetMODLBoundingBoxBetweenFrames startFrame endFrame=
     (
-        if DEBUG_MODE then Format "Calculating MODL Boundingbox between frame % and %\n" startFrame endFrame
+        if DEBUG_MODE then Format "Calculating Boundingbox between frame % and %\n" startFrame endFrame
         local allKeys = _parser.GetAllAnimatedKeyFrames()
 
         maxPoint = [0,0,0]
@@ -460,7 +460,16 @@ struct Warcraft_3_Ref_Parser
                     id +=1
                     append allObjects o
             )
-         
+        
+        -- RIBB
+        for obj in objects do
+            if (classof obj == WC3RefRibbon ) then
+            (
+                    local o = object1000 Id:id Name:obj.name ObjectType:#wc3RIBB Flags:0x4000 objRef:obj TotalSize:152
+                    id +=1
+                    append allObjects o
+            )
+            
         -- EVTS
         for obj in objects do
             if (classof obj == WC3RefEvent ) then
@@ -484,10 +493,6 @@ struct Warcraft_3_Ref_Parser
                     append allObjects o
                 )
             )
-
- 
-        -- RIBB ?
-
             
         /* build the hierarchy of objects */
         for x=1 to allobjects.count do
@@ -574,8 +579,6 @@ struct Warcraft_3_Ref_Parser
                     local key = split[1]
                     local value = split[2]
                     
-                    if ( DEBUG_MODE ) then format " -  %: '%' \n" key value
-                    
                     if ( key == "rarity" ) then s.rarity = (value  as float ) / 100.0
                     if ( key == "moveSpeed" ) then s.movementSpeed = value as float
                     if ( key == "nonLoop" ) then 
@@ -608,24 +611,30 @@ struct Warcraft_3_Ref_Parser
     ),
     function GetMTLS mdx= 
     (
-        struct mtls1000 ( materialRef, txanId ) 
+        if DEBUG_MODE then Format "\nParsing MTLS\n"
+        struct mtls1000 ( materialRef, txanId , shader, nLayers) 
         local uniqueMatList = #()
-        
+        mdx.mtls = #()
         for obj in objects do
         (
-            if ( (classof obj != BoneGeometry ) and ( obj.material != undefined ) and ( classof obj.material == WC3RefMaterial ) ) then 
-                appendIfUnique uniqueMatList obj.material
+            if ( classof obj == editable_mesh and obj.material != undefined  and classof obj.material == WC3RefMaterial ) then (
+                local added = appendIfUnique uniqueMatList obj.material
+                if added then append mdx.mtls ( mtls1000 materialRef:obj.material txanId:-1 shader:#HD_DefaultUnit nLayers:6)
+            )
             
+            if ( classof obj == WC3RefRibbon and obj.MTLSID != undefined and classof obj.MTLSID == WC3RefMaterial ) then (
+                local added = appendIfUnique uniqueMatList obj.MTLSID
+                if added then append mdx.mtls ( mtls1000 materialRef:obj.MTLSID txanId:-1 shader:#Ribbon nLayers:1 )
+            )
         )
-        local matList = #()
-        for um in uniqueMatList do
-            append matList ( mtls1000 materialRef:um txanId:-1 )
-        
-        if DEBUG_MODE then for m in matList do format "%\n" m
-        mdx.mtls = matList
+
+        if DEBUG_MODE then for m in mdx.mtls do format "%\n" m
+
     ),
     function GetTEXS mdx=
     (
+        if DEBUG_MODE then Format "\nParsing TEXS\n"
+            
         function GetFileName map=
         (
             local fileName = ""
@@ -647,11 +656,13 @@ struct Warcraft_3_Ref_Parser
         for mat in mdx.MTLS do
         (
             appendIfUnique texs ( GetFileName mat.MaterialRef.diffuse_map )
-            appendIfUnique texs ( GetFileName mat.MaterialRef.normal_map )
-            appendIfUnique texs ( GetFileName mat.MaterialRef.orm_map )
-            appendIfUnique texs ( GetFileName mat.MaterialRef.emissive_map )
-            appendIfUnique texs "" -- required for team color --> put it here so it makes more sense
-            appendIfUnique texs ( GetFileName mat.MaterialRef.reflection_map )
+            if mat.shader == #HD_DefaultUnit then (
+                appendIfUnique texs ( GetFileName mat.MaterialRef.normal_map )
+                appendIfUnique texs ( GetFileName mat.MaterialRef.orm_map )
+                appendIfUnique texs ( GetFileName mat.MaterialRef.emissive_map )
+                appendIfUnique texs "" -- required for team color --> put it here so it makes more sense
+                appendIfUnique texs ( GetFileName mat.MaterialRef.reflection_map )
+            )
         )
         
         mdx.TEXS = #()
@@ -1072,7 +1083,8 @@ struct Warcraft_3_Ref_Parser
             local theLight = obj.objRef
             if DEBUG_MODE then format "%\n" obj
             
-            local lite = WC3Ref_LITE id:obj.id name:theLight.name parentId:obj.parentId flags:obj.flags size:obj.totalsize headersize:obj.headersize
+            local lite = WC3Ref_LITE id:obj.id name:theLight.name parentId:obj.parentId flags:obj.flags size:obj.totalsize headersize:obj.headersize \
+                                     KGTR:obj.KGTR KGRT:obj.KGRT KGSC:obj.KGSC
             
             if ( classof theLight == Omnilight ) then lite.type = 0x0
             if ( classof theLight == DirectionalLight ) then lite.type = 0x1
@@ -1136,11 +1148,152 @@ struct Warcraft_3_Ref_Parser
                 )
             )
             
-            format "%\n" lite
+            if DEBUG_MODE then format "%\n" lite
             
             append mdx.LITE lite
         )
         
         mdx.LITE
+    ),
+    function GetRIBB mdx=
+    (
+        struct WC3Ref_RIBB 
+            ( id, name,  parentId, flags, 
+              above, below, edgesSec, edgesLife, gravity, 
+              vAlpha, vColor, 
+              flipbookRows, flipbookCols, flipBookIndex, 
+              mtlsId,
+              KGTR, KGRT, KGSC, 
+              KRHA, -- height above
+              KRHB, -- height below
+              KRAL, -- alpha
+              KRCO, -- color
+              KRTX, -- textureSlot
+              KRVS, -- visibility
+              size, headerSize
+            )
+        struct WC3Ref_KG ( nbrKeys, lineType, glbsId, AnimBlock = #(), type ) 
+        struct KeyValuePair ( Key, Val )    
+        
+        format "Parsing Ribbons\n"
+            
+        local ribbons = #()
+            
+        for obj in mdx.allObjects where obj.ObjectType == #WC3RIBB do (
+            
+            local ribb = WC3Ref_RIBB id:obj.id name:obj.name parentId:obj.parentId flags:obj.flags \
+                                     size:obj.totalsize headerSize:obj.headerSize \
+                                     KGTR:obj.KGTR KGRT:obj.KGRT KGSC:obj.KGSC
+            
+            local theRibbon = obj.objRef
+            
+            ribb.above         = theRibbon.staticHeightAbove
+            ribb.below         = theRibbon.staticHeightBelow
+            ribb.vAlpha        = theRibbon.staticAlpha
+            ribb.vColor        = theRibbon.staticColor 
+            ribb.edgesLife     = theRibbon.lifeSpan
+            ribb.edgesSec      = theRibbon.emissionRate
+            ribb.flipbookRows  = theRibbon.flipbookRows
+            ribb.flipbookCols  = theRibbon.flipbookColumns
+            ribb.flipBookIndex = theRibbon.flipbookIndex
+            ribb.gravity       = theRibbon.gravity
+            
+            for m=1 to mdx.MTLS.Count do 
+                if mdx.MTLS[m].MaterialRef == theRibbon.mtlsId then ribb.mtlsId = m - 1
+            
+            -- KRHA
+            if ( theRibbon.staticHeightAbove.controller != undefined ) then (
+                ribb.KRHA = WC3Ref_KG nbrKeys:theRibbon.staticHeightAbove.controller.keys.count lineType:1 glbsId:-1 type:type
+                ribb.size += 16 + 8 * ribb.KRHA.count
+                for key in theRibbon.staticHeightAbove.controller.keys do (
+                    local t = ( key.time as integer / TicksPerFrame )
+                    local v = at time key.time theRibbon.staticHeightAbove
+                    append ribb.KRHA.AnimBlock ( KeyValuePair Key:t Val:v )
+                )
+            )
+            
+            -- KRHB
+            if ( theRibbon.staticHeightBelow.controller != undefined ) then (
+                ribb.KRHB = WC3Ref_KG nbrKeys:theRibbon.staticHeightBelow.controller.keys.count lineType:1 glbsId:-1 type:"KRHB"
+                ribb.size += 16 + 8 * ribb.KRHB.count
+                for key in theRibbon.staticHeightBelow.controller.keys do (
+                    local t = ( key.time as integer / TicksPerFrame )
+                    local v = at time key.time theRibbon.staticHeightBelow
+                    append ribb.KRHB.AnimBlock ( KeyValuePair Key:t Val:v )
+                )
+            )
+            
+            -- KRAL
+            if ( theRibbon.staticAlpha.controller != undefined ) then (
+                ribb.KRAL = WC3Ref_KG nbrKeys:theRibbon.staticAlpha.controller.keys.count lineType:1 glbsId:-1 type:"KRAL"
+                ribb.size += 16 + 8 * ribb.KRAL.count
+                for key in theRibbon.staticAlpha.controller.keys do (
+                    local t = ( key.time as integer / TicksPerFrame )
+                    local v = at time key.time theRibbon.staticAlpha
+                    append ribb.KRAL.AnimBlock ( KeyValuePair Key:t Val:v )
+                )
+            )
+            
+            -- KRCO
+            if ( theRibbon.staticColor.controller != undefined ) then (
+                ribb.KRCO = WC3Ref_KG nbrKeys:theRibbon.staticColor.controller.keys.count lineType:1 glbsId:-1 type:"KRCO"
+                ribb.size += 16 + 8 * ribb.KRCO.count
+                for key in theRibbon.staticColor.controller.keys do (
+                    local t = ( key.time as integer / TicksPerFrame )
+                    local v = at time key.time theRibbon.staticColor
+                    append ribb.KRCO.AnimBlock ( KeyValuePair Key:t Val:v )
+                )
+            )
+
+            -- KRTX
+            if ( theRibbon.flipbookIndex.controller != undefined ) then (
+                ribb.KRTX = WC3Ref_KG nbrKeys:theRibbon.flipbookIndex.controller.keys.count lineType:1 glbsId:-1 type:"KRTX"
+                ribb.size += 16 + 8 * ribb.KRTX.count
+                for key in theRibbon.flipbookIndex.controller.keys do (
+                    local t = ( key.time as integer / TicksPerFrame )
+                    local v = at time key.time theRibbon.flipbookIndex
+                    append ribb.KRTX.AnimBlock ( KeyValuePair Key:t Val:v )
+                )
+            )
+
+            -- KRVS
+            local visController = GetVisController theRibbon
+            local frames = undefined
+            
+            if (visController != undefined and classof visController == On_Off ) then 
+            (
+                local seqs_frames = #()
+                append seqs_frames 0
+                for s in mdx.SEQS do (
+                    appendifUnique seqs_frames ( _parser.RoundToFrame s.startframe )
+                    appendifUnique seqs_frames ( _parser.RoundToFrame s.endFrame )
+                )
+                
+                frames = #()
+                for key in visController.keys do append frames ( key.time as integer / TicksPerFrame )
+                for f in seqs_frames do appendIfUnique frames f
+                frames = sort frames
+                
+                ribb.KRVS = WC3Ref_KG nbrKeys:frames.count lineType:0x1 glbsId:-1 type:"KRVS"
+                ribb.size += 16 + ribb.KRVS.nbrKeys * 8
+                
+                for f in frames do
+                (
+                    local kg = KeyValuePair Val:0.0
+                    kg.Key = f
+                    at time f 
+                        if theRibbon.visibility then kg.Val = 1.0
+                    append ribb.KRVS.AnimBlock kg
+                )
+            )
+            
+            if DEBUG_MODE then format "%\n" ribb
+            
+            append ribbons ribb
+
+        )
+        
+        if ribbons.count > 0 then mdx.RIBB = ribbons
+        mdx.RIBB
     )
 )

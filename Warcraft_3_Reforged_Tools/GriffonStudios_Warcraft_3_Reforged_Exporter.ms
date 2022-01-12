@@ -66,6 +66,7 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         _parser.GetCAMS mdx
         _parser.GetLITE mdx
         _parser.GetFAFX mdx     
+        _parser.GetRIBB mdx
 
         -- write the parts to file
         mdx.stream = fOpen file "wb"
@@ -87,16 +88,13 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         _writer.WritePIVT mdx
         _writer.WriteCORN mdx
         _writer.WriteCAMS mdx
+        _writer.WriteRIBB mdx
         _writer.WriteEVTS mdx
         _writer.WriteCLID mdx
         _writer.WriteFAFX mdx
         _writer.WriteBPOS mdx
 
---         
 --         _writer.WritePRE2 mdx
---         _writer.WriteRIBB mdx
---         
-
 
         fFlush mdx.stream
         fClose mdx.stream
@@ -107,3 +105,5 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         setArrowCursor()   
     )
 )
+
+-- GriffonStudios_Warcraft_3_Reforged_Exporter.Export @"G:\Blizzard\Warcraft - Reforged\Extracted\Assets\objects\inventoryitems\glyph\glyph_exported_20.mdx"

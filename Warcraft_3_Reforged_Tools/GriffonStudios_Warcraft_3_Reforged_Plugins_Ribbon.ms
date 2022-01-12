@@ -22,16 +22,17 @@ plugin simpleManipulator WC3RefRibbon
     
     parameters main rollout:params
     (
-        staticHeightAbove   type:#float default:8.0 animatable:true ui:spn_staticHeightAbove
-        staticHeightBelow   type:#float default:8.0 animatable:true ui:spn_staticHeightBelow
-        staticAlpha         type:#float default:1.0 animatable:true ui:spn_staticAlpha
-        staticColor         type:#color default:[1,1,1] animatable:true ui:col_staticColor
-        lifeSpan            type:#float default:2.0 animatable:true  ui:spn_lifeSpan
-        emissionRate        type:#integer default:10 animatable:true  ui:spn_emissionRate
-        flipbookRows        type:#integer default:1 animatable:false  ui:spn_flipbookRows
-        flipbookColumns     type:#integer default:1 animatable:false  ui:spn_flipbookColumns
-        gravity             type:#float default:0.0 animatable:false  ui:spn_gravity
-        mtlsId              type:#material animatable:false  ui:mat_mtlsId
+        staticHeightAbove   type:#float    default:8.0  animatable:true     ui:spn_staticHeightAbove
+        staticHeightBelow   type:#float    default:8.0  animatable:true     ui:spn_staticHeightBelow
+        staticAlpha         type:#float    default:1.0  animatable:true     ui:spn_staticAlpha
+        staticColor         type:#color    default:[1,1,1] animatable:true  ui:col_staticColor
+        lifeSpan            type:#float    default:2.0  animatable:false    ui:spn_lifeSpan
+        emissionRate        type:#integer  default:10   animatable:false    ui:spn_emissionRate
+        flipbookRows        type:#integer  default:1    animatable:false    ui:spn_flipbookRows
+        flipbookColumns     type:#integer  default:1    animatable:false    ui:spn_flipbookColumns
+        flipbookIndex       type:#integer  default:0    animatable:true     ui:spn_flipbookIndex
+        gravity             type:#float    default:0.0  animatable:false    ui:spn_gravity
+        mtlsId              type:#material              animatable:false    ui:mat_mtlsId
         
         on staticHeightAbove set val do 
         (
@@ -49,8 +50,7 @@ plugin simpleManipulator WC3RefRibbon
     )
     rollout params "Ribbon Parameters"
     (
-        local y = 10
-        local step = 30
+        
         label lbl1 "Above" align:#left offset:[0,20]
         spinner spn_staticHeightAbove ""    range:[0,10000,25]  align:#right offset:[0,-20]
         
@@ -82,10 +82,13 @@ plugin simpleManipulator WC3RefRibbon
         label lbl9 "Columns" align:#left offset:[0,0]
         spinner spn_flipbookColumns   "" range:[0,32,1] align:#right offset:[0,-20]  
         
-        groupbox group2 "Flip Book" height:70 width:155 pos:[3,180]
+        label lbl10 "Index" align:#left offset:[0,0]
+        spinner spn_flipbookIndex "" range:[0,32,1] align:#right offset:[0,-20]  
+        
+        groupbox group2 "Flip Book" height:90 width:155 pos:[3,180]
 
         materialButton mat_mtlsId     "(none)" align:#center offset:[0,15] width:150 height:30
-        groupbox group3 "Material" height:50 width:155 pos:[3,255]
+        groupbox group3 "Material" height:50 width:155 pos:[3,275]
         
     )
     

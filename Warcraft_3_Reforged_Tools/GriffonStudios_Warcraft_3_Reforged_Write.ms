@@ -88,9 +88,17 @@ struct Warcraft_3_Ref_Write
                 if ( kgAnim.Type == "KPPV" ) then writeFloat stream anim.Val
                 if ( kgAnim.Type == "KLAI" ) then writeFloat stream anim.Val
                 if ( kgAnim.Type == "KLAV" ) then writeFloat stream anim.Val
-            )
-            
-            
+                
+                if ( kgAnim.Type == "KRHA" ) then writeFloat stream anim.Val
+                if ( kgAnim.Type == "KRHB" ) then writeFloat stream anim.Val
+                if ( kgAnim.Type == "KRAL" ) then writeFloat stream anim.Val
+                if ( kgAnim.Type == "KRCO" ) then _writer.WriteColor stream anim.Val
+                if ( kgAnim.Type == "KRTX" ) then writeFloat stream anim.Val
+                if ( kgAnim.Type == "KRVS" ) then writeFloat stream anim.Val
+                 
+            )    
+                 
+                
         )
         
         
@@ -163,7 +171,9 @@ struct Warcraft_3_Ref_Write
         (
             local ShaderSizeIncluded = 0
             
-            ShaderSizeIncluded  += 100 + ( 52 * 6 )
+            if mat.shader == #HD_DefaultUnit then ShaderSizeIncluded = 100 + ( 52 * 6 )
+            if mat.shader == #Ribbon then ShaderSizeIncluded = 100 + ( 52 * 1 )
+            
             -- KMTA
             if ( mat.materialRef.material_alpha.controller != undefined ) then 
                 ShaderSizeIncluded += 16 + ( 8 * mat.materialRef.material_alpha.controller.keys.count)
@@ -190,11 +200,17 @@ struct Warcraft_3_Ref_Write
             if (mdx.mtls[i].materialRef.DONT_INHERIT_ROTATION == true) then flags += 0x4
             writeLong mdx.stream flags
 
-            _writer.WriteFixedString mdx.stream "Shader_HD_DefaultUnit" 80
+            local shaderName = ""
+            
+            if ( mdx.mtls[i].shader == #HD_DefaultUnit ) then shaderName = "Shader_HD_DefaultUnit"
+            if ( mdx.mtls[i].shader == #Ribbon ) then shaderName = ""
+                
+            _writer.WriteFixedString mdx.stream shaderName 80
 
             _writer.WriteFixedString mdx.stream "LAYS" 4 
-            writeLong mdx.stream 6 --> nLayers
-            for l=1 to 6 do
+            
+            writeLong mdx.stream mdx.mtls[i].nLayers
+            for l=1 to mdx.mtls[i].nLayers do
                 _writer.WriteLAYS mdx i l
             
         )
@@ -539,13 +555,14 @@ struct Warcraft_3_Ref_Write
     function WriteATCH mdx=
     (
         format "Writing ATCH\n"
-        _writer.WriteFixedString mdx.stream "ATCH" 4
-        
+
         local totalSize = 0
         
         for obj in mdx.allObjects do
             if obj.ObjectType == #wc3ATCH then totalSize += 364  -- obj.TotalSize --> no animations yet
         
+        if totalSize == 0 then return undefined
+        _writer.WriteFixedString mdx.stream "ATCH" 4
         writeLong mdx.stream totalSize
             
         local index = 0
@@ -972,6 +989,57 @@ struct Warcraft_3_Ref_Write
             _writer.WriteKGAnim mdx.stream l.KLAV
             
         )
+    ),
+    function WriteRIBB mdx=
+    (
+        if mdx.RIBB == undefined then return undefined
+        
+        format "Writing RIBB\n"
+        _writer.WriteFixedString mdx.stream "RIBB" 4
+        
+        local totalSize = 0
+        for r in mdx.RIBB do totalSize += r.size
+        if DEBUG_MODE then Format "%\n" totalSize
+        writeLong mdx.stream totalSize
+        
+        for r in mdx.RIBB do (
+        
+            if DEBUG_MODE then Format "%\n" r
+            
+            writeLong mdx.stream r.Size
+            writeLong mdx.stream r.HeaderSize
+            _writer.WriteFixedString mdx.stream r.name 80
+            writeLong mdx.stream r.id
+            writeLong mdx.stream r.parentId #signed
+            writeLong mdx.stream r.flags
+            
+            _writer.WriteKGAnim mdx.stream r.KGTR
+            _writer.WriteKGAnim mdx.stream r.KGRT
+            _writer.WriteKGAnim mdx.stream r.KGSC
+            
+            writeFloat mdx.stream r.above
+            writeFloat mdx.stream r.below
+            writeFloat mdx.stream r.vAlpha
+            _writer.WriteColor mdx.stream r.vColor
+            writeFloat mdx.stream r.edgesLife
+            writeLong mdx.stream r.flipBookIndex
+            writeLong mdx.stream r.edgesSec
+            writeLong mdx.stream r.flipbookRows
+            writeLong mdx.stream r.flipbookCols 
+            
+            writeLong mdx.stream r.mtlsId
+            writeFloat mdx.stream r.gravity
+                        
+            _writer.WriteKGAnim mdx.stream r.KRHA -- height above
+            _writer.WriteKGAnim mdx.stream r.KRHB -- height below
+            _writer.WriteKGAnim mdx.stream r.KRAL -- alpha
+            _writer.WriteKGAnim mdx.stream r.KRCO -- color
+            _writer.WriteKGAnim mdx.stream r.KRTX -- textureSlot
+            _writer.WriteKGAnim mdx.stream r.KRVS -- visibility
+                        
+        )
+        
+        
     )
     
 )

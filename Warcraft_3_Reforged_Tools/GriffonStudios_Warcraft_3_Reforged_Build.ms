@@ -94,7 +94,6 @@ struct Warcraft_3_Ref_Build
             if ( bit.and mtl.Flags 0x2 > 0 ) then mat.DONT_INHERIT_SCALING = true
             if ( bit.and mtl.Flags 0x4 > 0 ) then mat.DONT_INHERIT_ROTATION = true
             
-            
             for l=1 to mtl.layers.count do
             (
                 local layer = mtl.layers[l]
@@ -108,19 +107,15 @@ struct Warcraft_3_Ref_Build
                 
                 if ( l == 1 ) then
                 (
-                    case of
-                    (
-                        ( bit.and layer.ShadingFlags 0x1 > 0 ): ( mat.unlit = true )
-                        ( bit.and layer.ShadingFlags 0x2 > 0 ): ( mat.envmap = true )
-                        ( bit.and layer.ShadingFlags 0x4 > 0 ): ( mat.wrapwidth = true )
-                        ( bit.and layer.ShadingFlags 0x8 > 0 ): ( mat.wrapheight = true )
-                        ( bit.and layer.ShadingFlags 0x10 > 0 ): ( mat.twosided = true )
-                        ( bit.and layer.ShadingFlags 0x20 > 0 ): ( mat.nofog = true )
-                        ( bit.and layer.ShadingFlags 0x40 > 0 ): ( mat.nodepthtest = true )
-                        ( bit.and layer.ShadingFlags 0x80 > 0 ): ( mat.nodepthset = true )
-                        ( bit.and layer.ShadingFlags 0x100 > 0 ): ( mat.nofallback = true )
-                    )
-                   
+                    if ( bit.and layer.ShadingFlags 0x1 > 0 ) then mat.unlit = true
+                    if ( bit.and layer.ShadingFlags 0x2 > 0 ) then mat.envmap = true
+                    if ( bit.and layer.ShadingFlags 0x4 > 0 ) then mat.wrapwidth = true
+                    if ( bit.and layer.ShadingFlags 0x8 > 0 ) then  mat.wrapheight = true
+                    if ( bit.and layer.ShadingFlags 0x10 > 0 ) then mat.twosided = true
+                    if ( bit.and layer.ShadingFlags 0x20 > 0 ) then mat.nofog = true
+                    if ( bit.and layer.ShadingFlags 0x40 > 0 ) then mat.nodepthtest = true
+                    if ( bit.and layer.ShadingFlags 0x80 > 0 ) then mat.nodepthset = true
+                    if ( bit.and layer.ShadingFlags 0x100 > 0 ) then mat.nofallback = true
                     
                     mat.teamcolor_multiplier = layer.TeamColorMultiplier
                     mat.fresnel_color = color ( layer.FresnelR * 255) ( layer.FresnelG * 255) ( layer.FresnelB * 255)
@@ -159,7 +154,6 @@ struct Warcraft_3_Ref_Build
                         with animate on 
                             at time ( anim.Time + 10 ) mat.emissive_multiplier = anim.Point
 
-                
                 /* UVW animation  */
                 if ( layer.TXAN_ID > 0 and mdx.TXAN != undefined ) then (
                     
@@ -198,6 +192,7 @@ struct Warcraft_3_Ref_Build
             if( m < 25 ) then meditMaterials[m] = mat
             
             mtl.materialRef = mat
+            if DEBUG_MODE then format "- %\n" mat
         )
 
     ),
@@ -1081,17 +1076,14 @@ struct Warcraft_3_Ref_Build
         (
             if DEBUG_MODE then format "Building %\n" r.name
             local ribbon = WC3RefRibbon()
-            
+
+            ribbon.transform = mdx.BPOS[r.id]
             layer.addNode ribbon
             
             ribbon.name = r.name
             if ( boneList != undefined ) then 
-            (
-                if ( r.parentId > 0 ) then (
-                    ribbon.transform = boneList[r.parentId].boneRef.transform
-                    ribbon.parent = boneList[r.parentId].boneref
-                )
-            )
+                if ( r.parentId > 0 ) then ribbon.parent = boneList[r.parentId].boneref
+
             ribbon.staticHeightAbove = r.above
             ribbon.staticHeightBelow = r.below
             ribbon.staticAlpha = r.vAlpha
@@ -1100,7 +1092,7 @@ struct Warcraft_3_Ref_Build
             ribbon.emissionRate = r.edgesSec
             ribbon.flipbookRows = r.flipbookRows
             ribbon.flipbookColumns = r.flipbookCols
-            ribbon.flipbookSlot = r.flipBookSlot
+            ribbon.flipbookIndex = r.flipBookSlot
             ribbon.gravity = r.gravity
             if ( mtls != undefined) then ribbon.mtlsId = mtls[r.mtlsId].materialRef
             
@@ -1143,7 +1135,7 @@ struct Warcraft_3_Ref_Build
             (
                 local t = anim.time + 10
                 local p = anim.point + 1
-                with animate on at time t ribbon.mtlsId = mtls[p].materialRef
+                with animate on at time t ribbon.flipbookIndex = p
             )
             -- visibility
             if ( r.KRVS != undefined ) then

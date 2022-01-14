@@ -421,12 +421,12 @@ struct Warcraft_3_Ref_Build
             (
                 local dr = dummy name:"DummyRotationController"
                 dr.rotation.controller = b.rotation.controller
-
+                
                 if ( obj.KGRT.lineType == 0x0 ) then  dr.rotation.controller = Euler_XYZ()
                 if ( obj.KGRT.lineType == 0x1 ) then  dr.rotation.controller = linear_Rotation()
                 if ( obj.KGRT.lineType == 0x2 ) then  dr.rotation.controller = TCB_Rotation()
                 if ( obj.KGRT.lineType == 0x3 ) then  dr.rotation.controller = bezier_Rotation()
-
+                
                 local q0 = dr.transform
                 if b.parent != undefined then q0 = b.parent.transform
                 local prevTime = 0
@@ -609,10 +609,8 @@ struct Warcraft_3_Ref_Build
             -- BOX
             if(cl.CollisionType == 0 ) then 
             (
-                local w = distance [cl.StartPosition.X,0,0] [cl.EndPosition.X,0,0] 
-                local l = distance [0,cl.StartPosition.Y,0] [0,cl.EndPosition.Y,0] 
-                local h = distance [0,0, cl.StartPosition.Z] [0,0,cl.EndPosition.Z]
-                clObj = Box pos:[0,0,0] width:w length:l height:h name:cl.name
+                clObj = _helper.CreateCollisionBox #(cl.StartPosition, cl.EndPosition )
+                clObj.name = cl.name
             )
             
             -- PLANE
@@ -638,8 +636,8 @@ struct Warcraft_3_Ref_Build
 
             if clObj == undefined then return undefined
 
-            --clObj.Transform = mdx.BPOS[cl.id]
-            --clObj.Pos = mdx.BPOS[cl.id].translationPart
+--            clObj.Transform = mdx.BPOS[cl.id]
+            clObj.pos = mdx.BPOS[cl.id].translationpart
             
             if cl.parentId > 0 then cl.parent = mdx.bone[cl.parentId].boneRef
             
@@ -675,7 +673,20 @@ struct Warcraft_3_Ref_Build
                     
             )
             
-            --rotate clObj (angleaxis 180 [1,0,0])
+            if ( cl.KGSC != undefined ) then 
+            (
+                local prevTime = 0
+                for anim in cl.KGSC.KG do
+                (
+                    local t = anim.time + 10
+                    local p = anim.Point
+                    
+                    if ( prevTime == t ) then continue else prevTime = t
+                    
+                    with animate on at time t clObj.scale = p
+                )
+                    
+            )
             
             clObj.boxmode = on
             clObj.wirecolor = color 64 128 255
@@ -1168,58 +1179,69 @@ struct Warcraft_3_Ref_Build
         local boneList = mdx.bone
         if ( geos == undefined or boneList == undefined ) then return undefined
         
-        try(
-            for geo in geos do
+        format "Applying Skin modifiers\n"
+        for geo in geos do
+        (
+            local obj = geo.meshRef
+            if ( obj == undefined ) then continue
+            
+            format " - %\n" obj.name
+
+            struct _newSkin ( boneIds = #(), weights = #()) 
+
+            local newSkin = #()
+
+            for s in geo.SKIN do
             (
-                local obj = geo.meshRef
-                if ( obj == undefined ) then continue
-
-                format "Applying Skin modifier to %\n" obj.name
-
-                -- clean up the bonesIds and vertex weights
-                for v=1 to geo.VRTX.count do
-                (
-                    local boneIds = geo.SKIN[v].BoneIds
-                    local weights = geo.SKIN[v].Weights
-                    
-                    for i=1 to 4 do
-                        if weights[i] == 0.0 then boneIds[i] = 1
-
-                    geo.SKIN[v].BoneIds = boneIds
-                    geo.SKIN[v].Weights = weights
-                )
-
                 
+                local ns = _newSkin()
+                for i=1 to 4 do
+                (
+                    if s.weights[i] != 0.0 then (
+                        ns.boneIds[i] = s.boneIds[i]
+                        ns.weights[i] = s.weights[i]
+                    )
+                )
                 
-                local mshSkin = skin name:"Skin"
-                mshSkin.bone_Limit = 4
-                max modify mode
-                addmodifier obj mshSkin
+                local check = 1.0
+                for i=1 to ns.weights.count do
+                    check -= ns.weights[i]
 
-                modPanel.setCurrentObject mshSkin
+                if check != 0.0 then 
+                    if check < 0 then ns.weights[1] += check else ns.weights[1] -= check
 
-                for i=1 to boneList.count do
-                (
-                    local b = boneList[i].boneRef
-                    skinOps.addBone mshSkin b 0
-                )
-
-                update obj
-                max views redraw
-
-                for v=1 to geo.VRTX.count do
-                (
-                    skinOps.ReplaceVertexWeights mshSkin v geo.SKIN[v].BoneIds geo.SKIN[v].Weights
-                )
-                update obj
+                append newSkin ns
             )
-        )
-        catch()
-        redrawViews()
+            
+            local mshSkin = skin name:"Skin"
+            
+            mshSkin.bone_Limit = 4
+            max modify mode
+            addmodifier obj mshSkin
 
+            modPanel.setCurrentObject mshSkin
+
+            for i=1 to boneList.count do
+                skinOps.addBone mshSkin boneList[i].boneRef 0
+            update obj
+        
+            for v=0 to obj.verts.count do 
+                 try ( skinOps.SetVertexWeights mshSkin v 1 1.0 ) catch ()
+            
+            update obj
+            
+            for v=0 to geo.VRTX.count do --> the first one always fails, whatever the number :/
+            (
+                try ( skinOps.ReplaceVertexWeights mshSkin v newSkin[v].boneIds newSkin[v].weights ) catch(  )
+            )
+            update obj
+            max views redraw
+        )
+        redrawViews()
     ),
     function AssignMTLS mdx=
     (
+        if mdx.GEOS == undefined then return undefined
         format "Assigning material to the meshes\n"
         for geo in mdx.GEOS do
             if geo.meshRef != undefined then (

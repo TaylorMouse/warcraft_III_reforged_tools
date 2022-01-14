@@ -22,6 +22,7 @@ rollout GriffonStudios_WC3Ref_ImportWindow "Warcraft III Reforged Import"
     (
         checkbox chkDebugMode "Debug Mode" tooltip:"Warning, if checked this may take a long time to import"
         checkbox chkImportAllLOD "Import all Level of Details (LOD's)" checked:true
+        checkbox checkClearScene "Clear the scene" checked:true
         label    lblSharedTextures "Shared texture folder:" align:#left
         edittext txtSharedTextureFolder "" width:270 height:25 align:#left offset:[-5,0]
         button   btnBrowseSharedTextures "..." height:25 align:#right offset:[4,-30]
@@ -84,8 +85,22 @@ rollout GriffonStudios_WC3Ref_ImportWindow "Warcraft III Reforged Import"
         local file = txtSelectedFile.Text
         if (doesfileexist file == true ) then (
             local startedAt = timestamp()
+            
+            if checkClearScene.checked then (
+                max unhide all
+                max unfreeze all
+                max select all
+                max delete
+                local nNoteTracks = numNoteTracks rootNode
+                if(  nNoteTracks > 0 ) then
+                    for n=1 to nNoteTracks do 
+                        deleteNoteTrack rootNode (getNoteTrack rootNode 1)
+            )
+            
             WC3REF_MDX.Import file
             local endedAt = timestamp()
+            redrawViews()
+            max views redraw
             txt = "DONE (export took " + (((endedAt - startedAt) / 1000.0 as integer ) as string ) + " seconds )" 
             messagebox txt
             destroydialog GriffonStudios_WC3Ref_ImportWindow

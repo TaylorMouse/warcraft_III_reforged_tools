@@ -332,7 +332,7 @@ struct Warcraft_3_Ref_Read
     ),
     function ReadLayer stream=
     (
-        -- FilterMode   (0:none; 1:trans; 2:blend; 3:add)
+        -- FilterMode   (0:none; 1:transparent; 2:blend; 3:add)
         -- ShadingFlags (1:unshaded; +16:two sided; +32:unfogged)
         
         struct WC3Ref_LAYR 
@@ -424,14 +424,15 @@ struct Warcraft_3_Ref_Read
             local nextOffset = ftell stream
             local chunk_size = readLong stream
             nextOffset += chunk_size
-            
+            Format "\n"
             for h=1 to 11 do
             (
                 local header = _helper.ReadFixedString stream 4
 
-                if header == "VRTX" then 
+                if header == "VRTX" then (
                     for v=1 to (readLong stream) do append geo.vrtx (_helper.ReadVector3 stream)
-
+                )
+                    
                 if header == "NRMS" then 
                     for v=1 to (readLong stream) do append geo.nrms (_helper.ReadVector3 stream)
 
@@ -478,7 +479,7 @@ struct Warcraft_3_Ref_Read
                     for v=1 to (size/8) do
                     (
                         local boneWeights = WC3Ref_SKIN()
-                        for i=1 to 4 do append boneWeights.boneIds ( (readByte stream #unsigned) + 1 )
+                        for i=1 to 4 do append boneWeights.boneIds ((readByte stream #unsigned) + 1 )
                         for i=1 to 4 do append boneWeights.weights ((readByte stream #unsigned) / 255.0 )
                         
                         append geo.skin boneWeights
@@ -874,9 +875,7 @@ struct Warcraft_3_Ref_Read
             append clidList clid
             local size = currentOffset - startPos
             totalSize -= size
-            DEBUG_MODE=true
             if DEBUG_MODE then format "%\n" clid
-            DEBUG_MODE=false
         )
         
         return clidList

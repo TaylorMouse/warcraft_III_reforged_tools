@@ -41,6 +41,8 @@ plugin simpleManipulator WC3RefFaceFX
         )
     )
 
+   
+    
     tool create
     (
         on mousePoint click do
@@ -87,3 +89,4 @@ plugin simpleManipulator WC3RefFaceFX
     )
     
 )
+

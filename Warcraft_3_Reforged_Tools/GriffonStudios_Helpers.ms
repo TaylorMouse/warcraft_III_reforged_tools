@@ -21,7 +21,7 @@ struct GriffonStudios_Helpers
         (
             local pos = findstring workingStr oldStr
             if (pos == undefined ) then (
-                
+
                 retStr += workingStr
                 exit
                 
@@ -32,7 +32,6 @@ struct GriffonStudios_Helpers
             workingStr = substring workingStr ( pos + oldStr.count ) -1
         )
         retStr
-        
     ),
     function CheckFile file=
     (
@@ -84,6 +83,27 @@ struct GriffonStudios_Helpers
         updateShape spline
         
         return spline
+    ),
+    function CreateCollisionBox points=
+    (
+        local c1 = points[1]
+        local c2 = points[2]
+        
+        local verts = #()
+        verts[1] = [c1.x,c1.y,c1.z]
+        verts[2] = [c2.x,c1.y,c1.z]
+        verts[3] = [c1.x,c2.y,c1.z]
+        verts[4] = [c2.x,c2.y,c1.z]
+        verts[5] = [c1.x,c1.y,c2.z]
+        verts[6] = [c2.x,c1.y,c2.z]
+        verts[7] = [c1.x,c2.y,c2.z]
+        verts[8] = [c2.x,c2.y,c2.z]
+        
+        local faces = #([1,3,4],[4,2,1],[5,6,8],[8,7,5],[1,2,6],[6,5,1],[2,4,8],[8,6,2],[4,3,7],[7,8,4],[3,1,5],[5,7,3])
+
+        local m = mesh vertices:verts faces:faces
+        
+        m
     ),
     function BuildBoundingBox bbBox=
     (

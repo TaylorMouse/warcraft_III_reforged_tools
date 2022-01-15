@@ -11,5 +11,7 @@ The following page describes the use of the WC3 Reforged Tools
 - 3D Studio Max 2011 and above are supported
 
 This project is not affiliated with Blizzard Entertainment, Inc.
+
 All trademarks referenced herein are the properties of their respective owners.
+
 2022 Blizzard Entertainment, Inc. All rights reserved.

@@ -20,6 +20,7 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
     dotNetControl lv "System.Windows.Forms.ListView" width:230 height:350 align:#center
     checkbox cbUpdateTimeLine "Update timeline" checked:true
     checkbox cbSortByTime "Sort by time" checked:true
+    checkbox cbAutoPlay "Auto play" checked:true
     button btn_RefreshList "Refresh" align:#right offset:[0,-20]
     
     local leftPos = - 20
@@ -68,7 +69,7 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
         button btn_ImportNoteTrack "Import note track" width:180 height:30
     )
     
-    label lblTM "© 2021 Taylor Mouse"
+    label lblTM "\xa9 2021 Taylor Mouse"
     
     function ExportNoteTrack= 
     (
@@ -483,6 +484,7 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
     on lv ItemSelectionChanged arg do
     (
         if selectedAnimationTrack == undefined or selectedAnimationTrack == 0 then selectedAnimationTrack = 1
+        stopAnimation()
         
         selectedAnimation = arg.Item
         local selectedAnimationName = selectedAnimation.Text
@@ -503,7 +505,7 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
                 local startTime = (getnotekeytime track i)  as integer / TicksPerFrame
                 local endTime = (getnotekeytime track (i+1)) as integer / TicksPerFrame
 
-                format "% (%-%)\n" selectedAnimationName startTime endTime
+                --format "% (%-%)\n" selectedAnimationName startTime endTime
                     
                 if ( startTime == endTime ) then endTime = startTime + 1
                 
@@ -532,7 +534,10 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
                 exit
             )
         )
-
+        if ( cbAutoPlay.checked ) then (
+            realTimePlayback = false
+            playAnimation()
+        )
     )
     
     on ddlTracks selected selectedItem do

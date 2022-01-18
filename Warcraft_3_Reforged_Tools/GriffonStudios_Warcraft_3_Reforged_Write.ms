@@ -95,6 +95,8 @@ struct Warcraft_3_Ref_Write
                 if ( kgAnim.Type == "KRCO" ) then _writer.WriteColor stream anim.Val
                 if ( kgAnim.Type == "KRTX" ) then writeFloat stream anim.Val
                 if ( kgAnim.Type == "KRVS" ) then writeFloat stream anim.Val
+                if ( kgAnim.Type == "KP2V" ) then writeFloat stream anim.Val
+                if ( kgAnim.Type == "KP2E" ) then writeFloat stream anim.Val
                  
             )    
                  
@@ -160,9 +162,6 @@ struct Warcraft_3_Ref_Write
     ),
     function WriteMTLS mdx=
     (
-        format "Writing MTLS\n"
-        _writer.WriteFixedString mdx.stream "MTLS" 4
-
         local totalSize = 0
         local ShaderSizes = #()
         
@@ -185,6 +184,9 @@ struct Warcraft_3_Ref_Write
             append ShaderSizes ShaderSizeIncluded
             totalSize += ShaderSizeIncluded
         )
+        if totalSize == 0 then return undefined
+        format "Writing MTLS\n"
+        _writer.WriteFixedString mdx.stream "MTLS" 4
         writeLong mdx.stream totalSize
         
         for i=1 to mdx.mtls.count do
@@ -366,11 +368,12 @@ struct Warcraft_3_Ref_Write
     ),
     function WriteGEOS mdx=
     (
-        format "Writing GEOS\n"
-        _writer.WriteFixedString mdx.stream "GEOS" 4
-        
         local totalSize = 0
         for geo in mdx.geos do totalSize += geo.size
+
+        if totalSize == 0 then return undefined
+        format "Writing GEOS\n"
+        _writer.WriteFixedString mdx.stream "GEOS" 4
         writeLong mdx.stream totalSize
         
         if DEBUG_MODE then format "Total size: %\n" totalSize
@@ -453,12 +456,14 @@ struct Warcraft_3_Ref_Write
     ),
     function WriteGEOA mdx=
     (
-        format "Writing GEOA\n"
-        _writer.WriteFixedString mdx.stream "GEOA" 4
-        
         local totalSize = 0
         for geoa in mdx.geoa do totalSize += geoa.size
+        
+        if totalSize == 0 then return undefined
+        format "Writing GEOA\n"
+        _writer.WriteFixedString mdx.stream "GEOA" 4
         writeLong  mdx.stream totalSize
+        
         for geoa in mdx.geoa do
         (
             writeLong  mdx.stream geoa.size
@@ -484,15 +489,15 @@ struct Warcraft_3_Ref_Write
     ),
     function WriteBONE mdx=
     (
-        format "Writing BONE\n"
-        _writer.WriteFixedString mdx.stream "BONE" 4
-        
         local totalSize = 0
         
         for obj in mdx.allObjects do
             if ( obj.ObjectType == #wc3BONE ) then
                 totalSize += obj.totalSize + 8 --> headersize + geosetid + geosetAnimId
 
+        if totalSize == 0 then return undefined
+        format "Writing BONE\n"
+        _writer.WriteFixedString mdx.stream "BONE" 4
         writeLong mdx.stream totalSize
         
         for obj in mdx.allObjects do
@@ -517,20 +522,16 @@ struct Warcraft_3_Ref_Write
     ),
     function WriteHELP mdx=
     (
-        local nbrHelpers = 0
-        for obj in mdx.allObjects do
-            if ( obj.ObjectType == #wc3HELP ) then nbrHelpers += 1
-        
-        if nbrHelpers == 0 then return undefined
-        format "Writing HELP\n"
-        _writer.WriteFixedString mdx.stream "HELP" 4
-        
         local totalSize = 0
         
         for obj in mdx.allObjects do
             if ( obj.ObjectType == #wc3HELP ) then
                 totalSize += obj.totalSize
-        
+
+        if totalSize == 0 then return undefined        
+        format "Writing HELP\n"
+
+        _writer.WriteFixedString mdx.stream "HELP" 4    
         writeLong mdx.stream totalSize
         
         for obj in mdx.allObjects do
@@ -554,14 +555,13 @@ struct Warcraft_3_Ref_Write
     ),
     function WriteATCH mdx=
     (
-        format "Writing ATCH\n"
-
         local totalSize = 0
         
         for obj in mdx.allObjects do
             if obj.ObjectType == #wc3ATCH then totalSize += 364  -- obj.TotalSize --> no animations yet
         
         if totalSize == 0 then return undefined
+        format "Writing ATCH\n"
         _writer.WriteFixedString mdx.stream "ATCH" 4
         writeLong mdx.stream totalSize
             
@@ -1040,6 +1040,78 @@ struct Warcraft_3_Ref_Write
         )
         
         
+    ),
+    function WritePRE2 mdx=
+    (
+        local totalSize = 0
+        for pre2 in mdx.PRE2 do totalSize += pre2.Size
+        
+        if totalSize == 0 then return undefined
+            
+        format "Writing PRE2\n"
+        _writer.WriteFixedString mdx.stream "PRE2" 4
+        writeLong mdx.stream totalSize
+        
+        for pre2 in mdx.PRE2 do (
+            writeLong mdx.stream pre2.size
+            writelong mdx.stream pre2.headerSize
+            
+            _writer.WriteFixedString mdx.stream pre2.name 80
+            writeLong mdx.stream pre2.id
+            writeLong mdx.stream pre2.parentId #signed
+            writeLong mdx.stream pre2.flags
+            
+            _writer.WriteKGAnim mdx.stream pre2.KGTR
+            _writer.WriteKGAnim mdx.stream pre2.KGRT
+            _writer.WriteKGAnim mdx.stream pre2.KGSC
+            
+            writeFloat mdx.stream pre2.speed
+            writeFloat mdx.stream pre2.variation
+            writeFloat mdx.stream pre2.coneAngle
+            writeFloat mdx.stream pre2.gravity
+            writeFloat mdx.stream pre2.lifespan
+            writeFloat mdx.stream pre2.emissionRate
+            writeFloat mdx.stream pre2.length
+            writeFloat mdx.stream pre2.width
+            writeLong mdx.stream pre2.emitterType
+            writeLong mdx.stream pre2.rowCount
+            writeLong mdx.stream pre2.colCount
+            writeLong mdx.stream pre2.particleType
+            writeFloat mdx.stream pre2.tailLength
+            writeFloat mdx.stream pre2.midTime
+            _writer.WriteColor mdx.stream pre2.startColor
+            _writer.WriteColor mdx.stream pre2.midColor
+            _writer.WriteColor mdx.stream pre2.endColor
+
+            writeByte mdx.stream pre2.startAlpha
+            writeByte mdx.stream pre2.midAlpha
+            writeByte mdx.stream pre2.endAlpha
+            
+            writeFloat mdx.stream pre2.startSize
+            writeFloat mdx.stream pre2.midSize
+            writeFloat mdx.stream pre2.endSize
+            
+            writeLong mdx.stream pre2.startLifespanUVAnim
+            writeLong mdx.stream pre2.midLifespanUVAnim
+            writeLong mdx.stream pre2.endLifespanUVAnim
+            writeLong mdx.stream pre2.startDecayUVAnim
+            writeLong mdx.stream pre2.midDecayUVAnim
+            writeLong mdx.stream pre2.endDecayUVAnim
+            writeLong mdx.stream pre2.startTailUVAnim
+            writeLong mdx.stream pre2.midTailUVAnim
+            writeLong mdx.stream pre2.endTailUVAnim
+            writeLong mdx.stream pre2.startTailDecayUVAnim
+            writeLong mdx.stream pre2.midTailDecayUVAnim
+            writeLong mdx.stream pre2.endTailDecayUVAnim
+            writeLong mdx.stream pre2.blendMode
+            writeLong mdx.stream pre2.textureId
+            writeLong mdx.stream pre2.replacableTextureId
+            writeLong mdx.stream pre2.priorityPlane
+
+            _writer.WriteKGAnim mdx.stream pre2.KP2V -- visibility
+            _writer.WriteKGAnim mdx.stream pre2.KP2E -- emission
+
+        )
     )
     
 )

@@ -443,14 +443,21 @@ struct Warcraft_3_Ref_Parser
                 id +=1
             )
 
-            -- ATCH
+        -- ATCH
         for obj in objects do
             if (classof obj == WC3RefAttachment ) then 
             (
-                local o = object1000 Id:id Name:obj.name ObjectType:#wc3ATCH Flags:0x800 objRef:obj TotalSize:364
+                append allObjects ( object1000 Id:id Name:obj.name ObjectType:#wc3LITE Flags:0x800 objRef:obj TotalSize:364 )
                 id +=1
-                append allObjects o
             )
+        
+        -- PRE2
+        for obj in objects do
+            if (classof obj == WC3RefEmitter ) then 
+            (
+                append allObjects ( object1000 Id:id Name:obj.name ObjectType:#wc3PRE2 Flags:0x1000 objRef:obj TotalSize:271 )
+                id +=1
+            )    
             
         -- CORN
         for obj in objects do
@@ -566,7 +573,7 @@ struct Warcraft_3_Ref_Parser
                 local StartFrame = (getnotekeytime track i)  as integer / TicksPerFrame
                 local EndFrame = (getnotekeytime track (i+1)) as integer / TicksPerFrame
             
-                if ( DEBUG_MODE ) then  format "Animation Sequence name: % (%-%) \n" s.name StartFrame EndFrame
+                if ( DEBUG_MODE ) then  format " - % (%-%) \n" s.name StartFrame EndFrame
                     
                 s.BBox = _parser.GetMODLBoundingBoxBetweenFrames startFrame endFrame
                 s.Radius = distance s.BBox[1] s.BBox[2]  / 2.0
@@ -611,7 +618,7 @@ struct Warcraft_3_Ref_Parser
     ),
     function GetMTLS mdx= 
     (
-        if DEBUG_MODE then Format "\nParsing MTLS\n"
+        if DEBUG_MODE then Format "Parsing MTLS\n"
         struct mtls1000 ( materialRef, txanId , shader, nLayers) 
         local uniqueMatList = #()
         mdx.mtls = #()
@@ -633,7 +640,7 @@ struct Warcraft_3_Ref_Parser
     ),
     function GetTEXS mdx=
     (
-        if DEBUG_MODE then Format "\nParsing TEXS\n"
+        if DEBUG_MODE then Format "Parsing TEXS\n"
             
         function GetFileName map=
         (
@@ -652,6 +659,11 @@ struct Warcraft_3_Ref_Parser
         )
         struct texs1000 ( replacableId = 0, path= "", flags = 3 )
         local texs = #()
+        
+        for obj in mdx.allObjects where obj.objectType == #wc3PRE2 do (
+            appendIfUnique texs ( filenameFromPath obj.objRef.texture )
+        )
+        
         
         for mat in mdx.MTLS do
         (
@@ -1295,5 +1307,174 @@ struct Warcraft_3_Ref_Parser
         
         if ribbons.count > 0 then mdx.RIBB = ribbons
         mdx.RIBB
+    ),
+    function GetPRE2 mdx=
+    (
+         struct WC3Ref_PRE2 (
+            Id, Name, ParentId, Flags, FlagSettings, 
+            KGTR, KGRT, KGSC, KP2V, KP2E,
+            speed,
+            variation,
+            coneAngle,
+            gravity,    
+            lifespan,
+            emissionrate,
+            length, 
+            width,
+            emitterType,
+            rowCount,
+            colCount,
+            particleType,
+            tailLength,
+            midTime,
+            startColor,
+            midColor,
+            endColor,
+            startAlpha,
+            midAlpha,
+            endAlpha,
+            startSize,
+            midSize,
+            endSize,
+            startLifespanUVAnim,
+            midLifespanUVAnim,
+            endLifespanUVAnim,
+            startDecayUVAnim,
+            midDecayUVAnim,
+            endDecayUVAnim,
+            startTailUVAnim,
+            midTailUVAnim,
+            endTailUVAnim,
+            startTailDecayUVAnim,
+            midTailDecayUVAnim,
+            endTailDecayUVAnim,
+            blendMode,
+            textureId,
+            replacableTextureId,
+            priorityPlane,
+            size, headersize
+        )
+        
+        struct WC3Ref_KG ( nbrKeys, lineType, glbsId, AnimBlock = #(), type ) 
+        struct KeyValuePair ( Key, Val )    
+        
+        Format "Parsing Particle Emitters\n" 
+        
+        for obj in mdx.allObjects where obj.objectType == #wc3PRE2 do (
+            
+            if mdx.PRE2 == undefined then mdx.PRE2 = #()
+            
+            local pe = obj.objRef
+            if classof pe != WC3RefEmitter then continue
+            
+            if DEBUG_MODE then Format "- %\n" pe.name
+            
+            local pre2 = WC3Ref_PRE2 name:pe.name Id:obj.Id ParentId:obj.parentId flags:obj.flags size:obj.totalSize headerSize:obj.headerSize
+            
+            for i=1 to mdx.TEXS.count do
+                if ( mdx.TEXS[i].path == filenameFromPath pe.texture ) then pre2.textureId = i
+
+            if pe.UNSHADED                      then pre2.flags += 0x00008000
+            if pe.SORT_PRIMITIVES_FAR_Z         then pre2.flags += 0x00010000
+            if pe.LINE_EMITTER                  then pre2.flags += 0x00020000
+            if pe.PARTICLE_UNFOGGED             then pre2.flags += 0x00040000
+            if pe.PARTICLE_USE_MODEL_SPACE      then pre2.flags += 0x00080000
+            if pe.PARTICLE_INHERIT_SCALE        then pre2.flags += 0x00100000
+            if pe.PARTICLE_INSTANT_VELOCITY_LIN then pre2.flags += 0x00200000
+            if pe.PARTICLE_0XKILL               then pre2.flags += 0x00400000
+            if pe.PARTICLE_Z_VELOCITY_ONLY      then pre2.flags += 0x00800000
+            if pe.PARTICLE_TUMBLER              then pre2.flags += 0x01000000
+            if pe.PARTICLE_TAIL_GROWS           then pre2.flags += 0x02000000
+            if pe.PARTICLE_EXTRUDE              then pre2.flags += 0x04000000
+            if pe.PARTICLE_XYQUADS              then pre2.flags += 0x08000000
+            if pe.PARTICLE_PROJECT              then pre2.flags += 0x10000000
+            if pe.PARTICLE_FOLLOW               then pre2.flags += 0x20000000
+
+            pre2.speed = pe.speed  
+            pre2.variation = pe.variation 
+            pre2.coneAngle = pe.coneAngle * 2.0 
+            pre2.gravity = pe.gravity 
+            pre2.lifespan = pe.lifespan 
+            pre2.emissionRate = pe.emissionrate 
+            pre2.length = pe.length 
+            pre2.width = pe.width  
+            pre2.emitterType = pe.emitterType 
+            pre2.rowCount = pe.rowCount 
+            pre2.colCount = pe.colCount 
+            pre2.particleType = pe.particleType - 1
+            pre2.tailLength = pe.tailLength 
+            pre2.midTime = pe.midTime 
+            pre2.startColor  = pe.startColor 
+            pre2.midColor  = pe.midColor 
+            pre2.endColor  = pe.endColor 
+            pre2.startAlpha  = pe.startAlpha 
+            pre2.midAlpha  = pe.midAlpha 
+            pre2.endAlpha  = pe.endAlpha 
+            pre2.startSize  = pe.startSize 
+            pre2.midSize  = pe.midSize 
+            pre2.endSize  = pe.endSize 
+            pre2.startLifespanUVAnim  = pe.startLifespanUVAnim 
+            pre2.midLifespanUVAnim  = pe.midLifespanUVAnim 
+            pre2.endLifespanUVAnim  = pe.endLifespanUVAnim 
+            pre2.startDecayUVAnim  = pe.startDecayUVAnim 
+            pre2.midDecayUVAnim  = pe.midDecayUVAnim 
+            pre2.endDecayUVAnim  = pe.endDecayUVAnim 
+            pre2.startTailUVAnim  = pe.startTailUVAnim 
+            pre2.midTailUVAnim  = pe.midTailUVAnim 
+            pre2.endTailUVAnim  = pe.endTailUVAnim 
+            pre2.startTailDecayUVAnim = pe.startTailDecayUVAnim 
+            pre2.midTailDecayUVAnim  = pe.midTailDecayUVAnim 
+            pre2.endTailDecayUVAnim  = pe.endTailDecayUVAnim 
+            pre2.blendMode  = pe.blendMode 
+            pre2.priorityPlane  = pe.priorityPlane 
+            pre2.replacableTextureId  = pe.replacableTextureId - 1
+            
+            -- KP2V
+            local visController = GetVisController pe
+            local frames = undefined
+            
+            if (visController != undefined and classof visController == On_Off ) then (
+                local seqs_frames = #()
+                append seqs_frames 0
+                for s in mdx.SEQS do (
+                    appendifUnique seqs_frames ( _parser.RoundToFrame s.startframe )
+                    appendifUnique seqs_frames ( _parser.RoundToFrame s.endFrame )
+                )
+                
+                frames = #()
+                for key in visController.keys do append frames ( key.time as integer / TicksPerFrame )
+                for f in seqs_frames do appendIfUnique frames f
+                frames = sort frames
+                
+                pre2.KP2V = WC3Ref_KG nbrKeys:frames.count lineType:0x1 glbsId:-1 type:"KP2V"
+                pre2.size += 16 + pre2.KP2V.nbrKeys * 8
+                
+                for f in frames do
+                (
+                    local kg = KeyValuePair Val:0.0
+                    kg.Key = f
+                    at time f 
+                        if pe.visibility then kg.Val = 1.0
+                    append pre2.KP2V.AnimBlock kg
+                )
+            )
+            
+            -- KP2E
+            if ( pe.emissionrate.controller != undefined ) then (
+                pre2.KP2E = WC3Ref_KG nbrKeys:pe.emissionrate.controller.keys.count lineType:1 glbsId:-1 type:"KP2E"
+                pre2.size += 16 + 8 * pre2.KP2E.nbrKeys
+                for key in pe.emissionrate.controller.keys do (
+                    local t = ( key.time as integer / TicksPerFrame )
+                    local v = at time key.time pe.emissionrate
+                    append pre2.KP2E.AnimBlock ( KeyValuePair Key:t Val:v )
+                )
+            )
+            
+            
+            if DEBUG_MODE then Format "- %\n" pre2
+            append mdx.PRE2 pre2
+        )
+        
+        mdx.PRE2
     )
 )

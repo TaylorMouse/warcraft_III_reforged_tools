@@ -67,7 +67,8 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         _parser.GetLITE mdx
         _parser.GetFAFX mdx     
         _parser.GetRIBB mdx
-
+        _parser.GetRIBB mdx
+        _parser.GetPRE2 mdx
         -- write the parts to file
         mdx.stream = fOpen file "wb"
 
@@ -86,6 +87,7 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         _writer.WriteLITE mdx
         _writer.WriteATCH mdx
         _writer.WritePIVT mdx
+        _writer.WritePRE2 mdx
         _writer.WriteCORN mdx
         _writer.WriteCAMS mdx
         _writer.WriteRIBB mdx
@@ -93,8 +95,7 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         _writer.WriteCLID mdx
         _writer.WriteFAFX mdx
         _writer.WriteBPOS mdx
-
---         _writer.WritePRE2 mdx
+        
 
         fFlush mdx.stream
         fClose mdx.stream

@@ -103,6 +103,8 @@ struct GriffonStudios_Helpers
 
         local m = mesh vertices:verts faces:faces
         
+        for f=1 to m.numFaces do setFaceSmoothGroup m f 0
+        
         m
     ),
     function BuildBoundingBox bbBox=

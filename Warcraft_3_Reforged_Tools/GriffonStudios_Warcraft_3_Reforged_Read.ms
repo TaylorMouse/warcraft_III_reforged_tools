@@ -11,7 +11,33 @@
     | 0.1 - INIT
     
 */
+/*
 
+    .FLAGS
+        0x0: helper
+        0x1: dont inherit translation
+        0x2: dont inherit rotation
+        0x4: dont inherit scaling
+        0x8: billboarded
+        0x10: billboarded lock x
+        0x20: billboarded lock y
+        0x40: billboarded lock z
+        0x80: camera anchored
+        0x100: bone
+        0x200: light
+        0x400 event object
+        0x800: attachment
+        0x1000 particle emitter
+        0x2000: collision shape
+        0x4000: ribbon emitter
+        0x8000: if particle emitter: emitter uses mdl, if particle emitter 2: unshaded
+        0x10000: if particle emitter: emitter uses tga, if particle emitter 2: sort primitives far z
+        0x20000: line emitter
+        0x40000: unfogged
+        0x80000: model space
+        0x100000: xy quad
+        
+*/
 struct Warcraft_3_Ref_Read
 (
     function ReadColor stream=
@@ -424,7 +450,6 @@ struct Warcraft_3_Ref_Read
             local nextOffset = ftell stream
             local chunk_size = readLong stream
             nextOffset += chunk_size
-            Format "\n"
             for h=1 to 11 do
             (
                 local header = _helper.ReadFixedString stream 4
@@ -1069,7 +1094,6 @@ struct Warcraft_3_Ref_Read
     ),
     function ReadPRE2 stream tag=
     (
-        
         struct WC3Ref_PRE2 (
             Id, Name, ParentId, Flags, FlagSettings, 
             KGTR, KGRT, KGSC, KP2V, KP2E,
@@ -1116,194 +1140,153 @@ struct Warcraft_3_Ref_Read
         )
         
         struct WC3Ref_PRE2_FlagSettings(
-            DONT_INHERIT_TRANSLATION,
-            DONT_INHERIT_SCALING,
-            DONT_INHERIT_ROTATION,
-            BILLBOARDED,
-            BILLBOARD_LOCK_X,
-            BILLBOARD_LOCK_Y,
-            BILLBOARD_LOCK_Z,
-            GENOBJECT_MDLBONESECTION,
-            GENOBJECT_MDLLIGHTSECTION,
-            GENOBJECT_MDLEVENTSECTION,
-            GENOBJECT_MDLATTACHMENTSECTION,
-            GENOBJECT_MDLPARTICLEEMITTER2,
-            GENOBJECT_MDLHITTESTSHAPE,
-            GENOBJECT_MDLRIBBONEMITTER,
-            PROJECT,
-            UNSHADED,
-            SORT_PRIMITIVES_FAR_Z,
-            LINE_EMITTER,
-            PARTICLE_UNFOGGED,
-            PARTICLE_USE_MODEL_SPACE,
-            PARTICLE_INHERIT_SCALE,
-            PARTICLE_INSTANT_VELOCITY_LIN,
-            PARTICLE_0XKILL,
-            PARTICLE_Z_VELOCITY_ONLY,
-            PARTICLE_TUMBLER,
-            PARTICLE_TAIL_GROWS,
-            PARTICLE_EXTRUDE,
-            PARTICLE_XYQUADS,
-            PARTICLE_PROJECT,
-            PARTICLE_FOLLOW
+            UNSHADED = false,
+            SORT_PRIMITIVES_FAR_Z = false,
+            LINE_EMITTER = false,
+            PARTICLE_UNFOGGED = false,
+            PARTICLE_USE_MODEL_SPACE = false,
+            PARTICLE_INHERIT_SCALE = false,
+            PARTICLE_INSTANT_VELOCITY_LIN = false,
+            PARTICLE_0XKILL = false,
+            PARTICLE_Z_VELOCITY_ONLY = false,
+            PARTICLE_TUMBLER = false,
+            PARTICLE_TAIL_GROWS = false,
+            PARTICLE_EXTRUDE = false,
+            PARTICLE_XYQUADS = false,
+            PARTICLE_PROJECT = false,
+            PARTICLE_FOLLOW = false
         )
         
         local offset = tag.offset
-        
-       
         local pre2s = #()
         local totalSize = tag.Size
         
-        try (
-                   
-            while (ftell stream < (tag.offset + tag.size ) ) do
-            (
-                fseek stream offset #seek_set
-                
-                local pe = WC3Ref_PRE2()
-                pe.size = readLong stream
-                
-                offset += pe.size
-                
-                pe.headerSize = readLong stream -- always 96
-                pe.name      = GriffonStudios_Helpers.ReadFixedString stream 80
-                pe.id        = readLong stream + 1
-                pe.parentId  = readLong stream + 1
-                pe.flags     = readLong stream
-                
-                local flagSettings = WC3Ref_PRE2_FlagSettings()
-                if (flags > 0) then 
-                (
-                    if ( (bit.and flags 0x00000001) > 0 ) then flagSettings.DONT_INHERIT_TRANSLATION = true
-                    if ( (bit.and flags 0x00000002) > 0 ) then flagSettings.DONT_INHERIT_SCALING = true
-                    if ( (bit.and flags 0x00000004) > 0 ) then flagSettings.DONT_INHERIT_ROTATION = true
-                    if ( (bit.and flags 0x00000008) > 0 ) then flagSettings.BILLBOARDED = true
-                    if ( (bit.and flags 0x00000010) > 0 ) then flagSettings.BILLBOARD_LOCK_X = true
-                    if ( (bit.and flags 0x00000020) > 0 ) then flagSettings.BILLBOARD_LOCK_Y = true
-                    if ( (bit.and flags 0x00000040) > 0 ) then flagSettings.BILLBOARD_LOCK_Z = true
-                    if ( (bit.and flags 0x00000080) > 0 ) then flagSettings.GENOBJECT_MDLBONESECTION = true
-                    if ( (bit.and flags 0x00000100) > 0 ) then flagSettings.GENOBJECT_MDLLIGHTSECTION = true
-                    if ( (bit.and flags 0x00000200) > 0 ) then flagSettings.GENOBJECT_MDLEVENTSECTION = true
-                    if ( (bit.and flags 0x00000400) > 0 ) then flagSettings.GENOBJECT_MDLATTACHMENTSECTION = true
-                    if ( (bit.and flags 0x00000800) > 0 ) then flagSettings.GENOBJECT_MDLPARTICLEEMITTER2 = true
-                    if ( (bit.and flags 0x00001000) > 0 ) then flagSettings.GENOBJECT_MDLHITTESTSHAPE = true
-                    if ( (bit.and flags 0x00002000) > 0 ) then flagSettings.GENOBJECT_MDLRIBBONEMITTER = true
-                    if ( (bit.and flags 0x00004000) > 0 ) then flagSettings.PROJECT = true
-                    if ( (bit.and flags 0x00008000) > 0 ) then flagSettings.UNSHADED = true
-                    if ( (bit.and flags 0x00010000) > 0 ) then flagSettings.SORT_PRIMITIVES_FAR_Z = true
-                    if ( (bit.and flags 0x00020000) > 0 ) then flagSettings.LINE_EMITTER = true
-                    if ( (bit.and flags 0x00040000) > 0 ) then flagSettings.PARTICLE_UNFOGGED = true
-                    if ( (bit.and flags 0x00080000) > 0 ) then flagSettings.PARTICLE_USE_MODEL_SPACE = true
-                    if ( (bit.and flags 0x00100000) > 0 ) then flagSettings.PARTICLE_INHERIT_SCALE = true
-                    if ( (bit.and flags 0x00200000) > 0 ) then flagSettings.PARTICLE_INSTANT_VELOCITY_LIN = true
-                    if ( (bit.and flags 0x00400000) > 0 ) then flagSettings.PARTICLE_0XKILL = true
-                    if ( (bit.and flags 0x00800000) > 0 ) then flagSettings.PARTICLE_Z_VELOCITY_ONLY = true
-                    if ( (bit.and flags 0x01000000) > 0 ) then flagSettings.PARTICLE_TUMBLER = true
-                    if ( (bit.and flags 0x02000000) > 0 ) then flagSettings.PARTICLE_TAIL_GROWS = true
-                    if ( (bit.and flags 0x04000000) > 0 ) then flagSettings.PARTICLE_EXTRUDE = true
-                    if ( (bit.and flags 0x08000000) > 0 ) then flagSettings.PARTICLE_XYQUADS = true
-                    if ( (bit.and flags 0x10000000) > 0 ) then flagSettings.PARTICLE_PROJECT = true
-                    if ( (bit.and flags 0x20000000) > 0 ) then flagSettings.PARTICLE_FOLLOW = true
-                )
-                pe.FlagSettings = flagSettings
-                
-                for i=1 to 3 do
-                (
-                    local kg = _helper.ReadFixedString stream 4
-                    if( kg == "KGTR" ) then pe.KGTR = _reader.ReadVector3Anim stream
-                    if( kg == "KGRT" ) then pe.KGRT = _reader.ReadQuatAnim stream
-                    if( kg == "KGSC" ) then pe.KGSC = _reader.ReadVector3Anim stream
-                )
-                
-                if( pe.KGSC == undefined ) then fseek stream -4 #seek_cur
-                if( pe.KGTR == undefined ) then fseek stream -4 #seek_cur
-                if( pe.KGRT == undefined ) then fseek stream -4 #seek_cur
-
-                pe.speed         = readFloat stream
-                pe.variation     = readFloat stream
-                pe.coneAngle      = readFloat stream
-                pe.gravity       = readFloat stream
-
-                pe.lifespan      = readFloat stream
-                pe.emissionrate  = readFloat stream
-               
-                pe.length        = readFloat stream
-                pe.width         = readFloat stream
-                
-                pe.emitterType   = readLong stream
-                pe.rowCount      = readLong stream
-                pe.colCount      = readLong stream
-                pe.particleType  = readLong stream
-                
-                pe.tailLength    = readFloat stream
-                pe.midTime       = readFloat stream
-                
-                local r = ( readFloat stream * 255 ) as integer
-                local g = ( readFloat stream * 255 ) as integer
-                local b = ( readFloat stream * 255 ) as integer
-                
-                pe.startColor    = color r g b
-                
-                local r = ( readFloat stream * 255 ) as integer
-                local g = ( readFloat stream * 255 ) as integer
-                local b = ( readFloat stream * 255 ) as integer
-                
-                pe.midColor      = color r g b
-                
-                local r = ( readFloat stream * 255 ) as integer
-                local g = ( readFloat stream * 255 ) as integer
-                local b = ( readFloat stream * 255 ) as integer
-                
-                pe.endColor      = color r g b
-                
-                pe.startAlpha    = readByte stream
-                pe.midAlpha      = readByte stream
-                pe.endAlpha      = readByte stream 
-
-                pe.startSize    = readFloat stream
-                pe.midSize      = readFloat stream
-                pe.endSize      = readFloat stream
-
-                pe.startLifespanUVAnim   = readLong stream
-                pe.midLifespanUVAnim     = readLong stream
-                pe.endLifespanUVAnim     = readLong stream
-                pe.startDecayUVAnim      = readLong stream
-                pe.midDecayUVAnim        = readLong stream
-                pe.endDecayUVAnim        = readLong stream
-                pe.startTailUVAnim       = readLong stream
-                pe.midTailUVAnim         = readLong stream
-                pe.endTailUVAnim         = readLong stream
-                pe.startTailDecayUVAnim  = readLong stream
-                pe.midTailDecayUVAnim    = readLong stream
-                pe.endTailDecayUVAnim    = readLong stream
-                pe.blendMode             = readLong stream
-                pe.textureId             = readLong stream
-                pe.replacableTextureId   = readLong stream 
-                pe.priorityPlane         = readLong stream
-                  
-                /*
-                    BASE = 0x0,
-                    PLANE = 0x1,
-                    SPHERE = 0x2,
-                    SPLINE = 0x3,
-                */
-
-                for i=1 to 2 do
-                (
-                    local anim = _helper.ReadFixedString stream 4
-                    
-                    if (anim == "KP2V" ) then pe.kp2v = _reader.ReadFloatAnim stream -- visibility
-                    if (anim == "KP2E" ) then pe.kp2e = _reader.ReadFloatAnim stream -- emission
-                    
-                )
-
-                append pre2s pe
-            )
-        )
-        catch
+        while (ftell stream < (tag.offset + tag.size ) ) do
         (
-            /* old models fail on this... I don't care */
+            fseek stream offset #seek_set
+            
+            local pe = WC3Ref_PRE2()
+            pe.size = readLong stream
+            
+            offset += pe.size
+            
+            pe.headerSize = readLong stream
+            pe.name      = GriffonStudios_Helpers.ReadFixedString stream 80
+            if DEBUG_MODE then format " - %\n" pe.name
+            pe.id        = readLong stream + 1
+            pe.parentId  = readLong stream + 1
+            pe.flags     = readLong stream -- 4096
+            
+            local flagSettings = WC3Ref_PRE2_FlagSettings()
+            
+            
+            if DEBUG_MODE then format "- Flags: %\n" pe.flags
+            
+            if (pe.flags > 0) then 
+            (
+                if ( (bit.and pe.flags 0x00008000) > 0 ) then flagSettings.UNSHADED = true
+                if ( (bit.and pe.flags 0x00010000) > 0 ) then flagSettings.SORT_PRIMITIVES_FAR_Z = true
+                if ( (bit.and pe.flags 0x00020000) > 0 ) then flagSettings.LINE_EMITTER = true
+                if ( (bit.and pe.flags 0x00040000) > 0 ) then flagSettings.PARTICLE_UNFOGGED = true
+                if ( (bit.and pe.flags 0x00080000) > 0 ) then flagSettings.PARTICLE_USE_MODEL_SPACE = true
+                if ( (bit.and pe.flags 0x00100000) > 0 ) then flagSettings.PARTICLE_INHERIT_SCALE = true
+                if ( (bit.and pe.flags 0x00200000) > 0 ) then flagSettings.PARTICLE_INSTANT_VELOCITY_LIN = true
+                if ( (bit.and pe.flags 0x00400000) > 0 ) then flagSettings.PARTICLE_0XKILL = true
+                if ( (bit.and pe.flags 0x00800000) > 0 ) then flagSettings.PARTICLE_Z_VELOCITY_ONLY = true
+                if ( (bit.and pe.flags 0x01000000) > 0 ) then flagSettings.PARTICLE_TUMBLER = true
+                if ( (bit.and pe.flags 0x02000000) > 0 ) then flagSettings.PARTICLE_TAIL_GROWS = true
+                if ( (bit.and pe.flags 0x04000000) > 0 ) then flagSettings.PARTICLE_EXTRUDE = true
+                if ( (bit.and pe.flags 0x08000000) > 0 ) then flagSettings.PARTICLE_XYQUADS = true
+                if ( (bit.and pe.flags 0x10000000) > 0 ) then flagSettings.PARTICLE_PROJECT = true
+                if ( (bit.and pe.flags 0x20000000) > 0 ) then flagSettings.PARTICLE_FOLLOW = true
+            )
+            pe.FlagSettings = flagSettings
+            if DEBUG_MODE then format " - %\n" flagSettings
+            for i=1 to 3 do
+            (
+                local kg = _helper.ReadFixedString stream 4
+                if( kg == "KGTR" ) then pe.KGTR = _reader.ReadVector3Anim stream
+                if( kg == "KGRT" ) then pe.KGRT = _reader.ReadQuatAnim stream
+                if( kg == "KGSC" ) then pe.KGSC = _reader.ReadVector3Anim stream
+            )
+            
+            if( pe.KGSC == undefined ) then fseek stream -4 #seek_cur
+            if( pe.KGTR == undefined ) then fseek stream -4 #seek_cur
+            if( pe.KGRT == undefined ) then fseek stream -4 #seek_cur
+
+            pe.speed         = readFloat stream
+            pe.variation     = readFloat stream
+            pe.coneAngle     = readFloat stream
+            pe.gravity       = readFloat stream
+
+            pe.lifespan      = readFloat stream
+            pe.emissionrate  = readFloat stream
+           
+            pe.length        = readFloat stream
+            pe.width         = readFloat stream
+            
+            pe.emitterType   = readLong stream
+            pe.rowCount      = readLong stream
+            pe.colCount      = readLong stream
+            pe.particleType  = readLong stream
+            
+            pe.tailLength    = readFloat stream
+            pe.midTime       = readFloat stream
+            
+            local r = ( readFloat stream * 255 ) as integer
+            local g = ( readFloat stream * 255 ) as integer
+            local b = ( readFloat stream * 255 ) as integer
+            
+            pe.startColor    = color r g b
+            
+            local r = ( readFloat stream * 255 ) as integer
+            local g = ( readFloat stream * 255 ) as integer
+            local b = ( readFloat stream * 255 ) as integer
+            
+            pe.midColor      = color r g b
+            
+            local r = ( readFloat stream * 255 ) as integer
+            local g = ( readFloat stream * 255 ) as integer
+            local b = ( readFloat stream * 255 ) as integer
+            
+            pe.endColor      = color r g b
+            
+            pe.startAlpha    = readByte stream
+            pe.midAlpha      = readByte stream
+            pe.endAlpha      = readByte stream 
+
+            pe.startSize    = readFloat stream
+            pe.midSize      = readFloat stream
+            pe.endSize      = readFloat stream
+
+            pe.startLifespanUVAnim   = readLong stream
+            pe.midLifespanUVAnim     = readLong stream
+            pe.endLifespanUVAnim     = readLong stream
+            pe.startDecayUVAnim      = readLong stream
+            pe.midDecayUVAnim        = readLong stream
+            pe.endDecayUVAnim        = readLong stream
+            pe.startTailUVAnim       = readLong stream
+            pe.midTailUVAnim         = readLong stream
+            pe.endTailUVAnim         = readLong stream
+            pe.startTailDecayUVAnim  = readLong stream
+            pe.midTailDecayUVAnim    = readLong stream
+            pe.endTailDecayUVAnim    = readLong stream
+            pe.blendMode             = readLong stream
+            pe.textureId             = readLong stream
+            pe.replacableTextureId   = readLong stream 
+            pe.priorityPlane         = readLong stream
+              
+            for i=1 to 2 do
+            (
+                local anim = _helper.ReadFixedString stream 4
+                
+                if (anim == "KP2V" ) then pe.kp2v = _reader.ReadFloatAnim stream -- visibility
+                if (anim == "KP2E" ) then pe.kp2e = _reader.ReadFloatAnim stream -- emission
+                
+            )
+            append pre2s pe
         )
+       
         return pre2s
     ),
     function ReadBPOS stream tag=

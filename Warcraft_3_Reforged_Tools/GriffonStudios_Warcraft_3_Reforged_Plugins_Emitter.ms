@@ -70,21 +70,6 @@ plugin simpleManipulator WC3RefEmitter
         replacableTextureId   type:#integer   ui:ddl_replacableTexture
         
         /* Flags */
-        DONT_INHERIT_TRANSLATION type:#boolean default:false animatable:false  ui:chk_INHERIT_TRANSLATION
-        DONT_INHERIT_SCALING type:#boolean default:false animatable:false  ui:chk_INHERIT_SCALING
-        DONT_INHERIT_ROTATION type:#boolean default:false animatable:false  ui:chk_INHERIT_ROTATION  
-        BILLBOARDED type:#boolean default:false animatable:false ui:chk_BILLBOARDED    
-        BILLBOARD_LOCK_X type:#boolean default:false animatable:false ui:chk_BILLBOARD_LOCK_X    
-        BILLBOARD_LOCK_Y type:#boolean default:false animatable:false  ui:chk_BILLBOARD_LOCK_Y   
-        BILLBOARD_LOCK_Z type:#boolean default:false animatable:false  ui:chk_BILLBOARD_LOCK_Z
-        GENOBJECT_MDLBONESECTION type:#boolean default:false animatable:false  ui:chk_GENOBJECT_MDLBONESECTION
-        GENOBJECT_MDLLIGHTSECTION type:#boolean default:false animatable:false  ui:chk_GENOBJECT_MDLLIGHTSECTION
-        GENOBJECT_MDLEVENTSECTION type:#boolean default:false animatable:false  ui:chk_GENOBJECT_MDLEVENTSECTION 
-        GENOBJECT_MDLATTACHMENTSECTION type:#boolean default:false animatable:false  ui:chk_GENOBJECT_MDLATTACHMENTSECTION
-        GENOBJECT_MDLPARTICLEEMITTER2 type:#boolean default:false animatable:false  ui:chk_GENOBJECT_MDLPARTICLEEMITTER2
-        GENOBJECT_MDLHITTESTSHAPE type:#boolean default:false animatable:false  ui:chk_GENOBJECT_MDLHITTESTSHAPE
-        GENOBJECT_MDLRIBBONEMITTER type:#boolean default:false animatable:false  ui:chk_GENOBJECT_MDLRIBBONEMITTER
-        PROJECT type:#boolean default:false animatable:false  ui:chk_PROJECT  
         UNSHADED type:#boolean default:false animatable:false  ui:chk_UNSHADED
         SORT_PRIMITIVES_FAR_Z type:#boolean default:false animatable:false  ui:chk_SORT_PRIMITIVES_FAR_Z
         LINE_EMITTER type:#boolean default:false animatable:false  ui:chk_LINE_EMITTER 
@@ -169,7 +154,7 @@ plugin simpleManipulator WC3RefEmitter
         label lblbmode "Blend mode:" align:#left offset:[0,0]
         dropdownlist ddl_blendMode "" items:#("Opaque", "Add", "Mod", "Modx2", "Blend", "BlendAdd")  offset:[0,0] 
         label lblrepText "Replacable Texture:" align:#left offset:[0,0]
-        dropdownlist ddl_replacableTexture "" items:#("None", "Team Color", "Team Glow") offset:[0,0] 
+        dropdownlist ddl_replacableTexture "" items:#("None", "Team Color", "Team Glow") offset:[0,0]  
         spinner spn_priorityPlane "Priority:" type:#integer range:[0,100,0]
         groupbox group9 "Texture Options" height:180 width:155 pos:[3,675]
 
@@ -209,25 +194,12 @@ plugin simpleManipulator WC3RefEmitter
         spinner spn_endTailDecayUVAnim   "" align:#right  range:[0,1024,0]  offset:[0,-20]  width:40 type:#integer
         groupbox group13 "Decay Tail UV" height:70 width:155 pos:[3,1085]
 
-        checkbox chk_INHERIT_TRANSLATION             "Inherit Translation" align:#left offset:[0,20] 
-        checkbox chk_INHERIT_SCALING                 "Inherit Scaling" align:#left offset:[0,0]
-        checkbox chk_INHERIT_ROTATION                "Inherit Rotation" align:#left offset:[0,0]
-        checkbox chk_BILLBOARDED            	     "Billboard" align:#left offset:[0,0]
-        checkbox chk_BILLBOARD_LOCK_X                "Lock X" align:#left offset:[0,0]
-        checkbox chk_BILLBOARD_LOCK_Y                "Lock Y" align:#left offset:[0,0]
-        checkbox chk_BILLBOARD_LOCK_Z                "Lock Z" align:#left offset:[0,0]
-        checkbox chk_GENOBJECT_MDLBONESECTION        "Bone Section" align:#left offset:[0,0]
-        checkbox chk_GENOBJECT_MDLLIGHTSECTION       "Light Section" align:#left offset:[0,0]
-        checkbox chk_GENOBJECT_MDLEVENTSECTION       "Event Section" align:#left offset:[0,0]
-        checkbox chk_GENOBJECT_MDLATTACHMENTSECTION  "Attachment Section" align:#left offset:[0,0]
-        checkbox chk_GENOBJECT_MDLPARTICLEEMITTER2   "Particle Section" align:#left offset:[0,0]
-        checkbox chk_GENOBJECT_MDLHITTESTSHAPE       "Hit Test Section" align:#left offset:[0,0]
-        checkbox chk_GENOBJECT_MDLRIBBONEMITTER      "Ribbon Section" align:#left offset:[0,0]
-        checkbox chk_PROJECT           				 "Project" align:#left offset:[0,0]
+
+        checkbox chk_LINE_EMITTER            		 "Line Emitter" align:#left offset:[0,20]
         checkbox chk_UNSHADED          				 "Unshaded" align:#left offset:[0,0]
-        checkbox chk_SORT_PRIMITIVES_FAR_Z   		 "Sort Z" align:#left offset:[0,0]
-        checkbox chk_LINE_EMITTER            		 "Line Emitter" align:#left offset:[0,0]
         checkbox chk_PARTICLE_UNFOGGED       		 "Unfogged" align:#left offset:[0,0]
+        
+        checkbox chk_SORT_PRIMITIVES_FAR_Z   		 "Sort Z" align:#left offset:[0,0]
         checkbox chk_PARTICLE_USE_MODEL_SPACE 		 "Use Model Space" align:#left offset:[0,0]
         checkbox chk_PARTICLE_INSTANT_VELOCITY_LIN   "Instant Velocity Line" align:#left offset:[0,0]
         checkbox chk_PARTICLE_0XKILL            	 "0 x kill" align:#left offset:[0,0]
@@ -237,10 +209,10 @@ plugin simpleManipulator WC3RefEmitter
         checkbox chk_PARTICLE_INHERIT_SCALE          "Inherit Particle Scale" align:#left offset:[0,0]
         checkbox chk_PARTICLE_EXTRUDE            	 "Extrude" align:#left offset:[0,0]
         checkbox chk_PARTICLE_XYQUADS            	 "XY Quads" align:#left offset:[0,0]
-        checkbox chk_PARTICLE_PROJECT            	 "Particel Projection" align:#left offset:[0,0]
+        checkbox chk_PARTICLE_PROJECT            	 "Particle Projection" align:#left offset:[0,0]
         checkbox chk_PARTICLE_FOLLOW                 "Follow" align:#left offset:[0,0]
 
-         groupbox group14 "Flags " height:630 width:155 pos:[3,1160]
+         groupbox group14 "Flags " height:330 width:155 pos:[3,1160]
         
         on btn_texture pressed do
         (
@@ -270,10 +242,8 @@ plugin simpleManipulator WC3RefEmitter
         (
             case click of
                  (
-                    1:(
-                        nodeTM.translation = gridPoint
-                         #stop
-                      )
+                    1:( nodeTM.translation = gridPoint )
+                    2: #stop
                   )
         )
     )

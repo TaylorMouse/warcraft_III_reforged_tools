@@ -76,6 +76,7 @@ struct Warcraft_3_Ref_Build
             local mtl = mtls[m]
             local possibleName = modlName 
             
+            if geos != undefined then
             for geo in geos where geo.MATS.LOD_Id == 0 and geo.MATS.MTLS_Id == m and (findstring geo.MATS.name ":") != undefined do
             (
                 local colonparts = filterString geo.MATS.name ":"
@@ -1260,7 +1261,8 @@ struct Warcraft_3_Ref_Build
         local particleEmitters = mdx.PRE2
         local boneList = mdx.BONE
         local textures = mdx.TEXS
-
+        local configFile = (getdir #temp) + "\\wc3reftools.config"
+        
         format "Building Particle Emitters \n"
         
         local layer = GriffonStudios_Helpers.CreateLayer "Emitters"
@@ -1271,47 +1273,30 @@ struct Warcraft_3_Ref_Build
             layer.addNode emitter
             
             emitter.name =  pe.name
+
+            emitter.pos = mdx.BPOS[pe.id].translationPart
             
             if ( boneList != undefined ) then 
-            (
                 if pe.ParentId > 0 then 
-                (
-                    emitter.transform = boneList[pe.ParentId].boneRef.transform
                     emitter.parent = boneList[pe.ParentId].boneRef
-                )
-            )
-            if (pe.Flags != undefined ) then
+
+                if (pe.Flags != undefined ) then
             (
-                emitter.DONT_INHERIT_TRANSLATION = _helper.IsUndefinedBoolean pe.Flags.DONT_INHERIT_TRANSLATION
-                emitter.DONT_INHERIT_SCALING = _helper.IsUndefinedBoolean pe.Flags.DONT_INHERIT_SCALING
-                emitter.DONT_INHERIT_ROTATION = _helper.IsUndefinedBoolean pe.Flags.DONT_INHERIT_ROTATION
-                emitter.BILLBOARDED = _helper.IsUndefinedBoolean pe.Flags.BILLBOARDED
-                emitter.BILLBOARD_LOCK_X = _helper.IsUndefinedBoolean pe.Flags.BILLBOARD_LOCK_X
-                emitter.BILLBOARD_LOCK_Y = _helper.IsUndefinedBoolean pe.Flags.BILLBOARD_LOCK_Y
-                emitter.BILLBOARD_LOCK_Z = _helper.IsUndefinedBoolean pe.Flags.BILLBOARD_LOCK_Z
-                emitter.GENOBJECT_MDLBONESECTION = _helper.IsUndefinedBoolean pe.Flags.GENOBJECT_MDLBONESECTION
-                emitter.GENOBJECT_MDLLIGHTSECTION = _helper.IsUndefinedBoolean pe.Flags.GENOBJECT_MDLLIGHTSECTION
-                emitter.GENOBJECT_MDLEVENTSECTION = _helper.IsUndefinedBoolean pe.Flags.GENOBJECT_MDLEVENTSECTION
-                emitter.GENOBJECT_MDLATTACHMENTSECTION = _helper.IsUndefinedBoolean pe.Flags.GENOBJECT_MDLATTACHMENTSECTION
-                emitter.GENOBJECT_MDLPARTICLEEMITTER2 = _helper.IsUndefinedBoolean pe.Flags.GENOBJECT_MDLPARTICLEEMITTER2
-                emitter.GENOBJECT_MDLHITTESTSHAPE = _helper.IsUndefinedBoolean pe.Flags.GENOBJECT_MDLHITTESTSHAPE
-                emitter.GENOBJECT_MDLRIBBONEMITTER = _helper.IsUndefinedBoolean pe.Flags.GENOBJECT_MDLRIBBONEMITTER
-                emitter.PROJECT = _helper.IsUndefinedBoolean pe.Flags.PROJECT
-                emitter.UNSHADED = _helper.IsUndefinedBoolean pe.Flags.UNSHADED
-                emitter.SORT_PRIMITIVES_FAR_Z = _helper.IsUndefinedBoolean pe.Flags.SORT_PRIMITIVES_FAR_Z
-                emitter.LINE_EMITTER = _helper.IsUndefinedBoolean pe.Flags.LINE_EMITTER
-                emitter.PARTICLE_UNFOGGED = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_UNFOGGED
-                emitter.PARTICLE_USE_MODEL_SPACE = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_USE_MODEL_SPACE
-                emitter.PARTICLE_INHERIT_SCALE = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_INHERIT_SCALE
-                emitter.PARTICLE_INSTANT_VELOCITY_LIN = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_INSTANT_VELOCITY_LIN
-                emitter.PARTICLE_0XKILL = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_0XKILL
-                emitter.PARTICLE_Z_VELOCITY_ONLY = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_Z_VELOCITY_ONLY
-                emitter.PARTICLE_TUMBLER = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_TUMBLER
-                emitter.PARTICLE_TAIL_GROWS = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_TAIL_GROWS
-                emitter.PARTICLE_EXTRUDE = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_EXTRUDE
-                emitter.PARTICLE_XYQUADS = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_XYQUADS
-                emitter.PARTICLE_PROJECT = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_PROJECT
-                emitter.PARTICLE_FOLLOW = _helper.IsUndefinedBoolean pe.Flags.PARTICLE_FOLLOW
+                emitter.UNSHADED = pe.FlagSettings.UNSHADED
+                emitter.SORT_PRIMITIVES_FAR_Z = pe.FlagSettings.SORT_PRIMITIVES_FAR_Z
+                emitter.LINE_EMITTER = pe.FlagSettings.LINE_EMITTER
+                emitter.PARTICLE_UNFOGGED = pe.FlagSettings.PARTICLE_UNFOGGED
+                emitter.PARTICLE_USE_MODEL_SPACE = pe.FlagSettings.PARTICLE_USE_MODEL_SPACE
+                emitter.PARTICLE_INHERIT_SCALE = pe.FlagSettings.PARTICLE_INHERIT_SCALE
+                emitter.PARTICLE_INSTANT_VELOCITY_LIN =  pe.FlagSettings.PARTICLE_INSTANT_VELOCITY_LIN
+                emitter.PARTICLE_0XKILL = pe.FlagSettings.PARTICLE_0XKILL
+                emitter.PARTICLE_Z_VELOCITY_ONLY =  pe.FlagSettings.PARTICLE_Z_VELOCITY_ONLY
+                emitter.PARTICLE_TUMBLER = pe.FlagSettings.PARTICLE_TUMBLER
+                emitter.PARTICLE_TAIL_GROWS =  pe.FlagSettings.PARTICLE_TAIL_GROWS
+                emitter.PARTICLE_EXTRUDE = pe.FlagSettings.PARTICLE_EXTRUDE
+                emitter.PARTICLE_XYQUADS = pe.FlagSettings.PARTICLE_XYQUADS
+                emitter.PARTICLE_PROJECT = pe.FlagSettings.PARTICLE_PROJECT
+                emitter.PARTICLE_FOLLOW = pe.FlagSettings.PARTICLE_FOLLOW
 
             )
             emitter.speed = pe.speed  
@@ -1352,11 +1337,17 @@ struct Warcraft_3_Ref_Build
             emitter.blendMode  = pe.blendMode 
             emitter.priorityPlane  = pe.priorityPlane 
             emitter.replacableTextureId  = pe.replacableTextureId  + 1
-            emitter.texture = textures[pe.TextureId + 1].path  + textures[pe.TextureId + 1].fileNameOnly + ".dds"
+            
+            local emitterTexture = textures[pe.TextureId + 1].path  + textures[pe.TextureId + 1].fileNameOnly + ".dds"
+            local sharedFolder = getinisetting configFile "WarcraftIIIReforged" "SharedTextureFolder"
+            if sharedFolder != undefined then emitterTexture = sharedFolder + textures[pe.TextureId + 1].fileNameOnly + ".dds"
+                
+            emitter.texture = emitterTexture
 
+            if DEBUG_MODE then format "- Emitter texture: %\n" emitterTexture
 
             if( pe.KP2E != undefined) then
-                for anim in pe.KP2E do
+                for anim in pe.KP2E.KG do
                     with animate on at time ( anim.Time + 10 ) 
                         emitter.emissionRate = anim.Point
 

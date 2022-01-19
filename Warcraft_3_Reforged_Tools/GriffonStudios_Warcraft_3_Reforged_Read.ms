@@ -1132,7 +1132,7 @@ struct Warcraft_3_Ref_Read
             startTailDecayUVAnim,
             midTailDecayUVAnim,
             endTailDecayUVAnim,
-            blendMode,
+            squirt,
             textureId,
             replacableTextureId,
             priorityPlane,
@@ -1172,15 +1172,13 @@ struct Warcraft_3_Ref_Read
             
             pe.headerSize = readLong stream
             pe.name      = GriffonStudios_Helpers.ReadFixedString stream 80
-            if DEBUG_MODE then format " - %\n" pe.name
             pe.id        = readLong stream + 1
             pe.parentId  = readLong stream + 1
             pe.flags     = readLong stream -- 4096
             
+            if DEBUG_MODE then format " - %\n" pe.name
+            
             local flagSettings = WC3Ref_PRE2_FlagSettings()
-            
-            
-            if DEBUG_MODE then format "- Flags: %\n" pe.flags
             
             if (pe.flags > 0) then 
             (
@@ -1201,7 +1199,7 @@ struct Warcraft_3_Ref_Read
                 if ( (bit.and pe.flags 0x20000000) > 0 ) then flagSettings.PARTICLE_FOLLOW = true
             )
             pe.FlagSettings = flagSettings
-            if DEBUG_MODE then format " - %\n" flagSettings
+            
             for i=1 to 3 do
             (
                 local kg = _helper.ReadFixedString stream 4
@@ -1271,10 +1269,12 @@ struct Warcraft_3_Ref_Read
             pe.startTailDecayUVAnim  = readLong stream
             pe.midTailDecayUVAnim    = readLong stream
             pe.endTailDecayUVAnim    = readLong stream
-            pe.blendMode             = readLong stream
             pe.textureId             = readLong stream
+            pe.squirt                = readLong stream
             pe.replacableTextureId   = readLong stream 
             pe.priorityPlane         = readLong stream
+              
+            if DEBUG_MODE then format " - Tetxure Id : %\n" pe.textureId
               
             for i=1 to 2 do
             (

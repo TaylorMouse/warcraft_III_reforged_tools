@@ -1103,8 +1103,8 @@ struct Warcraft_3_Ref_Write
             writeLong mdx.stream pre2.startTailDecayUVAnim
             writeLong mdx.stream pre2.midTailDecayUVAnim
             writeLong mdx.stream pre2.endTailDecayUVAnim
-            writeLong mdx.stream pre2.blendMode
-            writeLong mdx.stream pre2.textureId
+            writeLong mdx.stream ( pre2.textureId - 1 )
+            writeLong mdx.stream pre2.squirt
             writeLong mdx.stream pre2.replacableTextureId
             writeLong mdx.stream pre2.priorityPlane
 

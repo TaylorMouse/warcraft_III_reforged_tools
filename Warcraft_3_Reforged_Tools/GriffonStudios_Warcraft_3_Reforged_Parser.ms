@@ -663,7 +663,7 @@ struct Warcraft_3_Ref_Parser
         for obj in mdx.allObjects where obj.objectType == #wc3PRE2 do (
             appendIfUnique texs ( filenameFromPath obj.objRef.texture )
         )
-        
+        if DEBUG_MODE then Format "%\n" texs
         
         for mat in mdx.MTLS do
         (
@@ -1348,7 +1348,7 @@ struct Warcraft_3_Ref_Parser
             startTailDecayUVAnim,
             midTailDecayUVAnim,
             endTailDecayUVAnim,
-            blendMode,
+            squirt,
             textureId,
             replacableTextureId,
             priorityPlane,
@@ -1372,8 +1372,13 @@ struct Warcraft_3_Ref_Parser
             local pre2 = WC3Ref_PRE2 name:pe.name Id:obj.Id ParentId:obj.parentId flags:obj.flags size:obj.totalSize headerSize:obj.headerSize
             
             for i=1 to mdx.TEXS.count do
-                if ( mdx.TEXS[i].path == filenameFromPath pe.texture ) then pre2.textureId = i
+                if ( mdx.TEXS[i].path == filenameFromPath pe.texture ) then (
+                    pre2.textureId = i
+                    exit
+                )
 
+            if DEBUG_MODE then format " - Texture ID %\n" pre2.textureId
+            
             if pe.UNSHADED                      then pre2.flags += 0x00008000
             if pe.SORT_PRIMITIVES_FAR_Z         then pre2.flags += 0x00010000
             if pe.LINE_EMITTER                  then pre2.flags += 0x00020000
@@ -1425,7 +1430,7 @@ struct Warcraft_3_Ref_Parser
             pre2.startTailDecayUVAnim = pe.startTailDecayUVAnim 
             pre2.midTailDecayUVAnim  = pe.midTailDecayUVAnim 
             pre2.endTailDecayUVAnim  = pe.endTailDecayUVAnim 
-            pre2.blendMode  = pe.blendMode 
+            pre2.squirt  = pe.squirt 
             pre2.priorityPlane  = pe.priorityPlane 
             pre2.replacableTextureId  = pe.replacableTextureId - 1
             

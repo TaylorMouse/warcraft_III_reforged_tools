@@ -19,6 +19,8 @@ fileIn "GriffonStudios_Warcraft_3_Reforged_Plugins_Ribbon.ms"
 fileIn "GriffonStudios_Warcraft_3_Reforged_Plugins_Emitter.ms"
 fileIn "GriffonStudios_Warcraft_3_Reforged_Plugins_Material.ms"
 
+global gRibbons = #()
+
 struct Warcraft_3_Ref_Build
 (
     function GetAssetFolder mdx=
@@ -603,7 +605,7 @@ struct Warcraft_3_Ref_Build
         
         for cl in mdx.clid do
         (
-            if DEBUG_MODE then format "Building %\n" cl.name
+            if DEBUG_MODE then format "Building %\n" cl
                 
             local clObj = undefined
             
@@ -1088,7 +1090,7 @@ struct Warcraft_3_Ref_Build
         (
             if DEBUG_MODE then format "Building %\n" r.name
             local ribbon = WC3RefRibbon()
-
+append gRibbons ribbon
             ribbon.transform = mdx.BPOS[r.id]
             layer.addNode ribbon
             
@@ -1274,13 +1276,15 @@ struct Warcraft_3_Ref_Build
             
             emitter.name =  pe.name
 
+            format "%\n" emitter.name
+            
             emitter.pos = mdx.BPOS[pe.id].translationPart
             
             if ( boneList != undefined ) then 
                 if pe.ParentId > 0 then 
                     emitter.parent = boneList[pe.ParentId].boneRef
 
-                if (pe.Flags != undefined ) then
+            if (pe.Flags != undefined ) then
             (
                 emitter.UNSHADED = pe.FlagSettings.UNSHADED
                 emitter.SORT_PRIMITIVES_FAR_Z = pe.FlagSettings.SORT_PRIMITIVES_FAR_Z
@@ -1334,9 +1338,14 @@ struct Warcraft_3_Ref_Build
             emitter.startTailDecayUVAnim = pe.startTailDecayUVAnim 
             emitter.midTailDecayUVAnim  = pe.midTailDecayUVAnim 
             emitter.endTailDecayUVAnim  = pe.endTailDecayUVAnim 
-            emitter.blendMode  = pe.blendMode 
+            emitter.squirt  = pe.squirt
             emitter.priorityPlane  = pe.priorityPlane 
             emitter.replacableTextureId  = pe.replacableTextureId  + 1
+            
+            
+            for t in mdx.TEXS do format "%\n" t
+            
+            format " I need nr: %\n" (pe.TextureId + 1)
             
             local emitterTexture = textures[pe.TextureId + 1].path  + textures[pe.TextureId + 1].fileNameOnly + ".dds"
             local sharedFolder = getinisetting configFile "WarcraftIIIReforged" "SharedTextureFolder"

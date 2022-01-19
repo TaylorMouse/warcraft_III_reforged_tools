@@ -64,7 +64,7 @@ plugin simpleManipulator WC3RefEmitter
         midTailDecayUVAnim    type:#integer ui:spn_midTailDecayUVAnim
         endTailDecayUVAnim    type:#integer ui:spn_endTailDecayUVAnim
         
-        blendMode             type:#integer   ui:ddl_blendMode  
+        squirt                type:#integer   ui:spn_squirt
         texture               type:#string    ui:et_TextureName
         priorityPlane         type:#integer   ui:spn_priorityPlane
         replacableTextureId   type:#integer   ui:ddl_replacableTexture
@@ -133,8 +133,10 @@ plugin simpleManipulator WC3RefEmitter
         
         /* EMISSION */
         spinner spn_lifespan     "Lifetime:"      range:[0,1000,25.0] align:#right offset:[0,15]
-        spinner spn_emissionrate "Emission rate:" range:[0,1000,25.0] align:#right offset:[0,0]
-        dropdownlist ddl_emitterType "Emitter Type" items:#("Normal", "Line")
+        spinner spn_emissionrate "Emission rate:" range:[0,1000,25.0] align:#right offset:[0,0] type:#integer 
+        spinner spn_squirt       "Squirt amount:" range:[0,100,0]     align:#right type:#integer 
+        label lblEmitterType    "Emitter Type:" width:80 align:#left
+        dropdownlist ddl_emitterType "" items:#("Normal", "Line") width:70 align:#right offset:[0,-20]
         groupbox group6 "Emission" height:105 width:155 pos:[3,415]
 
         /* FLIPBOOK*/
@@ -151,8 +153,6 @@ plugin simpleManipulator WC3RefEmitter
         /* TEXTURE OPTIONS */
         editText et_TextureName "" offset:[0,20] width:120 align:#left height:18 style_sunkenedge:false 
         button btn_texture "..." align:#right offset:[5,-22] width:20 height:15
-        label lblbmode "Blend mode:" align:#left offset:[0,0]
-        dropdownlist ddl_blendMode "" items:#("Opaque", "Add", "Mod", "Modx2", "Blend", "BlendAdd")  offset:[0,0] 
         label lblrepText "Replacable Texture:" align:#left offset:[0,0]
         dropdownlist ddl_replacableTexture "" items:#("None", "Team Color", "Team Glow") offset:[0,0]  
         spinner spn_priorityPlane "Priority:" type:#integer range:[0,100,0]

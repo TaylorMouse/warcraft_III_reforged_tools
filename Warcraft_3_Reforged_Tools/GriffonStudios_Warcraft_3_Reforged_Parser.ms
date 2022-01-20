@@ -447,7 +447,7 @@ struct Warcraft_3_Ref_Parser
         for obj in objects do
             if (classof obj == WC3RefAttachment ) then 
             (
-                append allObjects ( object1000 Id:id Name:obj.name ObjectType:#wc3LITE Flags:0x800 objRef:obj TotalSize:364 )
+                append allObjects ( object1000 Id:id Name:obj.name ObjectType:#wc3ATCH Flags:0x800 objRef:obj TotalSize:364 )
                 id +=1
             )
         

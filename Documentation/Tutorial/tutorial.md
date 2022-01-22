@@ -205,6 +205,10 @@ Set the animation slider to start frame 10 and end frame 70 (frames of the Stand
 
 And animation your blob. Note that, since this is a looping animation, that the start and endframe transformation for the bones are identically positioned ( you can copy them by SHIFT dragging the note on the trackbar )
 
+### NOTE
+If you want to use the alpha value of the material for a Birth or Death animation, makes sure the first frame & last frame have a value!
+
+
 ## Collision Objects
 
 Now create a sphere around you model, select the sphere.

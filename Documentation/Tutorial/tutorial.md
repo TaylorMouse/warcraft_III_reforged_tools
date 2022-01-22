@@ -9,7 +9,23 @@ But rebranding it to this:
 
 ![The Blob](images/img03.jpg)
 
-Lets get started
+The tutorial will cover the following topics:
+- Blockout in 3DS Max
+- Scultiping in ZBrush
+- Retopology in 3DS Max
+- Export meshes for baking
+- Texture baking in Substance Painter
+- Setting up the textures in Photoshop
+- Setting up the bones for animation
+- Setting up the skin modifier
+- Animation Sequences
+- Popcorn FX
+- Events
+- Ribbon Emitter
+- Lights
+- Collision Objects
+
+So lets get started
 
 ## The tools
 The following tools are the tools I used to create the blob, obviously, other software can be used ( Except Max, cuz that is where I wrote the tools for )
@@ -120,6 +136,7 @@ As mentioned in the documentation, the format is DXT5 ( RGBA ). With the alpha c
 As this model does not have any masked areas, the Alpa channel is completely white.
 
 Additionally, the parts that are white(ish) are later used as Team Color. Team color is defined in the ORM map ( see later )
+
 
 ![Exporting](images/img10.jpg)
 
@@ -263,4 +280,11 @@ Add an Event object ( found in Create, Helpers, Warcraft III Reforged, and then 
 For a complete list of events, please refer to the official documentation.
 
 Navigate to the frame when the event takes place and press the add button on the properties of the event object.
+
+## Final
+
+So the final model looks like this in Max:
+
+![Exporting](images/img24.jpg)
+![Exporting](images/img25.jpg)
 

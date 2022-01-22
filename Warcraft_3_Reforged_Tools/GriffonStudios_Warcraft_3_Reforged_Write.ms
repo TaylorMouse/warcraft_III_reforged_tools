@@ -258,7 +258,7 @@ struct Warcraft_3_Ref_Write
             fresnel_b = (mat.fresnel_color.b / 255)
             fresnel_multi = mat.fresnel_multiplier
             tealcolor_multi = mat.teamcolor_multiplier
-            alpha_init = mat.material_alpha
+            alpha_init = mat.material_alpha / 100.0
         )
 
         writeLong mdx.stream shadingFlags

@@ -651,7 +651,7 @@ struct Warcraft_3_Ref_Read
         while ( totalSize > 0 ) do
         (
             fseek stream offset #seek_set        
-            local h = wc3_help()
+            local h = WC3Ref_HELP()
             
             size = readLong stream
             h.name = _helper.ReadFixedString stream 80

@@ -642,10 +642,10 @@ struct Warcraft_3_Ref_Read
     ),
     function ReadHELP stream tag=
     (
-        struct WC3Ref_HELP ( Id, Name, ParentId, Flags, kgtr, kgrt, kgsc )
+        struct WC3Ref_HELP ( Id, Name, ParentId, Flags, kgtr, kgrt, kgsc, helperRef )
         
         local totalSize = tag.Size
-        local WC3Ref_HELP = #()
+        local wc3_helpers = #()
         local offset = tag.offset
         
         while ( totalSize > 0 ) do

@@ -4,7 +4,7 @@
     | Compatible with Warcraft III, Warcraft III Reforged and StarCraft II
     
     .COPYRIGHT
-    | © 2020 Griffon Studios
+    | © 2020 - 2022 Griffon Studios
     
     .AUTHOR
     | Taylor Mouse
@@ -13,15 +13,18 @@
 
 rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2" 
     width:250 
---     height:760
 (
 
     dropdownlist ddlTracks "" height:20
     dotNetControl lv "System.Windows.Forms.ListView" width:230 height:350 align:#center
     checkbox cbUpdateTimeLine "Update timeline" checked:true
     checkbox cbSortByTime "Sort by time" checked:true
-    checkbox cbAutoPlay "Auto play" checked:true
-    button btn_RefreshList "Refresh" align:#right offset:[0,-20]
+    --checkbox cbAutoPlay "Auto play animation" checked:false
+    
+    button btn_RefreshList "Refresh" align:#right offset:[0,-40] width:80
+    button btn_PlayAnimation "►" align:#right offset:[-30,0] height:25 width:25 tooltip:"Play selected animation"
+    button btn_StopAnimation "█" align:#right offset:[0,-30] height:25 width:25 tooltip:"Stop animation"
+    
     
     local leftPos = - 20
     local selectedAnimationTrack = undefined 
@@ -112,7 +115,7 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
         )
     )
 
-    function SetAnimationNoteTrack anim =
+    function SetAnimationNoteTrack anim validate=
     (
         local starAnimTrack = undefined
         if selectedAnimationTrack == undefined or selectedAnimationTrack == 0 then selectedAnimationTrack = 1
@@ -140,7 +143,7 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
         if ( anim.start_frame >= anim.end_frame ) then isValid = false
         if ( anim.start_frame <= lastNoteFrame ) then isValid = false
         
-        if isValid == false then 
+        if isValid == false and validate == true then 
         (
             messagebox "One of the following was invalid:\nEnd Frame must be higher then the Start Frame\nThe start frame must start later then the previous end frame"
             return false
@@ -246,6 +249,9 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
         ResetListView()
         ResetTrackList()
     )
+    
+    on btn_PlayAnimation pressed do playAnimation()
+	on btn_StopAnimation pressed do stopAnimation()
     
     on btn_refreshList pressed do
     (
@@ -356,7 +362,7 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
         anim.priority       = spinPriority.value as string
         anim.non_looping    = chkNonLooping.checked as string
         
-        if ( SetAnimationNoteTrack anim == true ) then (
+        if ( SetAnimationNoteTrack anim true == true ) then (
             txt_newName.Text = anim.name
             txt_newAnimName.Text = ""
         )
@@ -368,7 +374,7 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
     
     on btn_rename pressed do
     (
-        format "Updating %\n" selectedAnimation
+        format "Updating %\n" selectedAnimation.name
         if( selectedAnimation == undefined or txt_newName.text == "") then return undefined
         if selectedAnimationTrack == undefined or selectedAnimationTrack == 0 then selectedAnimationTrack = 1
         
@@ -402,7 +408,7 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
                     deleteNoteKey keys (i+1)
                     deleteNoteKey keys i
 
-                    local result = SetAnimationNoteTrack anim
+                    local result = SetAnimationNoteTrack anim false
                     if ( result == false ) then
                     (
                         local startNote = AddNewNoteKey starAnimTrack anim.start_frame
@@ -534,10 +540,7 @@ rollout GriffonStudios_AnimationWindow_v2 "Animation Window v2"
                 exit
             )
         )
-        if ( cbAutoPlay.checked ) then (
-            realTimePlayback = false
-            playAnimation()
-        )
+        
     )
     
     on ddlTracks selected selectedItem do

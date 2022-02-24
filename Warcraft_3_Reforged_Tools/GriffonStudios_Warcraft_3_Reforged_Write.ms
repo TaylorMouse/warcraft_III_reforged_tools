@@ -16,7 +16,7 @@ struct Warcraft_3_Ref_Write
 (
     function WriteFixedString stream str len=
     (
-        if ( WC3_DEBUG ) then  Format " - Writing %\n" str
+        if ( DEBUG_MODE ) then  Format " - Writing %\n" str
         for i=1 to str.count do
         (
             local byte = bit.charasint str[i]

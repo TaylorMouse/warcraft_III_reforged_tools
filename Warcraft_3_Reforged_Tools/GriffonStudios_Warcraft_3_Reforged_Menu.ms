@@ -180,9 +180,10 @@ struct Warcraft3_Reforged_Menu
         wc3Menu.addItem wc3Action4 -1
         
         local pos = Warcraft3_Reforged_Menu.GetHelpMenuPosition()
-        
-        mainMenu.AddItem wc3MenuItems pos
-        
+        if( pos == undefined ) then pos = 1
+        try (
+            mainMenu.AddItem wc3MenuItems pos
+        ) catch()
         menuMan.updateMenuBar()
         
     )

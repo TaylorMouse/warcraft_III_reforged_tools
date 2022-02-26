@@ -30,13 +30,17 @@ struct Warcraft3_Reforged_Menu
     function GetHelpMenuPosition =
     (
         local mainMenu = menuMan.getMainMenuBar() 
+        local pos = mainMenu.numItems()
         for i=1 to mainMenu.numItems() do
         (
             local title = ((mainMenu.getItem(i)).getTitle())
-            if(title == "&Help" ) then return i
+            if(title == "&Help" ) then (
+                pos = i
+                break
+            )
         )
         
-        return undefined
+        return pos
     ),
     function CreateMenu=
     (
@@ -180,10 +184,7 @@ struct Warcraft3_Reforged_Menu
         wc3Menu.addItem wc3Action4 -1
         
         local pos = Warcraft3_Reforged_Menu.GetHelpMenuPosition()
-        if( pos == undefined ) then pos = 1
-        try (
-            mainMenu.AddItem wc3MenuItems pos
-        ) catch()
+        mainMenu.AddItem wc3MenuItems pos
         menuMan.updateMenuBar()
         
     )

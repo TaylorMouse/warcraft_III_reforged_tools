@@ -85,7 +85,7 @@ STRUCT WC3REF_MDX
         fClose stream
         _build.Create mdx
 
-        _helper.FixZRotation -90
+        _helper.ZRotation -90
 
         format "Done!\n"
         gc()

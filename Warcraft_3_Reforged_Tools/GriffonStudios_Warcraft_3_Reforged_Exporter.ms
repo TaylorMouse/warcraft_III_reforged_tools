@@ -101,7 +101,7 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
 
         fFlush mdx.stream
         fClose mdx.stream
-        _helper.FixZRotation -90
+        _helper.ZRotation -90
         
         animationrange = interval animationInterval.start animationInterval.end
         gc() 

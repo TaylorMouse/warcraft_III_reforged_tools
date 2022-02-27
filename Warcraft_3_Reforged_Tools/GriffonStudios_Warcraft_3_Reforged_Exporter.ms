@@ -9,7 +9,7 @@
     | Warcraft III Reforged mdx exporter 
     
     .PROGRESS
-
+    | 0.02 - fix big rotation bug
     | 0.01 - Main (re)setup
 
     
@@ -55,6 +55,8 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         animationrange = interval 0 100
         slidertime = 0
 
+        _helper.FixZRotation 90
+
         -- gather data from the scene
         _parser.GetObjects mdx
         _parser.GetSEQS mdx
@@ -69,6 +71,7 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         _parser.GetRIBB mdx
         _parser.GetRIBB mdx
         _parser.GetPRE2 mdx
+        
         -- write the parts to file
         mdx.stream = fOpen file "wb"
 
@@ -82,7 +85,6 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         _writer.WriteGEOS mdx
         _writer.WriteGEOA mdx
         _writer.WriteBONE mdx
---      _writer.WriteHELP mdx --> is this still valid ?        
         _writer.WriteHELP mdx
         _writer.WriteLITE mdx
         _writer.WriteATCH mdx
@@ -100,11 +102,10 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         fFlush mdx.stream
         fClose mdx.stream
         
+        _helper.FixZRotation -90
+
         animationrange = interval animationInterval.start animationInterval.end
         gc() 
-        --enableSceneRedraw() 
         setArrowCursor()   
     )
 )
-
--- GriffonStudios_Warcraft_3_Reforged_Exporter.Export @"G:\Blizzard\Warcraft - Reforged\Extracted\Assets\objects\inventoryitems\glyph\glyph_exported_20.mdx"

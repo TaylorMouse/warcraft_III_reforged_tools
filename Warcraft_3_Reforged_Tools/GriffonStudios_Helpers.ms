@@ -13,6 +13,32 @@
 */
 struct GriffonStudios_Helpers
 (
+    function FixZRotation rot=
+    (
+        local pnt = getnodebyname "IMPORTEXPORT_BASE"
+        if pnt == undefined then 
+        (
+            format "IMPORTEXPORT_BASE not found, creating one now"
+            pnt = point name:"IMPORTEXPORT_BASE"
+        
+            local selectedObjects = #()
+
+            for obj in objects do
+            (
+                if ( obj.parent == undefined and obj.name != "IMPORTEXPORT_BASE" ) then 
+                    append selectedObjects obj
+            )
+
+            if selectedObjects.count > 0 then (
+                select selectedObjects
+                $.parent = pnt
+                rotate pnt (angleaxis rot [0,0,1])
+            ) 
+        )
+        else
+            rotate pnt (angleaxis rot [0,0,1])
+        true
+    ),
     function ReplaceString str oldStr newStr = 
     (
         local workingStr = str

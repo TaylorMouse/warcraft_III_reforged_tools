@@ -27,12 +27,14 @@ struct Warcraft_3_Ref_Write
     ),
     function WriteTris stream tris=
     (
+        
         writeShort stream tris[1]
         writeShort stream tris[2]
         writeShort stream tris[3]
     ),
     function WriteVector3 stream vector3=
     (
+       
          writeFloat stream vector3.X
          writeFloat stream vector3.Y
          writeFloat stream vector3.Z
@@ -46,6 +48,7 @@ struct Warcraft_3_Ref_Write
     ),
     function WriteQuat stream quaternian=
     (
+        
         writeFloat stream quaternian.x
         writeFloat stream quaternian.y
         writeFloat stream quaternian.z
@@ -246,7 +249,7 @@ struct Warcraft_3_Ref_Write
             if mat.unlit        then shadingFlags += 0x01
             if mat.envmap       then shadingFlags += 0x02
             if mat.wrapwidth    then shadingFlags += 0x04
-            if mat.wrapheight   then shadingFlags += 0x04
+            if mat.wrapheight   then shadingFlags += 0x08
             if mat.twosided     then shadingFlags += 0x10
             if mat.nofog        then shadingFlags += 0x20
             if mat.nodepthset   then shadingFlags += 0x40
@@ -598,9 +601,11 @@ struct Warcraft_3_Ref_Write
         for obj in mdx.allobjects do
         (
             if DEBUG_MODE then format "- %\n" obj.name
-            writeFloat mdx.stream obj.objRef.pos.x
-            writeFloat mdx.stream obj.objRef.pos.y
-            writeFloat mdx.stream obj.objRef.pos.z
+            
+                writeFloat mdx.stream obj.objRef.pos.x
+                writeFloat mdx.stream obj.objRef.pos.y
+                writeFloat mdx.stream obj.objRef.pos.z
+            
         )
         
     ),
@@ -743,12 +748,15 @@ struct Warcraft_3_Ref_Write
         writeLong mdx.stream mdx.allObjects.count
         
         if DEBUG_MODE then format "Nbr: % Size: %\n" mdx.allObjects.count totalSize
-            
+        
         for obj in mdx.allobjects do
         (
+            local transf = obj.objRef.Transform
+                        
              for r=1 to 4 do
-                for c=1 to 3 do
-                    writeFloat mdx.stream obj.objRef.Transform[r][c]
+                for c=1 to 3 do (
+                        writeFloat mdx.stream obj.objRef.Transform[r][c]
+                )
         ) 
     ),
     function WriteCAMS mdx=
@@ -1044,6 +1052,7 @@ struct Warcraft_3_Ref_Write
     function WritePRE2 mdx=
     (
         local totalSize = 0
+        if mdx.PRE2 == undefined then return undefined
         for pre2 in mdx.PRE2 do totalSize += pre2.Size
         
         if totalSize == 0 then return undefined

@@ -323,6 +323,9 @@ struct Warcraft_3_Ref_Parser
         
         
         local pvt = at time 0f in coordsys parent obj.pos
+        
+        local altPvt = [-pvt.y, pvt.x, pvt.z]
+                
         local kgtr = anim1000 LineType:lineType
             
         kgtr.nbrKeys = numkeys cntrl
@@ -333,7 +336,11 @@ struct Warcraft_3_Ref_Parser
             local t = k.time as integer / TicksPerFrame
             
             local val = at time k.time in coordsys parent obj.pos
-            val = val - pvt
+            
+            val = [-val.y,val.x,val.z]
+            
+            --val = val - pvt
+            val = val - altpvt
             
             append kgtr.AnimBlock ( KeyValuePair Key:t Val:val )
         )
@@ -356,6 +363,7 @@ struct Warcraft_3_Ref_Parser
         
         local rot = inverse obj.rotation
         local parentRot = quat 0 0 0 1
+                       
         
         if obj.parent != undefined then parentRot = inverse obj.parent.rotation
         
@@ -700,7 +708,7 @@ struct Warcraft_3_Ref_Parser
         /* get the mesh references that can be exported */
         local geos = #()
         local mtls =  mdx.mtls
-            
+        local obj = undefined
         for obj in objects do
             if ( classof obj == editable_mesh and classof obj.material == WC3RefMaterial and obj.ishidden == false) then
                 append geos ( geo1000 meshRef:obj )
@@ -1213,6 +1221,8 @@ struct Warcraft_3_Ref_Parser
             for m=1 to mdx.MTLS.Count do 
                 if mdx.MTLS[m].MaterialRef == theRibbon.mtlsId then ribb.mtlsId = m - 1
             
+            
+                
             -- KRHA
             if ( theRibbon.staticHeightAbove.controller != undefined ) then (
                 ribb.KRHA = WC3Ref_KG nbrKeys:theRibbon.staticHeightAbove.controller.keys.count lineType:1 glbsId:-1 type:type

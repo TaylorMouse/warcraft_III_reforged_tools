@@ -55,8 +55,9 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         animationrange = interval 0 100
         slidertime = 0
 
-        _helper.FixZRotation 90
-
+        _helper.ZRotation 90
+            
+            
         -- gather data from the scene
         _parser.GetObjects mdx
         _parser.GetSEQS mdx
@@ -71,7 +72,6 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
         _parser.GetRIBB mdx
         _parser.GetRIBB mdx
         _parser.GetPRE2 mdx
-        
         -- write the parts to file
         mdx.stream = fOpen file "wb"
 
@@ -101,11 +101,12 @@ STRUCT GriffonStudios_Warcraft_3_Reforged_Exporter
 
         fFlush mdx.stream
         fClose mdx.stream
+        _helper.ZRotation -90
         
-        _helper.FixZRotation -90
-
         animationrange = interval animationInterval.start animationInterval.end
         gc() 
+        
+        --enableSceneRedraw() 
         setArrowCursor()   
     )
 )

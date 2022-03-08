@@ -106,15 +106,15 @@ plugin Material WC3RefMaterial
     )
     rollout basicParams "Basic Parameters"
     (
-        label lblBC "Basic Color:" align:#left width:200
+        label lblBC "Basic Color:" align:#left 
         colorPicker colorPicker_baseColor align:#right offset:[-100,-20]
-        label lblEM "Emissive Multiplier:" align:#Left width:200
+        label lblEM "Emissive Multiplier:" align:#Left
         spinner spn_emissive_multiplier   range:[0,100,0] align:#right width:80 offset:[-100,-20]
-        label lblTCM "TeamColor Multiplier:" align:#Left width:200
+        label lblTCM "TeamColor Multiplier:" align:#Left
         spinner spn_teamcolor_multiplier  range:[0,100,0] align:#right width:80 offset:[-100,-20]
-        label lblFC "Fresnel Color: " align:#Left width:200
+        label lblFC "Fresnel Color: " align:#Left
         colorPicker colorPicker_fresnel_color align:#right offset:[-100,-20]
-        label lblFCM "Fresnel Multiplier:" align:#Left width:200
+        label lblFCM "Fresnel Multiplier:" align:#Left
         spinner spn_fresnel_multiplier  range:[0,100,0] align:#right width:80 offset:[-100,-20]
         
     )
@@ -182,14 +182,29 @@ plugin Material WC3RefMaterial
         emissive_multiplier = 1
         teamcolor_multiplier = 0
         LineType = 1
-        diffuse_map = Bitmaptexture fileName:""
-        normal_map = Bitmaptexture fileName:""
-        orm_map = Bitmaptexture fileName:""
-        teamcolor_map = Bitmaptexture fileName:""
-        emissive_map = Bitmaptexture fileName:""
-        alphamask_map = Bitmaptexture fileName:""
-        reflection_map = Bitmaptexture fileName:""
-        replacable_map = Bitmaptexture fileName:""
+
+        local diffMap = ""
+        local normMap = ""
+        local ormMap  = ""
+        local emisMap = ""
+        local reflMap = ""
+
+        local textureFolder =  getfileNamePath (getThisScriptFilename()) + @"textures\"
+        if (doesFileExist textureFolder) then 
+        (
+            diffMap = textureFolder + "wc3ref_diff.dds"
+            normMap = textureFolder + "wc3ref_norm.dds"
+            ormMap  = textureFolder + "wc3ref_orm.dds"
+            emisMap = textureFolder + "wc3ref_emis.dds"
+            reflMap = textureFolder + "environmentmap.dds"   
+        )
+        
+        diffuse_map = Bitmaptexture fileName:diffMap
+        normal_map = Bitmaptexture fileName:normMap
+        orm_map = Bitmaptexture fileName:ormMap
+        emissive_map = Bitmaptexture fileName:emisMap
+        reflection_map = Bitmaptexture fileName:reflMap
+
         base_color = color 255 255 255
     )
 )

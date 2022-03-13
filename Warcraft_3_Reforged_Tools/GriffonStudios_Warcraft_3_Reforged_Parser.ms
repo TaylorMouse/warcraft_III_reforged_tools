@@ -323,9 +323,9 @@ struct Warcraft_3_Ref_Parser
         
         
         local pvt = at time 0f in coordsys parent obj.pos
-        
-        local altPvt = [-pvt.y, pvt.x, pvt.z]
-                
+		
+											 
+				
         local kgtr = anim1000 LineType:lineType
             
         kgtr.nbrKeys = numkeys cntrl
@@ -336,11 +336,11 @@ struct Warcraft_3_Ref_Parser
             local t = k.time as integer / TicksPerFrame
             
             local val = at time k.time in coordsys parent obj.pos
-            
-            val = [-val.y,val.x,val.z]
-            
-            --val = val - pvt
-            val = val - altpvt
+			
+            val = val - pvt
+			
+							 
+							  
             
             append kgtr.AnimBlock ( KeyValuePair Key:t Val:val )
         )
@@ -363,7 +363,7 @@ struct Warcraft_3_Ref_Parser
         
         local rot = inverse obj.rotation
         local parentRot = quat 0 0 0 1
-                       
+					   
         
         if obj.parent != undefined then parentRot = inverse obj.parent.rotation
         
@@ -501,7 +501,7 @@ struct Warcraft_3_Ref_Parser
         for obj in objects do
             if ( getUserProp obj "COLLISION-OBJECT" != undefined and getUserProp obj "COLLISION-OBJECT" == true ) then
             (
-                if ( classof obj == box or classof obj == sphere or classof obj == plane or classof obj == cylinder ) then
+                if ( classof obj == box or classof obj == sphere or classof obj == plane or classof obj == cylinder or classof obj == editable_mesh ) then
                 (
                     local o = object1000 Id:id Name:obj.name ObjectType:#wc3CLID Flags:0x2000 objRef:obj TotalSize:96
                     id +=1

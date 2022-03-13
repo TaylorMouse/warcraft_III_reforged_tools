@@ -380,6 +380,10 @@ struct Warcraft_3_Ref_Read
         lay.FresnelMultiplier   = readfloat stream
         lay.TeamColorMultiplier = readfloat stream
      
+													   
+												   
+						   
+		
         if DEBUG_MODE then format " - %\n" lay
         
         if (lay.Size > 52 ) then
@@ -678,7 +682,7 @@ struct Warcraft_3_Ref_Read
             
             totalSize -= size
             offset += size
-            if ( _debug_read ) then format "%\n" h
+            if ( DEBUG_MODE ) then format "%\n" h
             append wc3_helpers h
         )
         

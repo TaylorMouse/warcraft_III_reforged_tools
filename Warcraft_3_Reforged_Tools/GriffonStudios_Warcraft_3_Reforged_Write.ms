@@ -132,8 +132,13 @@ struct Warcraft_3_Ref_Write
         if( classOf selectionSphere == sphere ) then radius = selectionSphere.radius * 4.0
         
         writefloat mdx.stream radius
-
-        local bbox = _parser.GetMODLBoundingBoxBetweenFrames 0 1
+        local bbox = #()
+        if( radius > 0.0 ) then (
+            bbox[1] = selectionSphere.min
+            bbox[2] = selectionSphere.max
+        )
+        else
+            bbox = _parser.GetMODLBoundingBoxBetweenFrames 0 10000
         
         _writer.WriteVector3 mdx.stream bbox[1]
         _writer.WriteVector3 mdx.stream bbox[2]
@@ -222,6 +227,7 @@ struct Warcraft_3_Ref_Write
     ),
     function WriteLAYS mdx mtlsIndex layerIndex=
     (
+       
         local mat = mdx.mtls[mtlsIndex].MaterialRef
         local laySize = 52
         
@@ -244,7 +250,7 @@ struct Warcraft_3_Ref_Write
         local fresnel_multi = 0.0
         local tealcolor_multi = 0.0
         local alpha_init = 1.0
-        
+
         if layerIndex == 1 then (
             if mat.unlit        then shadingFlags += 0x01
             if mat.envmap       then shadingFlags += 0x02
@@ -263,7 +269,7 @@ struct Warcraft_3_Ref_Write
             tealcolor_multi = mat.teamcolor_multiplier
             alpha_init = mat.material_alpha / 100.0
         )
-
+      
         writeLong mdx.stream shadingFlags
 
         local texsID = _parser.GetTextureId mat layerIndex mdx.TEXS
@@ -661,6 +667,7 @@ struct Warcraft_3_Ref_Write
             if obj.ObjectType == #wc3CLID then
             (
                 totalSize += obj.TotalSize
+                if ( classof obj.objRef == editable_mesh ) then totalSize += 28
                 if ( classof obj.objRef == box ) then totalSize += 28
                 if ( classof obj.objRef == plane ) then totalSize += 28
                 if ( classof obj.objRef == sphere ) then totalSize += 20
@@ -688,7 +695,16 @@ struct Warcraft_3_Ref_Write
                 _writer.WriteKGAnim mdx.stream obj.KGRT
                 _writer.WriteKGAnim mdx.stream obj.KGSC
                 
-                
+                if ( classof obj.objRef == Editable_Mesh ) then 
+                (
+                    writeLong mdx.stream 0
+                    writeFloat mdx.stream obj.objRef.min.x
+                    writeFloat mdx.stream obj.objRef.min.y
+                    writeFloat mdx.stream obj.objRef.min.z
+                    writeFloat mdx.stream obj.objRef.max.x
+                    writeFloat mdx.stream obj.objRef.max.y
+                    writeFloat mdx.stream obj.objRef.max.z
+                )    
                 if ( classof obj.objRef == box ) then 
                 (
                     writeLong mdx.stream 0

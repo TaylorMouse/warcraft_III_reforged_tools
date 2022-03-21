@@ -323,9 +323,9 @@ struct Warcraft_3_Ref_Parser
         
         
         local pvt = at time 0f in coordsys parent obj.pos
-		
-											 
-				
+        
+        local altPvt = [-pvt.y, pvt.x, pvt.z]
+                
         local kgtr = anim1000 LineType:lineType
             
         kgtr.nbrKeys = numkeys cntrl
@@ -336,11 +336,11 @@ struct Warcraft_3_Ref_Parser
             local t = k.time as integer / TicksPerFrame
             
             local val = at time k.time in coordsys parent obj.pos
-			
-            val = val - pvt
-			
-							 
-							  
+            
+            val = [-val.y,val.x,val.z]
+            
+            --val = val - pvt
+            val = val - altpvt
             
             append kgtr.AnimBlock ( KeyValuePair Key:t Val:val )
         )
@@ -363,7 +363,7 @@ struct Warcraft_3_Ref_Parser
         
         local rot = inverse obj.rotation
         local parentRot = quat 0 0 0 1
-					   
+                       
         
         if obj.parent != undefined then parentRot = inverse obj.parent.rotation
         
@@ -425,7 +425,7 @@ struct Warcraft_3_Ref_Parser
 
         -- BONE
         for obj in objects do 
-            if (classof obj == boneGeometry ) then
+            if (classof obj == boneGeometry or classof obj == Dummy or classof obj == SplineShape ) then
             (   
                 local o = object1000 Id:id Name:obj.name ObjectType:#wc3BONE Flags:0x100 objRef:obj TotalSize:96
 
@@ -435,14 +435,15 @@ struct Warcraft_3_Ref_Parser
                 append allObjects o
             )
 
+            
         -- HELPERS
-        for obj in objects do
-            if (classof obj == Dummy or classof obj == SplineShape ) then
-            (
-                local o = object1000 Id:id Name:obj.name ObjectType:#wc3HELP Flags:0x00 objRef:obj TotalSize:96
-                id +=1
-                append allObjects o
-            )
+--         for obj in objects do
+--             if (classof obj == Dummy or classof obj == SplineShape ) then
+--             (
+--                     local o = object1000 Id:id Name:obj.name ObjectType:#wc3HELP Flags:0x00 objRef:obj TotalSize:96
+--                     id +=1
+--                     append allObjects o
+--             )
         
         -- LITE
         for obj in objects do

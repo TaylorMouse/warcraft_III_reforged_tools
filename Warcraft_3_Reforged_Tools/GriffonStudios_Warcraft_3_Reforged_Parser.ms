@@ -229,23 +229,24 @@ struct Warcraft_3_Ref_Parser
     ),
     function GetAllAnimatedKeyFrames=
     (
+        clearSelection()
         local uniqueKeys = #()
         for obj in objects do
         (
+            try (
                 for i=1 to obj.numSubs do 
                 (
                     if obj[i].Keys != undefined then
                     (
-                        
                         for j=1 to obj[i].numsubs do
                         (
                             if obj[i][j].Keys != undefined then
                             (
                                 for k in obj[i][j].keys do
                                 (
-                                    local strTime = k.time as string
-                                    local iTime = substring strTime 1 (strTime.count - 1 ) as integer
-                                    
+
+                                    local iTime = k.time as integer / TicksPerFrame
+
                                     appendifunique uniqueKeys iTime
                                     
                                 )
@@ -254,6 +255,7 @@ struct Warcraft_3_Ref_Parser
                     )
                     
                 )
+            ) catch()
         )
 
         local sortedKeys = sort uniqueKeys   

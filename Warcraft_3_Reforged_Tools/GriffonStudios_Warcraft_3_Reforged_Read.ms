@@ -227,7 +227,7 @@ struct Warcraft_3_Ref_Read
         fseek stream tag.Offset #seek_set
         local version = readLong stream
             
-        if (version != 1000) then throw (format "[Error] Incorrect version: %, expected version: 1000\n" version)
+        if (version != 1000 and version != 1100) then throw (format "[Error] Incorrect version: %, expected version: 1000 or 1100\n" version)
         
         if DEBUG_MODE then format "Version: %\n" version
         
@@ -327,7 +327,7 @@ struct Warcraft_3_Ref_Read
         (
             local shdr = _reader.ReadShader stream
             append mtls shdr
-            if DEBUG_MODE then format "%\n" shdr
+            --if DEBUG_MODE then format "%\n" shdr
         )
         return mtls
     ),
@@ -339,7 +339,10 @@ struct Warcraft_3_Ref_Read
         shdr.Size = readLong stream
         shdr.PriorityPlane = readLong stream
         shdr.Flags = readLong stream
-        shdr.Name = _helper.ReadFixedString stream 80
+        
+        --> version 1100 does not seem to have this name
+        if ( _mdx_version == 1000 ) then shdr.Name = _helper.ReadFixedString stream 80
+        
         shdr.Lays = _helper.ReadFixedString stream 4
         shdr.NumberOfLayers = readLong stream
         
@@ -380,13 +383,15 @@ struct Warcraft_3_Ref_Read
         lay.FresnelMultiplier   = readfloat stream
         lay.TeamColorMultiplier = readfloat stream
      
-													   
-												   
-						   
+        -- unknown for now -> a set of 14 integers
+        if ( _mdx_version == 1100 ) then _helper.SkipBytes stream 56
 		
-        if DEBUG_MODE then format " - %\n" lay
+        local animationsArePresent = false
         
-        if (lay.Size > 52 ) then
+        if ( _mdx_version == 1000 and lay.Size > 52 ) then animationsArePresent = true
+        if ( _mdx_version == 1100 and lay.Size > 108 ) then animationsArePresent = true
+
+        if (animationsArePresent ) then
         (
             for x=1 to 3 do
             (
@@ -401,6 +406,8 @@ struct Warcraft_3_Ref_Read
             if ( lay.KMTF == undefined ) then fseek stream -4 #seek_cur
         )
        
+        if DEBUG_MODE then format " - %\n" lay
+        
         return lay
     ),
     function ReadTEXS stream tag=

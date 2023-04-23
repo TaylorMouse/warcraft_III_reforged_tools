@@ -21,6 +21,7 @@
     global _helper = undefined
     global _reader = undefined
     global _build = undefined
+    global _mdx_version = undefined
 )
 
 STRUCT WC3REF_MDX
@@ -58,6 +59,7 @@ STRUCT WC3REF_MDX
             format "Processing %\n" tag.name
 
             if( tag.Name == "VERS" ) then mdx.vers = _reader.ReadVERS stream tag
+            _mdx_version = mdx.vers
             if( tag.Name == "MODL" ) then mdx.modl = _reader.ReadMODL stream tag
             if( tag.Name == "SEQS" ) then mdx.seqs = _reader.ReadSEQS stream tag
             if( tag.Name == "MTLS" ) then mdx.mtls = _reader.ReadMTLS stream tag
@@ -92,5 +94,10 @@ STRUCT WC3REF_MDX
         clearSelection()
         max tool zoomextents all
         setArrowCursor() 
+        
+        
     )
 )
+
+
+--WC3REF_MDX.Import @"G:\Blizzard\Warcraft - Reforged\Extracted 1100\war3.w3mod\_hd.w3mod\units\creeps\archnathid\archnathid.mdx"

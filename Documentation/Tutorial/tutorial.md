@@ -11,7 +11,7 @@ But rebranding it to this:
 
 The tutorial will cover the following topics:
 - Blockout in 3DS Max
-- Scultiping in ZBrush
+- Sculpting in ZBrush
 - Retopology in 3DS Max
 - Export meshes for baking
 - Texture baking in Substance Painter

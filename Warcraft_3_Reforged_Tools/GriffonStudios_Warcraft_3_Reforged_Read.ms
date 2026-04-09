@@ -340,7 +340,7 @@ struct Warcraft_3_Ref_Read
         shdr.PriorityPlane = readLong stream
         shdr.Flags = readLong stream
         
-        --> version 1100 does not seem to have this name
+        --> shader ID was moved to layer in 1100+
         if ( _mdx_version == 1000 ) then shdr.Name = _helper.ReadFixedString stream 80
         
         shdr.Lays = _helper.ReadFixedString stream 4
@@ -363,13 +363,21 @@ struct Warcraft_3_Ref_Read
     (
         -- FilterMode   (0:none; 1:transparent; 2:blend; 3:add)
         -- ShadingFlags (1:unshaded; +16:two sided; +32:unfogged)
-        
-        struct WC3Ref_LAYR 
-            ( Size, FilterMode, ShadingFlags, TextureId, TXAN_ID, CoordId, Alpha, EmissiveMultiplier, FresnelR, FresnelG, FresnelB, FresnelMultiplier, TeamColorMultiplier, KMTA, KMTE, KMTF ) 
-        
+
+        -- Texture wrapper for 1100+
+        struct WC3Ref_TextureInfo (
+            TextureId,
+            Semantic, -- 0: Diffuse, 1: Normal, 2: ORM, 3: Emissive, 4: TeamColor, 5: Enivronment
+            KMTF
+        )
+        struct WC3Ref_LAYR
+            ( Size, FilterMode, ShadingFlags, TextureId, TXAN_ID, CoordId, Alpha, EmissiveMultiplier, FresnelR, FresnelG, FresnelB, FresnelMultiplier, TeamColorMultiplier, ShaderId, Textures, KMTA, KMTE, KFC3, KFCA, KFTC, KMTF )
+
         local lay = WC3Ref_LAYR()
-        
+
         lay.Size                = readLong stream
+        local layerEnd          = fTell stream - 4 + lay.Size
+
         lay.FilterMode          = readLong stream + 1
         lay.ShadingFlags        = readLong stream
         lay.TextureId           = readLong stream + 1
@@ -382,32 +390,57 @@ struct Warcraft_3_Ref_Read
         lay.FresnelB            = readfloat stream
         lay.FresnelMultiplier   = readfloat stream
         lay.TeamColorMultiplier = readfloat stream
-     
-        -- unknown for now -> a set of 14 integers
-        if ( _mdx_version >= 1100 ) then _helper.SkipBytes stream 56
-		
-        local animationsArePresent = false
-        
-        if ( _mdx_version == 1000 and lay.Size > 52 ) then animationsArePresent = true
-        if ( _mdx_version >= 1100 and lay.Size > 108 ) then animationsArePresent = true
 
-        if (animationsArePresent ) then
+        lay.Textures = #()
+        if ( fTell stream < layerEnd and _mdx_version >= 1100 ) then
         (
-            for x=1 to 3 do
+            lay.ShaderId = readLong stream
+            local texCount = readLong stream
+            for i = 1 to texCount do
+            (
+                local tex = WC3Ref_TextureInfo()
+                tex.TextureId = readLong stream + 1
+                tex.Semantic  = readLong stream
+
+                local flipTag = _helper.ReadFixedString stream 4
+                if ( flipTag == "KMTF" ) then
+                    tex.KMTF = _reader.ReadLongAnim stream
+                else
+                    fseek stream -4 #seek_cur
+
+                append lay.Textures tex
+            )
+            if ( lay.Textures.count > 0 ) then lay.TextureId = lay.Textures[1].TextureId
+        )
+        
+        if (fTell stream < layerEnd) then
+        (
+            for x = 1 to 6 do
             (
                 local km = _helper.ReadFixedString stream 4
                 if ( km == "KMTA" ) then lay.KMTA = _reader.ReadFloatAnim stream --> Alpha
                 if ( km == "KMTE" ) then lay.KMTE = _reader.ReadFloatAnim stream --> Emissive
-                if ( km == "KMTF" ) then lay.KMTF = _reader.ReadLongAnim stream --> .FLI 
-                
+                if ( km == "KFC3" ) then lay.KFC3 = _reader.ReadVector3Anim stream
+                if ( km == "KFCA" ) then lay.KFCA = _reader.ReadFloatAnim stream
+                if ( km == "KFTC" ) then lay.KFTC = _reader.ReadFloatAnim stream
+                if ( km == "KMTF" ) then --> .FLI
+                (
+                    if ( _mdx_version < 1100 ) then
+                        lay.KMTF = _reader.ReadLongAnim stream
+                    else if ( lay.Textures.count > 0 ) then
+                        lay.Textures[1].KMTF = _reader.ReadLongAnim stream
+                )
             )
             if ( lay.KMTA == undefined ) then fseek stream -4 #seek_cur
             if ( lay.KMTE == undefined ) then fseek stream -4 #seek_cur
+            if ( lay.KFC3 == undefined ) then fseek stream -4 #seek_cur
+            if ( lay.KFCA == undefined ) then fseek stream -4 #seek_cur
+            if ( lay.KFTC == undefined ) then fseek stream -4 #seek_cur
             if ( lay.KMTF == undefined ) then fseek stream -4 #seek_cur
         )
-       
+
         if DEBUG_MODE then format " - %\n" lay
-        
+
         return lay
     ),
     function ReadTEXS stream tag=

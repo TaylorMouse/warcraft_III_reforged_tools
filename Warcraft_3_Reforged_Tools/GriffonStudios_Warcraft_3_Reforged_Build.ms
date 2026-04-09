@@ -42,6 +42,22 @@ struct Warcraft_3_Ref_Build
         if ( bit.and flags 0x0040 > 0 ) then setUserProp obj "BILLBOARD-LOCK-Z" true
         if ( bit.and flags 0x2000 > 0 ) then setUserProp obj "COLLISION-OBJECT" true
     ),
+    function ApplyLayerFlags layer mat=
+    (
+        if ( bit.and layer.ShadingFlags 0x1 > 0 ) then mat.unlit = true
+        if ( bit.and layer.ShadingFlags 0x2 > 0 ) then mat.envmap = true
+        if ( bit.and layer.ShadingFlags 0x4 > 0 ) then mat.wrapwidth = true
+        if ( bit.and layer.ShadingFlags 0x8 > 0 ) then mat.wrapheight = true
+        if ( bit.and layer.ShadingFlags 0x10 > 0 ) then mat.twosided = true
+        if ( bit.and layer.ShadingFlags 0x20 > 0 ) then mat.nofog = true
+        if ( bit.and layer.ShadingFlags 0x40 > 0 ) then mat.nodepthtest = true
+        if ( bit.and layer.ShadingFlags 0x80 > 0 ) then mat.nodepthset = true
+        if ( bit.and layer.ShadingFlags 0x100 > 0 ) then mat.nofallback = true
+
+        mat.teamcolor_multiplier = layer.TeamColorMultiplier
+        mat.fresnel_color = color ( layer.FresnelR * 255) ( layer.FresnelG * 255) ( layer.FresnelB * 255)
+        mat.fresnel_multiplier = layer.FresnelMultiplier
+    ),
     function SortTrack dummy_track=
     (
         
@@ -101,46 +117,73 @@ struct Warcraft_3_Ref_Build
             (
                 local layer = mtl.layers[l]
                 if DEBUG_MODE then format "Building layer %\n" layer
-                    
-                local textureId = layer.TextureId
-                local tex = texs[textureId]
-                local textureFile = assetFolder + tex.path + tex.fileNameOnly + ".dds"
                 
-                if DEBUG_MODE then format "Building tex %\n" tex.fileNameOnly
-                
-                if ( l == 1 ) then
+                -- Maybe it's worth adding a check that there is only 1 layer for 1100?
+                if ( _mdx_version >= 1100 and layer.Textures != undefined and layer.Textures.count > 0 ) then
                 (
-                    if ( bit.and layer.ShadingFlags 0x1 > 0 ) then mat.unlit = true
-                    if ( bit.and layer.ShadingFlags 0x2 > 0 ) then mat.envmap = true
-                    if ( bit.and layer.ShadingFlags 0x4 > 0 ) then mat.wrapwidth = true
-                    if ( bit.and layer.ShadingFlags 0x8 > 0 ) then  mat.wrapheight = true
-                    if ( bit.and layer.ShadingFlags 0x10 > 0 ) then mat.twosided = true
-                    if ( bit.and layer.ShadingFlags 0x20 > 0 ) then mat.nofog = true
-                    if ( bit.and layer.ShadingFlags 0x40 > 0 ) then mat.nodepthtest = true
-                    if ( bit.and layer.ShadingFlags 0x80 > 0 ) then mat.nodepthset = true
-                    if ( bit.and layer.ShadingFlags 0x100 > 0 ) then mat.nofallback = true
-                    
-                    mat.teamcolor_multiplier = layer.TeamColorMultiplier
-                    mat.fresnel_color = color ( layer.FresnelR * 255) ( layer.FresnelG * 255) ( layer.FresnelB * 255)
-                    mat.fresnel_multiplier = layer.FresnelMultiplier
-                )
-                case l of 
-                (
-                    /* Diffuse */
-                    1:  ( if tex.fileNameOnly != "" then mat.diffuse_map = Bitmaptexture fileName:textureFile )
-                    /* Normal */
-                    2:  ( if tex.fileNameOnly != "" then mat.normal_map = Bitmaptexture fileName:textureFile)
-                    /* ORM */
-                    3:  ( if tex.fileNameOnly != "" then mat.orm_map = Bitmaptexture fileName:textureFile )
-                    /* Emisive */
-                    4:  (
-                            mat.emissive_map = Bitmaptexture fileName:textureFile
-                            mat.emissive_multiplier = 1.0
+                    -- Same code
+                    if ( l == 1 ) then
+                    (
+                        _build.ApplyLayerFlags layer mat
+                    )
+
+                    for t in layer.Textures do -- mdx1100+ multi-texture logic
+                    (
+                        local tex = texs[t.TextureId]
+                        local textureFile = assetFolder + tex.path + tex.fileNameOnly + ".dds"
+
+                        if DEBUG_MODE then format "Building tex %\n" tex.fileNameOnly
+
+                        case t.Semantic of
+                        (
+                            /* Diffuse */
+                            0:  ( if tex.fileNameOnly != "" then mat.diffuse_map = Bitmaptexture fileName:textureFile )
+                            /* Normal */
+                            1:  ( if tex.fileNameOnly != "" then mat.normal_map = Bitmaptexture fileName:textureFile )
+                            /* ORM */
+                            2:  ( if tex.fileNameOnly != "" then mat.orm_map = Bitmaptexture fileName:textureFile )
+                            /* Emisive */
+                            3:  (
+                                    mat.emissive_map = Bitmaptexture fileName:textureFile
+                                    mat.emissive_multiplier = 1.0
+                                )
+                            /* Replaceable indicator */
+                            4:  ( mat.replacableTexture = tex.ReplacableId )
+                            /* Environment */
+                            5:  ( if tex.fileNameOnly != "" then mat.reflection_map = Bitmaptexture fileName:textureFile )
                         )
-                    /* Replaceable indicator */
-                    5:  ( mat.replacableTexture = tex.ReplacableId )
-                    /* Environment */
-                    6:  ( if tex.fileNameOnly != "" then mat.reflection_map = Bitmaptexture fileName:textureFile )
+                    )
+                )
+                else -- Legacy mdx1000 logic
+                (
+                    local textureId = layer.TextureId
+                    local tex = texs[textureId]
+                    local textureFile = assetFolder + tex.path + tex.fileNameOnly + ".dds"
+
+                    if DEBUG_MODE then format "Building tex %\n" tex.fileNameOnly
+
+                    if ( l == 1 ) then
+                    (
+                        _build.ApplyLayerFlags layer mat
+                    )
+                    case l of 
+                    (
+                        /* Diffuse */
+                        1:  ( if tex.fileNameOnly != "" then mat.diffuse_map = Bitmaptexture fileName:textureFile )
+                        /* Normal */
+                        2:  ( if tex.fileNameOnly != "" then mat.normal_map = Bitmaptexture fileName:textureFile)
+                        /* ORM */
+                        3:  ( if tex.fileNameOnly != "" then mat.orm_map = Bitmaptexture fileName:textureFile )
+                        /* Emisive */
+                        4:  (
+                                mat.emissive_map = Bitmaptexture fileName:textureFile
+                                mat.emissive_multiplier = 1.0
+                            )
+                        /* Replaceable indicator */
+                        5:  ( mat.replacableTexture = tex.ReplacableId )
+                        /* Environment */
+                        6:  ( if tex.fileNameOnly != "" then mat.reflection_map = Bitmaptexture fileName:textureFile )
+                    )
                 )
 
                 showTextureMap mat true
